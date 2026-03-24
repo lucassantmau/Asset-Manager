@@ -237,28 +237,6 @@ export default function Home() {
               </div>
 
               <div className="p-6 sm:p-8">
-              {/* Step indicator inside form for completed steps */}
-              {step <= 2 && (
-                <div className="flex items-center justify-between mb-6 bg-slate-100 p-2 rounded-xl">
-                  {[
-                    { num: 1, label: "Caso" },
-                    { num: 2, label: "Dados" },
-                    { num: 3, label: "Acesso" }
-                  ].map((s, i) => (
-                    <React.Fragment key={s.num}>
-                      <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
-                        step === s.num ? "bg-primary text-white shadow-md" :
-                        step > s.num ? "bg-emerald-100 text-emerald-700" : "text-[#6b7280]"
-                      }`}>
-                        <span>{s.num}</span>
-                        <span>{s.label}</span>
-                      </div>
-                      {i < 2 && <ArrowRight className="w-4 h-4 text-[#9ca3af] mx-1 flex-shrink-0" />}
-                    </React.Fragment>
-                  ))}
-                </div>
-              )}
-
               <AnimatePresence mode="wait">
                 {/* STEP 1: Description */}
                 {step === 1 && (
