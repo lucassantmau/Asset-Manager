@@ -14,7 +14,11 @@ import {
   Star,
   ChevronDown,
   Building2,
-  Users
+  Users,
+  AlertCircle,
+  Circle,
+  CheckCircle,
+  ListOrdered
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -171,9 +175,9 @@ export default function Home() {
                 Mais de 6.000 brasileiros já buscaram seus direitos com advogados verificados. Simples, 100% online e seguro.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+              <div className="flex flex-col sm:flex-row gap-4 mb-10">
+                <div className="flex items-center gap-3 bg-white border border-border rounded-xl p-4 flex-1 shadow-sm">
+                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <div>
@@ -181,8 +185,8 @@ export default function Home() {
                     <p className="text-sm text-muted-foreground">Dados criptografados</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                <div className="flex items-center gap-3 bg-white border border-border rounded-xl p-4 flex-1 shadow-sm">
+                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <div>
@@ -190,6 +194,36 @@ export default function Home() {
                     <p className="text-sm text-muted-foreground">Profissionais verificados</p>
                   </div>
                 </div>
+              </div>
+
+              <div className="bg-slate-50 border-2 border-border rounded-xl p-6">
+                <h2 className="text-base font-bold mb-5 flex items-center gap-2 text-foreground">
+                  <ListOrdered className="w-5 h-5 text-primary" />
+                  Como funciona?
+                </h2>
+                <ol className="space-y-4">
+                  <li className="flex gap-4">
+                    <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+                    <div>
+                      <strong className="block text-foreground text-sm mb-0.5">Preencha o formulário</strong>
+                      <span className="text-muted-foreground text-sm">Conte-nos o que aconteceu. Leva 2 minutos.</span>
+                    </div>
+                  </li>
+                  <li className="flex gap-4">
+                    <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+                    <div>
+                      <strong className="block text-foreground text-sm mb-0.5">Análise do caso</strong>
+                      <span className="text-muted-foreground text-sm">Um advogado especialista avaliará seus direitos.</span>
+                    </div>
+                  </li>
+                  <li className="flex gap-4">
+                    <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+                    <div>
+                      <strong className="block text-foreground text-sm mb-0.5">Início do processo</strong>
+                      <span className="text-muted-foreground text-sm">Você recebe instruções claras sobre os próximos passos.</span>
+                    </div>
+                  </li>
+                </ol>
               </div>
             </motion.div>
 
@@ -200,13 +234,25 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="glass-panel rounded-2xl p-6 sm:p-8 relative overflow-hidden"
             >
-              {/* Progress Bar */}
-              {step <= 3 && (
-                <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-100">
-                  <div 
-                    className="h-full bg-primary transition-all duration-500 ease-out"
-                    style={{ width: `${(step / 3) * 100}%` }}
-                  ></div>
+              {/* Step Pills */}
+              {step <= 2 && (
+                <div className="flex items-center justify-between mb-8 bg-slate-100 p-2 rounded-xl">
+                  {[
+                    { num: 1, label: "Caso" },
+                    { num: 2, label: "Dados" },
+                    { num: 3, label: "Acesso" }
+                  ].map((s, i) => (
+                    <React.Fragment key={s.num}>
+                      <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
+                        step === s.num ? "bg-primary text-white shadow-md" :
+                        step > s.num ? "bg-emerald-100 text-emerald-700" : "text-muted-foreground"
+                      }`}>
+                        <span>{s.num}</span>
+                        <span>{s.label}</span>
+                      </div>
+                      {i < 2 && <ArrowRight className="w-4 h-4 text-muted-foreground/40 mx-1 flex-shrink-0" />}
+                    </React.Fragment>
+                  ))}
                 </div>
               )}
 
@@ -220,30 +266,38 @@ export default function Home() {
                     exit={{ opacity: 0, x: -20 }}
                   >
                     <div className="mb-6">
-                      <h3 className="text-2xl font-display font-bold text-foreground mb-2">Conte o que aconteceu</h3>
+                      <h3 className="text-2xl font-display font-bold text-foreground mb-1">Conte o que aconteceu</h3>
                       <p className="text-muted-foreground text-sm flex items-center gap-2">
-                        <Clock className="w-4 h-4" /> Triagem gratuita • Etapa 1 de 3
+                        <Clock className="w-4 h-4" /> Triagem gratuita
                       </p>
                     </div>
 
                     <form onSubmit={form1.handleSubmit(onStep1Submit)} className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Descreva o ocorrido *</label>
+                        <label htmlFor="description" className="block text-sm font-bold text-foreground mb-2">
+                          Descreva o seu problema *
+                        </label>
+                        <p className="text-xs text-muted-foreground mb-2">Detalhe os fatos importantes para que o advogado entenda sua situação.</p>
                         <textarea 
+                          id="description"
                           {...form1.register("description")}
-                          className="w-full bg-white border border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all min-h-[120px] resize-none"
-                          placeholder="Detalhe os fatos. Ex: Comprei uma passagem e meu voo foi cancelado sem aviso..."
+                          className="w-full bg-white border-[3px] border-slate-300 rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all min-h-[160px] resize-y text-base leading-relaxed"
+                          placeholder="Ex: Comprei uma passagem e meu voo foi cancelado sem aviso prévio..."
                         ></textarea>
-                        {form1.formState.errors.description && (
-                          <p className="text-red-400 text-xs mt-1">{form1.formState.errors.description.message}</p>
+                        {form1.formState.errors.description ? (
+                          <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-3 rounded-lg border border-red-200">
+                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                            <span className="text-sm font-medium">{form1.formState.errors.description.message}</span>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground mt-2 text-right">
+                            {form1.watch("description")?.length || 0} / 2000
+                          </p>
                         )}
-                        <p className="text-xs text-muted-foreground mt-2 text-right">
-                          {form1.watch("description")?.length || 0} / 2000
-                        </p>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium mb-3">Quais provas você tem? (opcional)</label>
+                        <label className="block text-sm font-bold text-foreground mb-3">Quais provas você tem? <span className="font-normal text-muted-foreground">(opcional)</span></label>
                         <div className="flex flex-wrap gap-2">
                           {EVIDENCES.map(ev => {
                             const selected = form1.watch("evidences") || [];
@@ -259,12 +313,16 @@ export default function Home() {
                                     form1.setValue("evidences", [...selected, ev]);
                                   }
                                 }}
-                                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                                className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border-2 transition-all ${
                                   isSelected 
-                                    ? "bg-primary/15 border-primary text-primary" 
-                                    : "bg-secondary border-border text-muted-foreground hover:bg-slate-200"
+                                    ? "bg-primary border-primary text-white shadow-sm" 
+                                    : "bg-white border-slate-200 text-muted-foreground hover:border-primary/50 hover:bg-primary/5"
                                 }`}
                               >
+                                {isSelected
+                                  ? <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                                  : <Circle className="w-4 h-4 flex-shrink-0" />
+                                }
                                 {ev}
                               </button>
                             );
@@ -273,20 +331,22 @@ export default function Home() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium mb-2">Qual valor você busca? (R$ - opcional)</label>
+                        <label htmlFor="value" className="block text-sm font-bold text-foreground mb-2">Qual valor você busca de indenização? <span className="font-normal text-muted-foreground">(R$ - opcional)</span></label>
                         <input 
+                          id="value"
                           type="number"
                           {...form1.register("value")}
-                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
-                          placeholder="Ex: 5000"
+                          className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
+                          placeholder="Apenas números. Ex: 5000"
                         />
                       </div>
 
                       <button 
                         type="submit"
-                        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2"
+                        className="group w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-[0_6px_0_0_hsl(214,82%,36%)] hover:shadow-[0_3px_0_0_hsl(214,82%,36%)] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] transition-all flex justify-center items-center gap-2"
                       >
-                        Continuar <ArrowRight className="w-5 h-5" />
+                        Continuar para Meus Dados
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </button>
                     </form>
                   </motion.div>
@@ -300,79 +360,122 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <button 
-                      onClick={() => setStep(1)}
-                      className="text-sm text-muted-foreground hover:text-foreground mb-6 flex items-center gap-1"
-                    >
-                      ← Voltar
-                    </button>
-                    <div className="mb-6">
-                      <h3 className="text-2xl font-display font-bold text-foreground mb-2">Seus Dados</h3>
-                      <p className="text-muted-foreground text-sm">Etapa 2 de 3 • Sigilo Absoluto</p>
+                    <div className="flex items-center gap-3 mb-6">
+                      <button 
+                        onClick={() => setStep(1)}
+                        className="px-4 py-2 rounded-lg border-2 border-slate-200 font-bold text-sm text-muted-foreground hover:bg-slate-50 transition-colors flex items-center gap-2"
+                      >
+                        <ArrowRight className="w-4 h-4 rotate-180" /> Voltar
+                      </button>
+                      <div>
+                        <h3 className="text-2xl font-display font-bold text-foreground leading-tight">Seus Dados</h3>
+                        <p className="text-muted-foreground text-xs">Sigilo absoluto</p>
+                      </div>
                     </div>
 
                     <form onSubmit={form2.handleSubmit(onStep2Submit)} className="space-y-4">
                       <div>
+                        <label htmlFor="name" className="block text-sm font-bold text-foreground mb-2">Nome completo *</label>
                         <input 
+                          id="name"
                           {...form2.register("name")}
-                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
-                          placeholder="Nome completo *"
+                          className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
+                          placeholder="Digite seu nome completo"
                         />
-                        {form2.formState.errors.name && <p className="text-red-400 text-xs mt-1">{form2.formState.errors.name.message}</p>}
+                        {form2.formState.errors.name && (
+                          <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-2.5 rounded-lg border border-red-200">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            <span className="text-sm font-medium">{form2.formState.errors.name.message}</span>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
+                          <label htmlFor="whatsapp" className="block text-sm font-bold text-foreground mb-2">WhatsApp *</label>
                           <input 
+                            id="whatsapp"
                             {...form2.register("whatsapp")}
-                            className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
-                            placeholder="WhatsApp *"
+                            className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
+                            placeholder="(11) 99999-9999"
                           />
-                          {form2.formState.errors.whatsapp && <p className="text-red-400 text-xs mt-1">{form2.formState.errors.whatsapp.message}</p>}
+                          {form2.formState.errors.whatsapp && (
+                            <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-2.5 rounded-lg border border-red-200">
+                              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                              <span className="text-sm font-medium">{form2.formState.errors.whatsapp.message}</span>
+                            </div>
+                          )}
                         </div>
                         <div>
+                          <label htmlFor="email" className="block text-sm font-bold text-foreground mb-2">E-mail *</label>
                           <input 
+                            id="email"
                             {...form2.register("email")}
                             type="email"
-                            className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
-                            placeholder="E-mail *"
+                            className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
+                            placeholder="seu@email.com"
                           />
-                          {form2.formState.errors.email && <p className="text-red-400 text-xs mt-1">{form2.formState.errors.email.message}</p>}
+                          {form2.formState.errors.email && (
+                            <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-2.5 rounded-lg border border-red-200">
+                              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                              <span className="text-sm font-medium">{form2.formState.errors.email.message}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <input 
-                          {...form2.register("state")}
-                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
-                          placeholder="Estado (Opcional)"
-                        />
-                        <input 
-                          {...form2.register("city")}
-                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
-                          placeholder="Cidade (Opcional)"
-                        />
+                        <div>
+                          <label htmlFor="state" className="block text-sm font-bold text-foreground mb-2">Estado <span className="font-normal text-muted-foreground">(opcional)</span></label>
+                          <input 
+                            id="state"
+                            {...form2.register("state")}
+                            className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
+                            placeholder="Ex: SP"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="city" className="block text-sm font-bold text-foreground mb-2">Cidade <span className="font-normal text-muted-foreground">(opcional)</span></label>
+                          <input 
+                            id="city"
+                            {...form2.register("city")}
+                            className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
+                            placeholder="Ex: São Paulo"
+                          />
+                        </div>
                       </div>
 
-                      <div className="flex items-start gap-3 py-2">
+                      <div className="bg-blue-50 border-2 border-primary/20 p-4 rounded-xl flex items-start gap-3">
+                        <Lock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                        <p className="text-sm text-foreground leading-relaxed">
+                          <strong>Privacidade garantida:</strong> Seus dados são protegidos por lei e usados exclusivamente para análise do seu caso.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-3 py-1">
                         <input 
                           type="checkbox" 
                           {...form2.register("terms")}
                           id="terms"
-                          className="mt-1 w-4 h-4 rounded border-border bg-white text-primary focus:ring-primary accent-primary"
+                          className="mt-1 w-5 h-5 rounded border-slate-300 bg-white text-primary focus:ring-primary accent-primary cursor-pointer"
                         />
-                        <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed">
-                          Ao enviar o formulário, você aceita os <Link href="/termos" className="text-primary hover:underline">Termos de Uso</Link> e Política de Privacidade.
+                        <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                          Confirmo que as informações são verdadeiras e aceito os <Link href="/termos" className="text-primary font-medium hover:underline">Termos de Uso</Link> e Política de Privacidade.
                         </label>
                       </div>
-                      {form2.formState.errors.terms && <p className="text-red-400 text-xs">{form2.formState.errors.terms.message}</p>}
+                      {form2.formState.errors.terms && (
+                        <div className="flex items-center gap-2 text-red-700 bg-red-50 p-2.5 rounded-lg border border-red-200">
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm font-medium">{form2.formState.errors.terms.message}</span>
+                        </div>
+                      )}
 
                       <button 
                         type="submit"
                         disabled={submitCaseMutation.isPending}
-                        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] disabled:opacity-50 transition-all flex justify-center items-center gap-2 mt-4"
+                        className="group w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-[0_6px_0_0_hsl(214,82%,36%)] hover:shadow-[0_3px_0_0_hsl(214,82%,36%)] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all flex justify-center items-center gap-2 mt-2"
                       >
-                        {submitCaseMutation.isPending ? "Processando..." : "Enviar para Análise"}
+                        {submitCaseMutation.isPending ? "Processando..." : <>Enviar para Análise Profissional <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
                       </button>
                     </form>
                   </motion.div>
@@ -419,34 +522,46 @@ export default function Home() {
 
                     <form onSubmit={checkoutForm.handleSubmit(onCheckoutSubmit)} className="space-y-4">
                       <div>
+                        <label htmlFor="cpf" className="block text-sm font-bold text-foreground mb-2">CPF *</label>
                         <input 
+                          id="cpf"
                           {...checkoutForm.register("cpf")}
-                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
-                          placeholder="CPF *"
+                          className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
+                          placeholder="000.000.000-00"
                         />
-                        {checkoutForm.formState.errors.cpf && <p className="text-red-400 text-xs mt-1">{checkoutForm.formState.errors.cpf.message}</p>}
+                        {checkoutForm.formState.errors.cpf && (
+                          <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-2.5 rounded-lg border border-red-200">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            <span className="text-sm font-medium">{checkoutForm.formState.errors.cpf.message}</span>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        <label className={`border rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "pix" ? "border-primary bg-primary/10" : "border-border bg-white hover:bg-secondary"}`}>
-                          <input type="radio" value="pix" {...checkoutForm.register("method")} className="hidden" />
-                          <QrCode className={`w-6 h-6 ${checkoutForm.watch("method") === "pix" ? "text-primary" : "text-muted-foreground"}`} />
-                          <span className="text-sm font-medium">PIX</span>
-                        </label>
-                        <label className={`border rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "credit_card" ? "border-primary bg-primary/10" : "border-border bg-white hover:bg-secondary"}`}>
-                          <input type="radio" value="credit_card" {...checkoutForm.register("method")} className="hidden" />
-                          <CreditCard className={`w-6 h-6 ${checkoutForm.watch("method") === "credit_card" ? "text-primary" : "text-muted-foreground"}`} />
-                          <span className="text-sm font-medium">Cartão</span>
-                        </label>
+                      <div>
+                        <label className="block text-sm font-bold text-foreground mb-2">Forma de Pagamento</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <label className={`border-2 rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "pix" ? "border-primary bg-primary/10" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
+                            <input type="radio" value="pix" {...checkoutForm.register("method")} className="hidden" />
+                            <QrCode className={`w-6 h-6 ${checkoutForm.watch("method") === "pix" ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className="text-sm font-bold">PIX</span>
+                          </label>
+                          <label className={`border-2 rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "credit_card" ? "border-primary bg-primary/10" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
+                            <input type="radio" value="credit_card" {...checkoutForm.register("method")} className="hidden" />
+                            <CreditCard className={`w-6 h-6 ${checkoutForm.watch("method") === "credit_card" ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className="text-sm font-bold">Cartão</span>
+                          </label>
+                        </div>
                       </div>
 
                       <button 
                         type="submit"
                         disabled={createPaymentMutation.isPending}
-                        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] disabled:opacity-50 transition-all flex justify-center items-center gap-2 mt-4"
+                        className="w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-base shadow-[0_6px_0_0_#15803d] hover:shadow-[0_3px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all flex justify-center items-center gap-2 mt-2"
                       >
-                        {createPaymentMutation.isPending ? "Processando..." : "Confirmar Pagamento"} <Lock className="w-4 h-4" />
+                        <Lock className="w-5 h-5" />
+                        {createPaymentMutation.isPending ? "Processando..." : "Pagar e Acessar Advogados"}
                       </button>
+                      <p className="text-center text-xs text-muted-foreground">Pagamento 100% seguro. Suporte online disponível.</p>
                     </form>
                   </motion.div>
                 )}
