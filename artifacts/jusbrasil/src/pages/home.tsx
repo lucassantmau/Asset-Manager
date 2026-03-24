@@ -146,15 +146,10 @@ export default function Home() {
   return (
     <Layout>
       {/* HERO SECTION */}
-      <section className="relative pt-24 pb-32 overflow-hidden" id="avaliar">
-        {/* Background Image / Gradient */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src={`${import.meta.env.BASE_URL}images/hero-bg.png`} 
-            alt="Hero Background" 
-            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background"></div>
+      <section className="relative pt-24 pb-32 overflow-hidden hero-gradient" id="avaliar">
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_#EEF2FF_0%,_transparent_60%)]"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_#FFF8ED_0%,_transparent_60%)]"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -178,7 +173,7 @@ export default function Home() {
 
               <div className="flex flex-col sm:flex-row gap-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-primary">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <div>
@@ -187,7 +182,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-primary">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <div>
@@ -207,7 +202,7 @@ export default function Home() {
             >
               {/* Progress Bar */}
               {step <= 3 && (
-                <div className="absolute top-0 left-0 right-0 h-1.5 bg-white/5">
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-100">
                   <div 
                     className="h-full bg-primary transition-all duration-500 ease-out"
                     style={{ width: `${(step / 3) * 100}%` }}
@@ -236,7 +231,7 @@ export default function Home() {
                         <label className="block text-sm font-medium mb-2">Descreva o ocorrido *</label>
                         <textarea 
                           {...form1.register("description")}
-                          className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all min-h-[120px] resize-none"
+                          className="w-full bg-white border border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all min-h-[120px] resize-none"
                           placeholder="Detalhe os fatos. Ex: Comprei uma passagem e meu voo foi cancelado sem aviso..."
                         ></textarea>
                         {form1.formState.errors.description && (
@@ -266,8 +261,8 @@ export default function Home() {
                                 }}
                                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                                   isSelected 
-                                    ? "bg-primary/20 border-primary text-primary" 
-                                    : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"
+                                    ? "bg-primary/15 border-primary text-primary" 
+                                    : "bg-secondary border-border text-muted-foreground hover:bg-slate-200"
                                 }`}
                               >
                                 {ev}
@@ -282,7 +277,7 @@ export default function Home() {
                         <input 
                           type="number"
                           {...form1.register("value")}
-                          className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
                           placeholder="Ex: 5000"
                         />
                       </div>
@@ -320,7 +315,7 @@ export default function Home() {
                       <div>
                         <input 
                           {...form2.register("name")}
-                          className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all"
+                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
                           placeholder="Nome completo *"
                         />
                         {form2.formState.errors.name && <p className="text-red-400 text-xs mt-1">{form2.formState.errors.name.message}</p>}
@@ -330,7 +325,7 @@ export default function Home() {
                         <div>
                           <input 
                             {...form2.register("whatsapp")}
-                            className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all"
+                            className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
                             placeholder="WhatsApp *"
                           />
                           {form2.formState.errors.whatsapp && <p className="text-red-400 text-xs mt-1">{form2.formState.errors.whatsapp.message}</p>}
@@ -339,7 +334,7 @@ export default function Home() {
                           <input 
                             {...form2.register("email")}
                             type="email"
-                            className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all"
+                            className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
                             placeholder="E-mail *"
                           />
                           {form2.formState.errors.email && <p className="text-red-400 text-xs mt-1">{form2.formState.errors.email.message}</p>}
@@ -349,12 +344,12 @@ export default function Home() {
                       <div className="grid grid-cols-2 gap-4">
                         <input 
                           {...form2.register("state")}
-                          className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all"
+                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
                           placeholder="Estado (Opcional)"
                         />
                         <input 
                           {...form2.register("city")}
-                          className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all"
+                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
                           placeholder="Cidade (Opcional)"
                         />
                       </div>
@@ -364,7 +359,7 @@ export default function Home() {
                           type="checkbox" 
                           {...form2.register("terms")}
                           id="terms"
-                          className="mt-1 w-4 h-4 rounded border-white/20 bg-black/50 text-primary focus:ring-primary"
+                          className="mt-1 w-4 h-4 rounded border-border bg-white text-primary focus:ring-primary accent-primary"
                         />
                         <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed">
                           Ao enviar o formulário, você aceita os <Link href="/termos" className="text-primary hover:underline">Termos de Uso</Link> e Política de Privacidade.
@@ -391,7 +386,7 @@ export default function Home() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="py-12 flex flex-col items-center text-center"
                   >
-                    <div className="w-20 h-20 border-4 border-white/10 border-t-primary rounded-full animate-spin mb-8"></div>
+                    <div className="w-20 h-20 border-4 border-slate-200 border-t-primary rounded-full animate-spin mb-8"></div>
                     <h3 className="text-2xl font-display font-bold mb-3">Análise em Andamento</h3>
                     <p className="text-muted-foreground">
                       Aguarde enquanto nossa inteligência artificial avalia os requisitos do seu caso...
@@ -414,31 +409,31 @@ export default function Home() {
                       <p className="text-muted-foreground text-sm">Libere o acesso para receber propostas.</p>
                     </div>
 
-                    <div className="bg-black/40 border border-white/5 rounded-xl p-4 mb-6 flex items-center justify-between">
+                    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6 flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Taxa Única de Acesso</p>
                         <p className="text-2xl font-bold text-primary">R$ 199,90</p>
                       </div>
-                      <ShieldCheck className="w-8 h-8 text-white/20" />
+                      <ShieldCheck className="w-8 h-8 text-primary/30" />
                     </div>
 
                     <form onSubmit={checkoutForm.handleSubmit(onCheckoutSubmit)} className="space-y-4">
                       <div>
                         <input 
                           {...checkoutForm.register("cpf")}
-                          className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all"
+                          className="w-full bg-white border border-border rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
                           placeholder="CPF *"
                         />
                         {checkoutForm.formState.errors.cpf && <p className="text-red-400 text-xs mt-1">{checkoutForm.formState.errors.cpf.message}</p>}
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 pt-2">
-                        <label className={`border rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "pix" ? "border-primary bg-primary/10" : "border-white/10 hover:bg-white/5"}`}>
+                        <label className={`border rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "pix" ? "border-primary bg-primary/10" : "border-border bg-white hover:bg-secondary"}`}>
                           <input type="radio" value="pix" {...checkoutForm.register("method")} className="hidden" />
                           <QrCode className={`w-6 h-6 ${checkoutForm.watch("method") === "pix" ? "text-primary" : "text-muted-foreground"}`} />
                           <span className="text-sm font-medium">PIX</span>
                         </label>
-                        <label className={`border rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "credit_card" ? "border-primary bg-primary/10" : "border-white/10 hover:bg-white/5"}`}>
+                        <label className={`border rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "credit_card" ? "border-primary bg-primary/10" : "border-border bg-white hover:bg-secondary"}`}>
                           <input type="radio" value="credit_card" {...checkoutForm.register("method")} className="hidden" />
                           <CreditCard className={`w-6 h-6 ${checkoutForm.watch("method") === "credit_card" ? "text-primary" : "text-muted-foreground"}`} />
                           <span className="text-sm font-medium">Cartão</span>
@@ -471,7 +466,7 @@ export default function Home() {
                       <QrCode className="w-full h-full text-black" />
                     </div>
 
-                    <div className="bg-black/50 border border-white/10 rounded-xl p-3 mb-6 font-mono text-xs break-all text-muted-foreground">
+                    <div className="bg-slate-50 border border-border rounded-xl p-3 mb-6 font-mono text-xs break-all text-muted-foreground">
                       {pixCode}
                     </div>
 
@@ -480,12 +475,12 @@ export default function Home() {
                         navigator.clipboard.writeText(pixCode || "");
                         alert("Código copiado!");
                       }}
-                      className="w-full py-3 rounded-xl bg-white/10 border border-white/20 text-foreground font-medium hover:bg-white/20 transition-all"
+                      className="w-full py-3 rounded-xl bg-secondary border border-border text-foreground font-medium hover:bg-slate-200 transition-all"
                     >
                       Copiar Chave PIX
                     </button>
                     
-                    <div className="mt-6 pt-6 border-t border-white/10">
+                    <div className="mt-6 pt-6 border-t border-border">
                       <Link href="/area-do-cliente" className="text-primary hover:underline text-sm font-medium">
                         Ir para Área do Cliente
                       </Link>
@@ -518,7 +513,7 @@ export default function Home() {
               </AnimatePresence>
 
               {step <= 2 && (
-                <div className="mt-8 flex items-center justify-center gap-4 text-xs text-muted-foreground border-t border-white/5 pt-6">
+                <div className="mt-8 flex items-center justify-center gap-4 text-xs text-muted-foreground border-t border-border pt-6">
                   <div className="flex items-center gap-1"><Lock className="w-3 h-3 text-primary" /> Dados Protegidos</div>
                   <div className="flex items-center gap-1"><Star className="w-3 h-3 text-primary" /> +3.000 Casos</div>
                 </div>
@@ -529,7 +524,7 @@ export default function Home() {
       </section>
 
       {/* CAUSE CATEGORIES */}
-      <section className="py-12 border-y border-white/5 bg-black/40">
+      <section className="py-12 border-y border-border bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h3 className="text-sm font-bold tracking-widest uppercase text-muted-foreground mb-6 text-center">Principais Causas</h3>
           <div className="flex overflow-x-auto gap-3 pb-4 no-scrollbar">
@@ -537,7 +532,7 @@ export default function Home() {
               <a 
                 key={i} 
                 href="#avaliar"
-                className="whitespace-nowrap px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-primary/20 hover:border-primary/50 hover:text-primary transition-all text-sm font-medium"
+                className="whitespace-nowrap px-4 py-2 rounded-full bg-white border border-border shadow-sm hover:bg-primary/10 hover:border-primary/50 hover:text-primary transition-all text-sm font-medium"
               >
                 {cause}
               </a>
@@ -588,12 +583,12 @@ export default function Home() {
       </section>
 
       {/* MEDIA MENTIONS */}
-      <section className="py-24 bg-black relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-black to-black"></div>
+      <section className="py-24 bg-slate-900 relative">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <span className="text-primary font-semibold tracking-wider text-sm uppercase">Reconhecimento Nacional</span>
-            <h2 className="text-3xl md:text-4xl font-display font-bold mt-4">Somos destaque na mídia</h2>
+            <h2 className="text-3xl md:text-4xl font-display font-bold mt-4 text-white">Somos destaque na mídia</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -604,8 +599,8 @@ export default function Home() {
             ].map((mention, i) => (
               <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-primary/50 transition-all group">
                 <div className="font-display text-2xl font-bold text-white/50 group-hover:text-primary transition-colors mb-6">{mention.source}</div>
-                <p className="text-lg font-medium mb-8 leading-snug">{mention.title}</p>
-                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                <p className="text-lg font-medium mb-8 leading-snug text-white/80">{mention.title}</p>
+                <div className="flex justify-between items-center text-sm text-white/40">
                   <span>{mention.date}</span>
                   <span className="flex items-center gap-1 group-hover:text-primary transition-colors">Leia mais <ArrowRight className="w-4 h-4" /></span>
                 </div>
@@ -663,13 +658,13 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="py-24 bg-black/50 border-t border-white/5">
+      <section className="py-24 bg-slate-50 border-t border-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-display font-bold mb-12 text-center">Fui lesado, e agora?</h2>
           
           <div className="space-y-4">
             {FAQS.map((faq, i) => (
-              <details key={i} className="group bg-white/5 border border-white/10 rounded-xl overflow-hidden [&_summary::-webkit-details-marker]:hidden">
+              <details key={i} className="group bg-white border border-border shadow-sm rounded-xl overflow-hidden [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex items-center justify-between p-6 cursor-pointer font-medium text-lg hover:text-primary transition-colors">
                   {faq.q}
                   <ChevronDown className="w-5 h-5 transition-transform group-open:rotate-180" />

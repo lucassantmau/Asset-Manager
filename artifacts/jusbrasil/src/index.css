@@ -42,38 +42,38 @@
 }
 
 :root {
-  /* Luxury Dark Mode as default for premium feel */
-  --background: 240 10% 4%; /* Very deep charcoal/navy */
-  --foreground: 0 0% 98%;
-  
-  --card: 240 10% 8%;
-  --card-foreground: 0 0% 98%;
-  --card-border: 45 30% 20%;
-  
-  --popover: 240 10% 8%;
-  --popover-foreground: 0 0% 98%;
-  --popover-border: 45 30% 20%;
-  
-  --primary: 43 74% 50%; /* Sophisticated Gold */
-  --primary-foreground: 240 10% 4%;
-  
-  --secondary: 240 10% 12%;
-  --secondary-foreground: 0 0% 98%;
-  
-  --muted: 240 10% 15%;
-  --muted-foreground: 240 5% 65%;
-  
-  --accent: 43 74% 20%; /* Darker gold for subtle accents */
-  --accent-foreground: 43 74% 60%;
-  
+  /* Clean Premium Light Mode */
+  --background: 0 0% 100%;           /* Pure white */
+  --foreground: 222 47% 11%;         /* Deep navy/almost black */
+
+  --card: 0 0% 100%;                 /* White cards */
+  --card-foreground: 222 47% 11%;
+  --card-border: 220 13% 91%;        /* Subtle light gray border */
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 220 13% 91%;
+
+  --primary: 220 60% 28%;            /* Deep navy blue — professional, legal */
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 220 14% 96%;          /* Very light blue-gray */
+  --secondary-foreground: 222 47% 20%;
+
+  --muted: 220 14% 96%;              /* Light gray backgrounds */
+  --muted-foreground: 220 9% 46%;    /* Medium gray text */
+
+  --accent: 43 90% 52%;              /* Gold accent */
+  --accent-foreground: 222 47% 11%;
+
   --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive-foreground: 0 0% 100%;
 
-  --border: 240 10% 15%;
-  --input: 240 10% 15%;
-  --ring: 43 74% 50%;
+  --border: 220 13% 91%;             /* Light border */
+  --input: 220 13% 88%;
+  --ring: 220 60% 28%;
 
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 }
 
 @layer base {
@@ -82,9 +82,7 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground selection:bg-primary/30 selection:text-primary;
-    background-image: radial-gradient(circle at 50% 0%, rgba(30, 30, 35, 0.5) 0%, rgba(10, 10, 12, 1) 100%);
-    background-attachment: fixed;
+    @apply font-sans antialiased bg-background text-foreground selection:bg-primary/15 selection:text-primary;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -94,15 +92,43 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-card/60 backdrop-blur-xl border border-white/5 shadow-2xl;
+    @apply bg-white/70 backdrop-blur-xl border border-border shadow-lg shadow-slate-200/60;
   }
-  
+
   .gold-gradient-text {
-    @apply bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[#B8860B] via-[#D4A017] to-[#B8860B] bg-clip-text text-transparent;
+  }
+
+  .navy-gradient-text {
+    @apply bg-gradient-to-r from-[#1B3A70] via-[#2D5AB5] to-[#1B3A70] bg-clip-text text-transparent;
+  }
+
+  .section-divider {
+    @apply border-t border-border;
   }
 
   .hover-elevate {
-    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 hover:border-primary/30;
+    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200;
+  }
+
+  .card-premium {
+    @apply bg-white border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground rounded-full px-6 py-3 font-semibold text-sm hover:bg-primary/90 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/20;
+  }
+
+  .btn-outline {
+    @apply border border-border bg-white text-foreground rounded-full px-6 py-3 font-semibold text-sm hover:bg-secondary transition-all duration-200;
+  }
+
+  .input-field {
+    @apply w-full border border-border rounded-xl px-4 py-3 text-sm bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all;
+  }
+
+  .hero-gradient {
+    background: linear-gradient(135deg, #EEF2FF 0%, #F8FAFF 40%, #FFF8ED 100%);
   }
 }
 

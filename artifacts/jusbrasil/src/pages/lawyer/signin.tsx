@@ -66,7 +66,7 @@ export default function LawyerSignin() {
               <input 
                 {...form.register("email")} 
                 type="email" 
-                className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all" 
+                className="w-full bg-white border border-border rounded-xl p-3 text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none transition-all" 
               />
               {form.formState.errors.email && <p className="text-red-400 text-xs mt-1">{form.formState.errors.email.message}</p>}
             </div>
@@ -79,7 +79,7 @@ export default function LawyerSignin() {
               <input 
                 {...form.register("password")} 
                 type="password" 
-                className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all" 
+                className="w-full bg-white border border-border rounded-xl p-3 text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none transition-all" 
               />
               {form.formState.errors.password && <p className="text-red-400 text-xs mt-1">{form.formState.errors.password.message}</p>}
             </div>
@@ -93,7 +93,7 @@ export default function LawyerSignin() {
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-white/10 text-center">
+          <div className="mt-8 pt-6 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
               Ainda não faz parte? <Link href="/advogado/signup" className="text-primary hover:underline font-medium">Cadastre-se grátis</Link>
             </p>

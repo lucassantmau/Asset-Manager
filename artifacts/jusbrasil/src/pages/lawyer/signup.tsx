@@ -128,16 +128,16 @@ export default function LawyerSignup() {
 
                   {/* Section 1 */}
                   <div>
-                    <h3 className="text-lg font-bold border-b border-white/10 pb-2 mb-4">Dados Pessoais</h3>
+                    <h3 className="text-lg font-bold border-b border-border pb-2 mb-4">Dados Pessoais</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium mb-1">Nome Completo *</label>
-                        <input {...form.register("name")} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary focus:outline-none transition-colors" />
+                        <input {...form.register("name")} className="w-full bg-white border border-border rounded-xl p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none transition-colors" />
                         {form.formState.errors.name && <p className="text-red-400 text-xs mt-1">{form.formState.errors.name.message}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">E-mail Profissional *</label>
-                        <input {...form.register("email")} type="email" className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary focus:outline-none transition-colors" />
+                        <input {...form.register("email")} type="email" className="w-full bg-white border border-border rounded-xl p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none transition-colors" />
                         {form.formState.errors.email && <p className="text-red-400 text-xs mt-1">{form.formState.errors.email.message}</p>}
                       </div>
                     </div>
@@ -145,16 +145,16 @@ export default function LawyerSignup() {
 
                   {/* Section 2 */}
                   <div>
-                    <h3 className="text-lg font-bold border-b border-white/10 pb-2 mb-4">Dados Profissionais</h3>
+                    <h3 className="text-lg font-bold border-b border-border pb-2 mb-4">Dados Profissionais</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium mb-1">Número da OAB *</label>
-                        <input {...form.register("oab")} placeholder="Ex: SP123456" className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary focus:outline-none transition-colors" />
+                        <input {...form.register("oab")} placeholder="Ex: SP123456" className="w-full bg-white border border-border rounded-xl p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none transition-colors" />
                         {form.formState.errors.oab && <p className="text-red-400 text-xs mt-1">{form.formState.errors.oab.message}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Celular / WhatsApp *</label>
-                        <input {...form.register("phone")} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary focus:outline-none transition-colors" />
+                        <input {...form.register("phone")} className="w-full bg-white border border-border rounded-xl p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none transition-colors" />
                         {form.formState.errors.phone && <p className="text-red-400 text-xs mt-1">{form.formState.errors.phone.message}</p>}
                       </div>
                     </div>
@@ -162,22 +162,22 @@ export default function LawyerSignup() {
 
                   {/* Section 3 */}
                   <div>
-                    <h3 className="text-lg font-bold border-b border-white/10 pb-2 mb-4">Credenciais de Acesso</h3>
+                    <h3 className="text-lg font-bold border-b border-border pb-2 mb-4">Credenciais de Acesso</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium mb-1">Senha *</label>
-                        <input {...form.register("password")} type="password" placeholder="Mínimo 8 caracteres" className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary focus:outline-none transition-colors" />
+                        <input {...form.register("password")} type="password" placeholder="Mínimo 8 caracteres" className="w-full bg-white border border-border rounded-xl p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none transition-colors" />
                         {form.formState.errors.password && <p className="text-red-400 text-xs mt-1">{form.formState.errors.password.message}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Confirmar Senha *</label>
-                        <input {...form.register("confirmPassword")} type="password" className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary focus:outline-none transition-colors" />
+                        <input {...form.register("confirmPassword")} type="password" className="w-full bg-white border border-border rounded-xl p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none transition-colors" />
                         {form.formState.errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{form.formState.errors.confirmPassword.message}</p>}
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
                     <Link href="/advogado/signin" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                       Já tenho cadastro
                     </Link>
