@@ -173,7 +173,7 @@ export default function Home() {
               </h1>
               <p className="text-white/65 mb-6 max-w-lg text-[15px]">Atendimento jurídico 100% digital. Conectamos seu caso a advogados para avaliação e, se cabível, ação no Juizado Especial Cível</p>
 
-              {/* Trust badges — 2×2 grid */}
+              {/* Trust badges */}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <div className="flex items-center gap-3 glass-panel p-3 rounded-xl col-span-2">
                   <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
@@ -211,16 +211,14 @@ export default function Home() {
                     <p className="text-muted-foreground text-xs leading-tight">a advogados de pequenas causas, com rapidez e segurança.</p>
                   </div>
                 </div>
-              </div>
-
-              {/* Etapas do processo — badge style */}
-              <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
-                <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                  <ListOrdered className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-foreground text-sm leading-tight">Etapas do processo</p>
-                  <p className="text-muted-foreground text-xs leading-tight">Triagem gratuita → Análise da causa → Advogado ingressa com processo</p>
+                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl col-span-2">
+                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <ListOrdered className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-foreground text-sm leading-tight">Etapas do processo</p>
+                    <p className="text-muted-foreground text-xs leading-tight">Triagem gratuita → Análise da causa → Advogado ingressa com processo, se cabível</p>
+                  </div>
                 </div>
               </div>
             </motion.div>
