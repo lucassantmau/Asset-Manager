@@ -177,48 +177,48 @@ export default function Home() {
 
               {/* Trust badges — 2×2 grid */}
               <div className="grid grid-cols-2 gap-2 mb-4">
-                <div className="flex items-center gap-2 glass-panel p-2.5 rounded-xl">
-                  <div className="w-8 h-8 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <ShieldCheck className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
+                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-xs leading-tight">100% Seguro</p>
-                    <p className="text-muted-foreground text-[10px] leading-tight">Protegido por lei.</p>
+                    <p className="font-bold text-foreground text-sm leading-tight">100% Seguro</p>
+                    <p className="text-muted-foreground text-xs leading-tight">Protegido por lei.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 glass-panel p-2.5 rounded-xl">
-                  <div className="w-8 h-8 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
+                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-xs leading-tight">OAB Verificados</p>
-                    <p className="text-muted-foreground text-[10px] leading-tight">Profissionais registrados.</p>
+                    <p className="font-bold text-foreground text-sm leading-tight">OAB Verificados</p>
+                    <p className="text-muted-foreground text-xs leading-tight">Profissionais registrados.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 glass-panel p-2.5 rounded-xl">
-                  <div className="w-8 h-8 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <Clock className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
+                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <Clock className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-xs leading-tight">Triagem gratuita</p>
-                    <p className="text-muted-foreground text-[10px] leading-tight">Sem custo. 2 minutos.</p>
+                    <p className="font-bold text-foreground text-sm leading-tight">Triagem gratuita</p>
+                    <p className="text-muted-foreground text-xs leading-tight">Sem custo. 2 minutos.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 glass-panel p-2.5 rounded-xl">
-                  <div className="w-8 h-8 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <Scale className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
+                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <Scale className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-xs leading-tight">Conecta você</p>
-                    <p className="text-muted-foreground text-[10px] leading-tight">Rapidez e segurança.</p>
+                    <p className="font-bold text-foreground text-sm leading-tight">Conecta você</p>
+                    <p className="text-muted-foreground text-xs leading-tight">Rapidez e segurança.</p>
                   </div>
                 </div>
               </div>
 
               {/* Justiça em 3 passos — horizontal */}
               <div className="glass-panel rounded-xl p-3">
-                <p className="text-xs font-bold mb-2.5 flex items-center gap-1.5 text-foreground">
-                  <ListOrdered className="w-3.5 h-3.5 text-[#fee001]" />
+                <p className="text-sm font-bold mb-2.5 flex items-center gap-1.5 text-foreground">
+                  <ListOrdered className="w-4 h-4 text-[#fee001]" />
                   Justiça em 3 passos
                 </p>
                 <div className="grid grid-cols-3 gap-2">
@@ -228,9 +228,9 @@ export default function Home() {
                     { n: "3", title: "Processo", sub: "Próximos passos" },
                   ].map(({ n, title, sub }) => (
                     <div key={n} className="flex flex-col items-center text-center gap-1">
-                      <div className="w-6 h-6 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs">{n}</div>
-                      <strong className="text-foreground text-[10px] font-bold leading-tight">{title}</strong>
-                      <span className="text-muted-foreground text-[10px] leading-tight">{sub}</span>
+                      <div className="w-7 h-7 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs">{n}</div>
+                      <strong className="text-foreground text-xs font-bold leading-tight">{title}</strong>
+                      <span className="text-muted-foreground text-xs leading-tight">{sub}</span>
                     </div>
                   ))}
                 </div>
