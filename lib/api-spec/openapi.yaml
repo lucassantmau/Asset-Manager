@@ -1,22 +1,28 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Procjus Premium API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: cases
+    description: Case management
+  - name: lawyers
+    description: Lawyer operations
+  - name: payments
+    description: Payment operations
+  - name: blog
+    description: Blog operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +30,185 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /cases:
+    post:
+      operationId: submitCase
+      tags: [cases]
+      summary: Submit a new case
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaseSubmission"
+      responses:
+        "201":
+          description: Case submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cases/{caseId}:
+    get:
+      operationId: getCase
+      tags: [cases]
+      summary: Get case details
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Case found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseResponse"
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /lawyers:
+    post:
+      operationId: registerLawyer
+      tags: [lawyers]
+      summary: Register a new lawyer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LawyerRegistration"
+      responses:
+        "201":
+          description: Lawyer registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LawyerResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /lawyers/signin:
+    post:
+      operationId: lawyerSignIn
+      tags: [lawyers]
+      summary: Lawyer sign in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInRequest"
+      responses:
+        "200":
+          description: Sign in successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignInResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /payments:
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Create a payment for a case
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentRequest"
+      responses:
+        "201":
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /blog:
+    get:
+      operationId: getBlogPosts
+      tags: [blog]
+      summary: Get blog posts
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: number
+        - name: limit
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Blog posts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPostList"
+
+  /blog/{slug}:
+    get:
+      operationId: getBlogPost
+      tags: [blog]
+      summary: Get a blog post by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +219,254 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
+
+    CaseSubmission:
+      type: object
+      properties:
+        description:
+          type: string
+          minLength: 20
+        evidences:
+          type: array
+          items:
+            type: string
+        value:
+          type: number
+          nullable: true
+        name:
+          type: string
+        whatsapp:
+          type: string
+        email:
+          type: string
+          format: email
+        state:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+      required:
+        - description
+        - name
+        - whatsapp
+        - email
+
+    CaseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending, analyzing, active, closed]
+        description:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        whatsapp:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - status
+        - description
+        - name
+        - email
+        - whatsapp
+        - createdAt
+
+    LawyerRegistration:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        oab:
+          type: string
+        phone:
+          type: string
+        cep:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        password:
+          type: string
+          minLength: 8
+      required:
+        - name
+        - email
+        - oab
+        - phone
+        - password
+
+    LawyerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        oab:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - oab
+        - status
+        - createdAt
+
+    SignInRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    SignInResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        lawyer:
+          $ref: "#/components/schemas/LawyerResponse"
+      required:
+        - token
+        - lawyer
+
+    PaymentRequest:
+      type: object
+      properties:
+        caseId:
+          type: string
+        email:
+          type: string
+          format: email
+        whatsapp:
+          type: string
+        cpf:
+          type: string
+        method:
+          type: string
+          enum: [pix, credit_card, debit_card]
+      required:
+        - caseId
+        - email
+        - whatsapp
+        - cpf
+        - method
+
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending, paid, failed]
+        method:
+          type: string
+        pixCode:
+          type: string
+          nullable: true
+        pixQrCode:
+          type: string
+          nullable: true
+        amount:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - status
+        - method
+        - amount
+        - createdAt
+
+    BlogPost:
+      type: object
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+        publishedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - slug
+        - title
+        - summary
+        - content
+        - category
+        - publishedAt
+
+    BlogPostList:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlogPost"
+        total:
+          type: number
+        page:
+          type: number
+        limit:
+          type: number
+      required:
+        - posts
+        - total
+        - page
+        - limit

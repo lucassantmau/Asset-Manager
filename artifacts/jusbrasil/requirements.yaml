@@ -1,0 +1,20 @@
+packages:
+  "framer-motion": "For premium smooth entry animations, scroll reveals, and micro-interactions"
+  "react-hook-form": "For complex multi-step form state management and validation"
+  "@hookform/resolvers": "For Zod schema validation integration with react-hook-form"
+  "date-fns": "For formatting dates in blog posts and client area"
+  "clsx": "For conditional class name merging"
+  "tailwind-merge": "For merging tailwind classes without conflicts"
+
+images:
+  - path: "artifacts/jusbrasil/public/images/hero-bg.png"
+    description: "Luxurious abstract dark background with subtle gold and deep charcoal gradient mesh, sophisticated high-end editorial feel"
+    aspect_ratio: "16:9"
+  - path: "artifacts/jusbrasil/public/images/logo-icon.png"
+    description: "Minimalist geometric legal scale icon in metallic gold on a transparent background, luxury brand style"
+    aspect_ratio: "1:1"
+
+notes:
+  - Using @workspace/api-client-react for all API interactions based on the provided orval generated code.
+  - Zod schemas are recreated locally for form validation to seamlessly integrate with react-hook-form, matching the API types.
+  - Dark luxury theme applied via index.css with custom Google fonts (Playfair Display and DM Sans).
