@@ -25,6 +25,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useSubmitCase, useCreatePayment } from "@workspace/api-client-react";
 import { Link } from "wouter";
+import { supabase } from "@/lib/supabase";
 
 // Form schemas
 const caseStep1Schema = z.object({
@@ -101,23 +102,35 @@ export default function Home() {
     setStep(3); // Loading / Analyzing state
     try {
       const step1Data = form1.getValues();
-      const result = await submitCaseMutation.mutateAsync({
-        data: {
-          description: step1Data.description,
-          evidences: step1Data.evidences,
-          value: step1Data.value,
-          name: data.name,
-          email: data.email,
-          whatsapp: data.whatsapp,
-          state: data.state,
-          city: data.city,
-        }
+      const evidences = step1Data.evidences || [];
+
+      const { error } = await supabase.from("cases").insert({
+        case_description: step1Data.description,
+        evidence_conversas: evidences.includes("Conversas (WhatsApp)"),
+        evidence_audios: evidences.includes("Áudios / Gravações"),
+        evidence_fotos: evidences.includes("Fotos / Vídeos"),
+        evidence_emails: evidences.includes("E-mails"),
+        evidence_testemunhas: evidences.includes("Testemunhas"),
+        evidence_comprovantes: evidences.includes("Comprovantes"),
+        evidence_contrato: evidences.includes("Contrato / Documentos"),
+        evidence_protocolos: evidences.includes("Protocolos de Atendimento"),
+        evidence_boletim: evidences.includes("Boletim de Ocorrência"),
+        evidence_outros: evidences.includes("Outros"),
+        claim_value: step1Data.value ?? null,
+        full_name: data.name,
+        whatsapp: data.whatsapp,
+        email: data.email,
+        state: data.state ?? null,
+        city: data.city ?? null,
+        accepted_terms: data.terms,
       });
-      setCaseId(result.id);
-      setTimeout(() => setStep(4), 2000); // Simulate analysis time, then go to checkout
+
+      if (error) throw error;
+
+      setTimeout(() => setStep(7), 2000);
     } catch (error) {
       console.error("Failed to submit case", error);
-      setStep(2); // Go back on error
+      setStep(2);
     }
   };
 
@@ -602,6 +615,39 @@ export default function Home() {
                     >
                       Acessar Área do Cliente
                     </Link>
+                  </motion.div>
+                )}
+
+                {/* STEP 7: Supabase submission confirmation */}
+                {step === 7 && (
+                  <motion.div
+                    key="step7"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-10"
+                  >
+                    <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-6 border-4 border-[#bbf7d0]">
+                      <CheckCircle2 className="w-10 h-10" />
+                    </div>
+                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-3">Caso enviado com sucesso!</h3>
+                    <p className="text-base text-[#444444] mb-2 max-w-sm mx-auto leading-relaxed">
+                      Recebemos as informações do seu caso. Nossa equipe irá analisar e entrar em contato em breve pelo WhatsApp ou e-mail informado.
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-8">Prazo de resposta: até 1 dia útil.</p>
+
+                    <div className="bg-[#f8f9fa] border border-slate-200 rounded-xl p-4 text-left mb-8 max-w-xs mx-auto">
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Próximos passos</p>
+                      <ol className="space-y-2 text-sm text-[#333]">
+                        <li className="flex items-start gap-2"><span className="w-5 h-5 rounded-full bg-[#fee001] text-[#716300] text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>Análise do seu caso por advogado especialista</li>
+                        <li className="flex items-start gap-2"><span className="w-5 h-5 rounded-full bg-[#fee001] text-[#716300] text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>Contato via WhatsApp com orientações</li>
+                        <li className="flex items-start gap-2"><span className="w-5 h-5 rounded-full bg-[#fee001] text-[#716300] text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>Se cabível, ingresso com a ação no Juizado Especial</li>
+                      </ol>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                      <Lock className="w-3.5 h-3.5 text-[#425f8e]" />
+                      <span>Seus dados estão protegidos e em sigilo absoluto</span>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
