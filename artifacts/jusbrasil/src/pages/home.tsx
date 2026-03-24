@@ -154,13 +154,13 @@ export default function Home() {
         {/* Subtle top-right glow */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#032956] rounded-full opacity-40 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch">
             {/* Hero Copy — Editorial Juris */}
             <motion.div 
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="pt-2"
+              className="pt-2 flex flex-col"
             >
               <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1.5 mb-4">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#fee001]" />
@@ -171,10 +171,10 @@ export default function Home() {
                 <span className="text-[#fee001]">Defendidos</span> Sem<br />
                 Sair de Casa.
               </h1>
-              <p className="text-white/65 mb-6 max-w-lg text-[15px]">Atendimento jurídico 100% digital. Conectamos seu caso a advogados para avaliação e, se cabível, ação no Juizado Especial Cível</p>
+              <p className="text-white/65 mb-3 max-w-lg text-[15px]">Atendimento jurídico 100% digital. Conectamos seu caso a advogados para avaliação e, se cabível, ação no Juizado Especial Cível</p>
 
               {/* Trust badges */}
-              <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="grid grid-cols-2 gap-1.5 flex-1 content-between">
                 <div className="flex items-center gap-3 glass-panel p-3 rounded-xl col-span-2">
                   <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
                     <ShieldCheck className="w-4 h-4" />
