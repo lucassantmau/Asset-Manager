@@ -213,22 +213,23 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Justiça em 3 passos — horizontal */}
-              <div className="glass-panel rounded-xl p-3">
-                <p className="text-sm font-bold mb-2.5 flex items-center gap-1.5 text-foreground">
-                  <ListOrdered className="w-4 h-4 text-[#fee001]" />
-                  Justiça em 3 passos
-                </p>
-                <div className="grid grid-cols-3 gap-2">
+              {/* Justiça em 3 passos — badge style */}
+              <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
+                <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                  <ListOrdered className="w-4 h-4" />
+                </div>
+                <div className="flex items-center gap-2 flex-1">
                   {[
-                    { n: "1", title: "Preencha", sub: "2 minutos" },
-                    { n: "2", title: "Análise", sub: "Advogado avalia" },
-                    { n: "3", title: "Processo", sub: "Próximos passos" },
-                  ].map(({ n, title, sub }) => (
-                    <div key={n} className="flex flex-col items-center text-center gap-1">
-                      <div className="w-7 h-7 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs">{n}</div>
-                      <strong className="text-foreground text-xs font-bold leading-tight">{title}</strong>
-                      <span className="text-muted-foreground text-xs leading-tight">{sub}</span>
+                    { n: "1", title: "Preencha" },
+                    { n: "2", title: "Análise" },
+                    { n: "3", title: "Processo" },
+                  ].map(({ n, title }, i) => (
+                    <div key={n} className="flex items-center gap-2">
+                      {i > 0 && <span className="text-muted-foreground/40 text-xs">›</span>}
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-[10px] flex-shrink-0">{n}</span>
+                        <span className="font-bold text-foreground text-sm">{title}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
