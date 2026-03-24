@@ -203,6 +203,9 @@ export default function Home() {
                     <p className="text-muted-foreground text-xs">Avaliamos sem custo. Leva 2 minutos.</p>
                   </div>
                 </div>
+                <p className="text-white/50 text-xs leading-relaxed px-1 pt-1">
+                  Plataforma que conecta você a advogados de pequenas causas, com rapidez e segurança.
+                </p>
               </div>
 
               <div className="glass-panel rounded-xl p-4">
