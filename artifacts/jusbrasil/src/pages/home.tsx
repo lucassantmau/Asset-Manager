@@ -175,73 +175,65 @@ export default function Home() {
                 Atendimento jurídico 100% digital. Recuperamos seu dinheiro e sua dignidade com agilidade.
               </p>
 
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
-                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <ShieldCheck className="w-4 h-4" />
+              {/* Trust badges — 2×2 grid */}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="flex items-center gap-2 glass-panel p-2.5 rounded-xl">
+                  <div className="w-8 h-8 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <ShieldCheck className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-sm">100% Seguro e Sigiloso</p>
-                    <p className="text-muted-foreground text-xs">Seus dados estão protegidos por lei.</p>
+                    <p className="font-bold text-foreground text-xs leading-tight">100% Seguro</p>
+                    <p className="text-muted-foreground text-[10px] leading-tight">Protegido por lei.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
-                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <CheckCircle2 className="w-4 h-4" />
+                <div className="flex items-center gap-2 glass-panel p-2.5 rounded-xl">
+                  <div className="w-8 h-8 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-sm">Advogados OAB Verificados</p>
-                    <p className="text-muted-foreground text-xs">Apenas profissionais registrados.</p>
+                    <p className="font-bold text-foreground text-xs leading-tight">OAB Verificados</p>
+                    <p className="text-muted-foreground text-[10px] leading-tight">Profissionais registrados.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
-                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <Clock className="w-4 h-4" />
+                <div className="flex items-center gap-2 glass-panel p-2.5 rounded-xl">
+                  <div className="w-8 h-8 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <Clock className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-sm">Triagem gratuita do seu caso</p>
-                    <p className="text-muted-foreground text-xs">Avaliamos sem custo. Leva 2 minutos.</p>
+                    <p className="font-bold text-foreground text-xs leading-tight">Triagem gratuita</p>
+                    <p className="text-muted-foreground text-[10px] leading-tight">Sem custo. 2 minutos.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
-                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <Scale className="w-4 h-4" />
+                <div className="flex items-center gap-2 glass-panel p-2.5 rounded-xl">
+                  <div className="w-8 h-8 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <Scale className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-sm">Plataforma que conecta você</p>
-                    <p className="text-muted-foreground text-xs">a advogados de pequenas causas, com rapidez e segurança.</p>
+                    <p className="font-bold text-foreground text-xs leading-tight">Conecta você</p>
+                    <p className="text-muted-foreground text-[10px] leading-tight">Rapidez e segurança.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="glass-panel rounded-xl p-4">
-                <h2 className="text-sm font-bold mb-3 flex items-center gap-2 text-foreground">
-                  <ListOrdered className="w-4 h-4 text-[#fee001]" />
+              {/* Justiça em 3 passos — horizontal */}
+              <div className="glass-panel rounded-xl p-3">
+                <p className="text-xs font-bold mb-2.5 flex items-center gap-1.5 text-foreground">
+                  <ListOrdered className="w-3.5 h-3.5 text-[#fee001]" />
                   Justiça em 3 passos
-                </h2>
-                <ol className="space-y-3">
-                  <li className="flex gap-3">
-                    <div className="w-7 h-7 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs flex-shrink-0">1</div>
-                    <div>
-                      <strong className="block text-foreground text-xs font-bold">Preencha o formulário</strong>
-                      <span className="text-muted-foreground text-xs">Leva apenas 2 minutos.</span>
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { n: "1", title: "Preencha", sub: "2 minutos" },
+                    { n: "2", title: "Análise", sub: "Advogado avalia" },
+                    { n: "3", title: "Processo", sub: "Próximos passos" },
+                  ].map(({ n, title, sub }) => (
+                    <div key={n} className="flex flex-col items-center text-center gap-1">
+                      <div className="w-6 h-6 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs">{n}</div>
+                      <strong className="text-foreground text-[10px] font-bold leading-tight">{title}</strong>
+                      <span className="text-muted-foreground text-[10px] leading-tight">{sub}</span>
                     </div>
-                  </li>
-                  <li className="flex gap-3">
-                    <div className="w-7 h-7 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs flex-shrink-0">2</div>
-                    <div>
-                      <strong className="block text-foreground text-xs font-bold">Análise do caso</strong>
-                      <span className="text-muted-foreground text-xs">Advogado avaliará seus direitos.</span>
-                    </div>
-                  </li>
-                  <li className="flex gap-3">
-                    <div className="w-7 h-7 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs flex-shrink-0">3</div>
-                    <div>
-                      <strong className="block text-foreground text-xs font-bold">Início do processo</strong>
-                      <span className="text-muted-foreground text-xs">Instruções claras sobre os próximos passos.</span>
-                    </div>
-                  </li>
-                </ol>
+                  ))}
+                </div>
               </div>
             </motion.div>
 
