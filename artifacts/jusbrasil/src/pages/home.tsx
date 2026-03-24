@@ -150,77 +150,77 @@ export default function Home() {
   return (
     <Layout>
       {/* HERO SECTION */}
-      <section className="relative pt-14 pb-28 hero-gradient" id="avaliar">
+      <section className="relative pt-8 pb-12 hero-gradient" id="avaliar">
         {/* Subtle top-right glow */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#032956] rounded-full opacity-40 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
             {/* Hero Copy — Editorial Juris */}
             <motion.div 
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="pt-6"
+              className="pt-2"
             >
-              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 mb-6">
-                <ShieldCheck className="w-4 h-4 text-[#fee001]" />
-                <span className="text-white/80 text-sm font-medium">Advogados verificados OAB</span>
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1.5 mb-4">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#fee001]" />
+                <span className="text-white/80 text-xs font-medium">Advogados verificados OAB</span>
               </div>
-              <h1 className="text-[48px] md:text-[56px] font-black leading-[1.05] tracking-tight mb-6 text-white">
+              <h1 className="text-[40px] md:text-[48px] font-black leading-[1.05] tracking-tight mb-4 text-white">
                 Seus Direitos<br />
                 <span className="text-[#fee001]">Defendidos</span> Sem<br />
                 Sair de Casa.
               </h1>
-              <p className="text-lg text-white/65 mb-10 max-w-lg leading-[1.6]">
-                Atendimento jurídico 100% digital especializado em pequenas causas. Recuperamos seu dinheiro e sua dignidade com agilidade editorial.
+              <p className="text-base text-white/65 mb-6 max-w-lg leading-[1.6]">
+                Atendimento jurídico 100% digital. Recuperamos seu dinheiro e sua dignidade com agilidade.
               </p>
 
-              <div className="space-y-3 mb-10">
-                <div className="flex items-center gap-4 glass-panel p-4 rounded-xl">
-                  <div className="w-11 h-11 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <ShieldCheck className="w-5 h-5" />
+              <div className="space-y-2 mb-6">
+                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
+                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-base">100% Seguro e Sigiloso</p>
-                    <p className="text-muted-foreground text-sm">Seus dados estão protegidos por lei.</p>
+                    <p className="font-bold text-foreground text-sm">100% Seguro e Sigiloso</p>
+                    <p className="text-muted-foreground text-xs">Seus dados estão protegidos por lei.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 glass-panel p-4 rounded-xl">
-                  <div className="w-11 h-11 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
-                    <CheckCircle2 className="w-5 h-5" />
+                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
+                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-base">Advogados OAB Verificados</p>
-                    <p className="text-muted-foreground text-sm">Apenas profissionais registrados.</p>
+                    <p className="font-bold text-foreground text-sm">Advogados OAB Verificados</p>
+                    <p className="text-muted-foreground text-xs">Apenas profissionais registrados.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="glass-panel rounded-xl p-6">
-                <h2 className="text-base font-bold mb-5 flex items-center gap-3 text-foreground">
-                  <ListOrdered className="w-5 h-5 text-[#fee001]" />
+              <div className="glass-panel rounded-xl p-4">
+                <h2 className="text-sm font-bold mb-3 flex items-center gap-2 text-foreground">
+                  <ListOrdered className="w-4 h-4 text-[#fee001]" />
                   Justiça em 3 passos
                 </h2>
-                <ol className="space-y-5">
-                  <li className="flex gap-4">
-                    <div className="w-9 h-9 rounded-lg bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-base flex-shrink-0">1</div>
+                <ol className="space-y-3">
+                  <li className="flex gap-3">
+                    <div className="w-7 h-7 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs flex-shrink-0">1</div>
                     <div>
-                      <strong className="block text-foreground text-sm font-bold mb-0.5">Preencha o formulário</strong>
-                      <span className="text-muted-foreground text-sm">Conte-nos o que aconteceu. Leva apenas 2 minutos.</span>
+                      <strong className="block text-foreground text-xs font-bold">Preencha o formulário</strong>
+                      <span className="text-muted-foreground text-xs">Leva apenas 2 minutos.</span>
                     </div>
                   </li>
-                  <li className="flex gap-4">
-                    <div className="w-9 h-9 rounded-lg bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-base flex-shrink-0">2</div>
+                  <li className="flex gap-3">
+                    <div className="w-7 h-7 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs flex-shrink-0">2</div>
                     <div>
-                      <strong className="block text-foreground text-sm font-bold mb-0.5">Análise do caso</strong>
-                      <span className="text-muted-foreground text-sm">Um advogado especialista avaliará seus direitos.</span>
+                      <strong className="block text-foreground text-xs font-bold">Análise do caso</strong>
+                      <span className="text-muted-foreground text-xs">Advogado avaliará seus direitos.</span>
                     </div>
                   </li>
-                  <li className="flex gap-4">
-                    <div className="w-9 h-9 rounded-lg bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-base flex-shrink-0">3</div>
+                  <li className="flex gap-3">
+                    <div className="w-7 h-7 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-xs flex-shrink-0">3</div>
                     <div>
-                      <strong className="block text-foreground text-sm font-bold mb-0.5">Início do processo</strong>
-                      <span className="text-muted-foreground text-sm">Instruções claras sobre os próximos passos.</span>
+                      <strong className="block text-foreground text-xs font-bold">Início do processo</strong>
+                      <span className="text-muted-foreground text-xs">Instruções claras sobre os próximos passos.</span>
                     </div>
                   </li>
                 </ol>
@@ -236,7 +236,7 @@ export default function Home() {
               role="region"
               aria-label="Formulário de avaliação de caso"
             >
-              <div className="p-6 sm:p-8">
+              <div className="p-5">
               <AnimatePresence mode="wait">
                 {/* STEP 1: Description */}
                 {step === 1 && (
@@ -246,43 +246,42 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <div className="bg-[#001532] -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-5 mb-6">
+                    <div className="bg-[#001532] -mx-5 -mt-5 px-5 py-3.5 mb-5">
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-bold text-white">Conte o que aconteceu</h3>
-                        <span className="inline-flex items-center gap-1.5 bg-[#fee001] text-[#716300] text-sm font-bold px-3 py-1.5 rounded-full">
-                          <Clock className="w-3.5 h-3.5" /> Consulta gratuita
+                        <span className="inline-flex items-center gap-1 bg-[#fee001] text-[#716300] text-xs font-bold px-2.5 py-1 rounded-full">
+                          <Clock className="w-3 h-3" /> Consulta gratuita
                         </span>
                       </div>
-                      <p className="text-white/55 text-sm mt-1.5">Avaliamos seu caso sem custo. Leva apenas 2 minutos.</p>
+                      <p className="text-white/55 text-xs mt-1">Avaliamos seu caso sem custo. Leva apenas 2 minutos.</p>
                     </div>
 
-                    <form onSubmit={form1.handleSubmit(onStep1Submit)} className="space-y-6">
+                    <form onSubmit={form1.handleSubmit(onStep1Submit)} className="space-y-4">
                       <div>
-                        <label htmlFor="description" className="block text-sm font-bold text-foreground mb-2">
+                        <label htmlFor="description" className="block text-xs font-bold text-foreground mb-1.5">
                           Descreva o seu problema *
                         </label>
-                        <p className="text-xs text-muted-foreground mb-2">Detalhe os fatos importantes para que o advogado entenda sua situação.</p>
                         <textarea 
                           id="description"
                           {...form1.register("description")}
-                          className="w-full bg-white border-[3px] border-slate-300 rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all min-h-[160px] resize-y text-base leading-relaxed"
+                          className="w-full bg-white border-2 border-slate-200 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all min-h-[100px] resize-y text-sm leading-relaxed"
                           placeholder="Ex: Comprei uma passagem e meu voo foi cancelado sem aviso prévio..."
                         ></textarea>
                         {form1.formState.errors.description ? (
-                          <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-3 rounded-lg border border-red-200">
-                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                            <span className="text-sm font-medium">{form1.formState.errors.description.message}</span>
+                          <div className="flex items-center gap-1.5 text-red-700 mt-1.5 bg-red-50 px-3 py-2 rounded-lg">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span className="text-xs font-medium">{form1.formState.errors.description.message}</span>
                           </div>
                         ) : (
-                          <p className="text-xs text-muted-foreground mt-2 text-right">
+                          <p className="text-xs text-muted-foreground mt-1 text-right">
                             {form1.watch("description")?.length || 0} / 2000
                           </p>
                         )}
                       </div>
 
                       <div>
-                        <label className="block text-sm font-bold text-foreground mb-3">Quais provas você tem? <span className="font-normal text-muted-foreground">(opcional)</span></label>
-                        <div className="flex flex-wrap gap-2">
+                        <label className="block text-xs font-bold text-foreground mb-2">Quais provas você tem? <span className="font-normal text-muted-foreground">(opcional)</span></label>
+                        <div className="flex flex-wrap gap-1.5">
                           {EVIDENCES.map(ev => {
                             const selected = form1.watch("evidences") || [];
                             const isSelected = selected.includes(ev);
@@ -297,15 +296,15 @@ export default function Home() {
                                     form1.setValue("evidences", [...selected, ev]);
                                   }
                                 }}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border-2 transition-all ${
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
                                   isSelected 
-                                    ? "bg-[#001532] border-[#001532] text-white shadow-sm" 
+                                    ? "bg-[#001532] border-[#001532] text-white" 
                                     : "bg-white border-muted text-muted-foreground hover:border-[#001532]/30 hover:bg-muted"
                                 }`}
                               >
                                 {isSelected
-                                  ? <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                                  : <Circle className="w-4 h-4 flex-shrink-0" />
+                                  ? <CheckCircle className="w-3 h-3 flex-shrink-0" />
+                                  : <Circle className="w-3 h-3 flex-shrink-0" />
                                 }
                                 {ev}
                               </button>
@@ -315,22 +314,22 @@ export default function Home() {
                       </div>
 
                       <div>
-                        <label htmlFor="value" className="block text-sm font-bold text-foreground mb-2">Qual valor você busca de indenização? <span className="font-normal text-muted-foreground">(R$ - opcional)</span></label>
+                        <label htmlFor="value" className="block text-xs font-bold text-foreground mb-1.5">Valor da indenização buscada <span className="font-normal text-muted-foreground">(R$ - opcional)</span></label>
                         <input 
                           id="value"
                           type="number"
                           {...form1.register("value")}
-                          className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
-                          placeholder="Apenas números. Ex: 5000"
+                          className="w-full h-10 bg-white border-2 border-slate-200 rounded-xl px-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all text-sm"
+                          placeholder="Ex: 5000"
                         />
                       </div>
 
                       <button 
                         type="submit"
-                        className="group w-full py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] transition-all flex justify-center items-center gap-2"
+                        className="group w-full py-3.5 rounded-xl bg-[#fee001] text-[#716300] font-bold text-sm shadow-[0_5px_0_0_#caa800] hover:shadow-[0_2px_0_0_#caa800] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all flex justify-center items-center gap-2"
                       >
                         Continuar para Meus Dados
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </button>
                     </form>
                   </motion.div>
@@ -612,9 +611,9 @@ export default function Home() {
               </AnimatePresence>
 
               {step <= 2 && (
-                <div className="mt-6 flex items-center justify-center gap-6 text-sm text-[#666666] border-t-2 border-[#e5e7eb] pt-5">
-                  <div className="flex items-center gap-1.5"><Lock className="w-4 h-4 text-primary" /> Dados Protegidos</div>
-                  <div className="flex items-center gap-1.5"><Star className="w-4 h-4 text-primary" /> +3.000 Casos</div>
+                <div className="mt-4 flex items-center justify-center gap-5 text-xs text-muted-foreground border-t border-muted pt-4">
+                  <div className="flex items-center gap-1"><Lock className="w-3.5 h-3.5 text-[#425f8e]" /> Dados Protegidos</div>
+                  <div className="flex items-center gap-1"><Star className="w-3.5 h-3.5 text-[#fee001]" /> +3.000 Casos</div>
                 </div>
               )}
               </div>{/* end p-6 sm:p-8 */}
