@@ -238,11 +238,11 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <div className="mb-6">
-                      <h3 className="text-2xl font-display font-bold text-foreground mb-1">Conte o que aconteceu</h3>
-                      <p className="text-emerald-500 text-sm font-medium flex items-center gap-2">
+                    <div className="flex items-center justify-between bg-[#f3f4f6] border-b-4 border-[#e5e7eb] -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-4 mb-6">
+                      <h3 className="text-xl font-display font-bold text-[#111111]">Conte o que aconteceu</h3>
+                      <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold text-sm">
                         <Clock className="w-4 h-4" /> Triagem gratuita
-                      </p>
+                      </span>
                     </div>
 
                     <form onSubmit={form1.handleSubmit(onStep1Submit)} className="space-y-6">
