@@ -204,13 +204,13 @@ export default function Home() {
                     <p className="text-muted-foreground text-xs leading-tight">Sem custo. 2 minutos.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
+                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl col-span-2">
                   <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
                     <Scale className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-sm leading-tight">Conecta você</p>
-                    <p className="text-muted-foreground text-xs leading-tight">Rapidez e segurança.</p>
+                    <p className="font-bold text-foreground text-sm leading-tight">Plataforma que conecta você</p>
+                    <p className="text-muted-foreground text-xs leading-tight">a advogados de pequenas causas, com rapidez e segurança.</p>
                   </div>
                 </div>
               </div>
