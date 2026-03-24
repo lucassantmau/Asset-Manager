@@ -182,8 +182,8 @@ export default function Home() {
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-sm leading-tight">100% Seguro</p>
-                    <p className="text-muted-foreground text-xs leading-tight">Protegido por lei.</p>
+                    <p className="font-bold text-foreground text-sm leading-tight">100% Seguro e Sigiloso</p>
+                    <p className="text-muted-foreground text-xs leading-tight">Seus dados estão protegidos por lei.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
@@ -191,8 +191,8 @@ export default function Home() {
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-sm leading-tight">OAB Verificados</p>
-                    <p className="text-muted-foreground text-xs leading-tight">Profissionais registrados.</p>
+                    <p className="font-bold text-foreground text-sm leading-tight">Advogados OAB Verificados</p>
+                    <p className="text-muted-foreground text-xs leading-tight">Apenas profissionais registrados.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
@@ -200,8 +200,8 @@ export default function Home() {
                     <Clock className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-sm leading-tight">Triagem gratuita</p>
-                    <p className="text-muted-foreground text-xs leading-tight">Sem custo. 2 minutos.</p>
+                    <p className="font-bold text-foreground text-sm leading-tight">Triagem gratuita do seu caso</p>
+                    <p className="text-muted-foreground text-xs leading-tight">Avaliamos sem custo. Leva 2 minutos.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 glass-panel p-3 rounded-xl col-span-2">
