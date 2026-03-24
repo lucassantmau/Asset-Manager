@@ -239,7 +239,7 @@ export default function Home() {
                     exit={{ opacity: 0, x: -20 }}
                   >
                     <div className="flex items-center justify-between border-b-4 border-[#e5e7eb] -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-4 mb-6 bg-[#1468d6a8] text-[#ffffff]">
-                      <h3 className="text-xl font-display font-bold text-[#ffffff]">Conte o que aconteceu</h3>
+                      <h3 className="text-xl font-display font-bold text-[#000000]">Conte o que aconteceu</h3>
                       <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold text-sm">
                         <Clock className="w-4 h-4" /> Triagem gratuita
                       </span>
