@@ -220,16 +220,13 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2 flex-1">
                   {[
-                    { n: "1", title: "Preencha" },
-                    { n: "2", title: "Análise" },
-                    { n: "3", title: "Processo" },
-                  ].map(({ n, title }, i) => (
-                    <div key={n} className="flex items-center gap-2">
-                      {i > 0 && <span className="text-muted-foreground/40 text-xs">›</span>}
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-5 h-5 rounded-md bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-[10px] flex-shrink-0">{n}</span>
-                        <span className="font-bold text-foreground text-sm">{title}</span>
-                      </div>
+                    "Triagem",
+                    "Análise",
+                    "Advogado ingressa processo",
+                  ].map((title, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      {i > 0 && <span className="text-[#fee001] font-bold text-sm">→</span>}
+                      <span className="font-bold text-foreground text-sm">{title}</span>
                     </div>
                   ))}
                 </div>
