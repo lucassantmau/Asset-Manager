@@ -242,7 +242,7 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <div className="bg-[#001532] -mx-5 -mt-5 px-5 py-3.5 mb-5">
+                    <div className="bg-gradient-to-r from-[#001532] to-[#032956] -mx-5 -mt-5 px-5 py-3.5 mb-5 border-t-[3px] border-[#fee001] rounded-t-xl">
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-bold text-white">Conte o que aconteceu</h3>
                         <span className="inline-flex items-center gap-1 bg-[#fee001] text-[#716300] text-xs font-bold px-2.5 py-1 rounded-full">
