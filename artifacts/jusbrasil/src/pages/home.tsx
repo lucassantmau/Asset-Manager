@@ -213,22 +213,14 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Justiça em 3 passos — badge style */}
+              {/* Etapas do processo — badge style */}
               <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
                 <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
                   <ListOrdered className="w-4 h-4" />
                 </div>
-                <div className="flex items-center gap-2 flex-1">
-                  {[
-                    "Triagem",
-                    "Análise",
-                    "Advogado ingressa processo",
-                  ].map((title, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      {i > 0 && <span className="text-[#fee001] font-bold text-sm">→</span>}
-                      <span className="font-bold text-foreground text-sm">{title}</span>
-                    </div>
-                  ))}
+                <div>
+                  <p className="font-bold text-foreground text-sm leading-tight">Etapas do processo</p>
+                  <p className="text-muted-foreground text-xs leading-tight">Triagem gratuita → Análise da causa → Advogado ingressa com processo, se cabível</p>
                 </div>
               </div>
             </motion.div>
