@@ -228,14 +228,6 @@ export default function Home() {
               role="region"
               aria-label="Formulário de avaliação de caso"
             >
-              {/* Form header bar */}
-              <div className="bg-[#f3f4f6] border-b-4 border-[#e5e7eb] px-6 py-4 flex items-center justify-center">
-                <span className="inline-flex items-center gap-2 bg-emerald-600 text-white text-base font-bold px-5 py-2 rounded-full shadow-sm">
-                  <Clock className="w-4 h-4" />
-                  Triagem gratuita
-                </span>
-              </div>
-
               <div className="p-6 sm:p-8">
               <AnimatePresence mode="wait">
                 {/* STEP 1: Description */}
