@@ -238,7 +238,7 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <div className="flex items-center justify-between bg-[#f3f4f6] border-b-4 border-[#e5e7eb] -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-4 mb-6">
+                    <div className="flex items-center justify-between bg-[#f3f4f6] border-b-4 border-[#e5e7eb] -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-4 mb-6 text-[#1468d6]">
                       <h3 className="text-xl font-display font-bold text-[#ffffff]">Conte o que aconteceu</h3>
                       <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold text-sm">
                         <Clock className="w-4 h-4" /> Triagem gratuita
