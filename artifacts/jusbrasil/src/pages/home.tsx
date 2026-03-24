@@ -239,7 +239,7 @@ export default function Home() {
                     exit={{ opacity: 0, x: -20 }}
                   >
                     <div className="flex items-center justify-between bg-[#f3f4f6] border-b-4 border-[#e5e7eb] -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-4 mb-6">
-                      <h3 className="text-xl font-display font-bold text-[#111111]">Conte o que aconteceu</h3>
+                      <h3 className="text-xl font-display font-bold text-[#ffffff]">Conte o que aconteceu</h3>
                       <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold text-sm">
                         <Clock className="w-4 h-4" /> Triagem gratuita
                       </span>
@@ -611,7 +611,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* CAUSE CATEGORIES */}
       <section className="py-12 border-y border-border bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -629,7 +628,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* HOW IT WORKS */}
       <section className="py-32" id="como-funciona">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -670,7 +668,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* MEDIA MENTIONS */}
       <section className="py-24 bg-slate-900 relative">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent"></div>
@@ -698,7 +695,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* TESTIMONIALS */}
       <section className="py-32" id="depoimentos">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -745,7 +741,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* FAQ */}
       <section className="py-24 bg-slate-50 border-t border-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -766,7 +761,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* LAWYER CTA */}
       <section className="py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-primary/5"></div>
@@ -804,7 +798,6 @@ export default function Home() {
           <p className="text-xs text-muted-foreground mt-6">Habilitação profissional sujeita a verificação</p>
         </div>
       </section>
-
     </Layout>
   );
 }
