@@ -4,48 +4,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   ShieldCheck, 
   Clock, 
-  Scale, 
   CheckCircle2, 
   ArrowRight, 
-  FileText, 
-  CreditCard,
-  QrCode,
+  AlertCircle,
   Lock,
   Star,
   ChevronDown,
   Building2,
   Users,
-  AlertCircle,
-  Circle,
-  CheckCircle,
-  ListOrdered
+  FileText,
+  Scale,
+  ListOrdered,
+  QrCode,
+  CreditCard
 } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useSubmitCase, useCreatePayment } from "@workspace/api-client-react";
 import { Link } from "wouter";
-
-// Form schemas
-const caseStep1Schema = z.object({
-  description: z.string().min(20, "Mínimo de 20 caracteres necessários"),
-  evidences: z.array(z.string()).optional(),
-  value: z.coerce.number().optional().nullable(),
-});
-
-const caseStep2Schema = z.object({
-  name: z.string().min(3, "Nome é obrigatório"),
-  whatsapp: z.string().min(10, "WhatsApp válido é obrigatório"),
-  email: z.string().email("E-mail inválido"),
-  state: z.string().optional(),
-  city: z.string().optional(),
-  terms: z.boolean().refine(val => val === true, "Você deve aceitar os termos"),
-});
-
-const checkoutSchema = z.object({
-  method: z.enum(["pix", "credit_card", "debit_card"]),
-  cpf: z.string().min(11, "CPF inválido"),
-});
 
 const EVIDENCES = [
   "Conversas (WhatsApp)", "Áudios / Gravações", "Fotos / Vídeos", 
@@ -70,81 +44,129 @@ const FAQS = [
   { q: "A Pequenas Causas Processos é um serviço oficial da Justiça?", a: "Não. A Pequenas Causas Processos é uma plataforma digital privada que conecta pessoas a advogados independentes. Não temos vínculo com o Poder Judiciário." }
 ];
 
+type Step1Data = {
+  description: string;
+  evidences: string[];
+  value: string;
+};
+
+type Step2Data = {
+  name: string;
+  whatsapp: string;
+  email: string;
+};
+
 export default function Home() {
   const [step, setStep] = useState(1);
   const [caseId, setCaseId] = useState<string | null>(null);
   const [pixCode, setPixCode] = useState<string | null>(null);
-  
+
+  const [step1Data, setStep1Data] = useState<Step1Data>({ description: "", evidences: [], value: "" });
+  const [step2Data, setStep2Data] = useState<Step2Data>({ name: "", whatsapp: "", email: "" });
+  const [cpf, setCpf] = useState("");
+  const [payMethod, setPayMethod] = useState<"pix" | "credit_card">("pix");
+
+  const [errors1, setErrors1] = useState<Partial<Record<keyof Step1Data, string>>>({});
+  const [errors2, setErrors2] = useState<Partial<Record<keyof Step2Data, string>>>({});
+  const [errorsCpf, setErrorsCpf] = useState("");
+
   const submitCaseMutation = useSubmitCase();
   const createPaymentMutation = useCreatePayment();
 
-  // Form states
-  const form1 = useForm<z.infer<typeof caseStep1Schema>>({
-    resolver: zodResolver(caseStep1Schema),
-    defaultValues: { evidences: [] }
-  });
-  
-  const form2 = useForm<z.infer<typeof caseStep2Schema>>({
-    resolver: zodResolver(caseStep2Schema)
-  });
-
-  const checkoutForm = useForm<z.infer<typeof checkoutSchema>>({
-    resolver: zodResolver(checkoutSchema),
-    defaultValues: { method: "pix" }
-  });
-
-  const onStep1Submit = (data: z.infer<typeof caseStep1Schema>) => {
-    setStep(2);
+  const validateStep1 = () => {
+    const errs: Partial<Record<keyof Step1Data, string>> = {};
+    if (step1Data.description.length < 20) {
+      errs.description = "Por favor, digite pelo menos 20 letras explicando o que aconteceu.";
+    }
+    setErrors1(errs);
+    return Object.keys(errs).length === 0;
   };
 
-  const onStep2Submit = async (data: z.infer<typeof caseStep2Schema>) => {
-    setStep(3); // Loading / Analyzing state
+  const validateStep2 = () => {
+    const errs: Partial<Record<keyof Step2Data, string>> = {};
+    if (step2Data.name.length < 3) {
+      errs.name = "Por favor, digite seu nome completo.";
+    }
+    if (step2Data.whatsapp.replace(/\D/g, "").length < 10) {
+      errs.whatsapp = "Por favor, digite um número de WhatsApp válido.";
+    }
+    if (!step2Data.email.includes("@")) {
+      errs.email = "Por favor, digite um e-mail válido.";
+    }
+    setErrors2(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const onStep1Submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateStep1()) {
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const onStep2Submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateStep2()) return;
+    setStep(3);
     try {
-      const step1Data = form1.getValues();
       const result = await submitCaseMutation.mutateAsync({
         data: {
           description: step1Data.description,
           evidences: step1Data.evidences,
-          value: step1Data.value,
-          name: data.name,
-          email: data.email,
-          whatsapp: data.whatsapp,
-          state: data.state,
-          city: data.city,
+          value: step1Data.value ? parseFloat(step1Data.value) : null,
+          name: step2Data.name,
+          email: step2Data.email,
+          whatsapp: step2Data.whatsapp,
         }
       });
       setCaseId(result.id);
-      setTimeout(() => setStep(4), 2000); // Simulate analysis time, then go to checkout
+      setTimeout(() => {
+        setStep(4);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 2500);
     } catch (error) {
       console.error("Failed to submit case", error);
-      setStep(2); // Go back on error
+      setStep(2);
     }
   };
 
-  const onCheckoutSubmit = async (data: z.infer<typeof checkoutSchema>) => {
+  const onPaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!caseId) return;
-    const step2Data = form2.getValues();
-    
+    if (cpf.replace(/\D/g, "").length < 11) {
+      setErrorsCpf("Por favor, informe um CPF válido (11 dígitos).");
+      return;
+    }
+    setErrorsCpf("");
     try {
       const result = await createPaymentMutation.mutateAsync({
         data: {
           caseId,
           email: step2Data.email,
           whatsapp: step2Data.whatsapp,
-          cpf: data.cpf,
-          method: data.method as any,
+          cpf: cpf.replace(/\D/g, ""),
+          method: payMethod as any,
         }
       });
-      
-      if (data.method === 'pix') {
+      if (payMethod === "pix") {
         setPixCode(result.pixCode || "00020126360014br.gov.bcb.pix0114+5511999999999");
         setStep(5);
       } else {
-        setStep(6); // Success credit card
+        setStep(6);
       }
     } catch (error) {
       console.error("Payment failed", error);
     }
+  };
+
+  const toggleEvidence = (ev: string) => {
+    setStep1Data(prev => ({
+      ...prev,
+      evidences: prev.evidences.includes(ev)
+        ? prev.evidences.filter(e => e !== ev)
+        : [...prev.evidences, ev]
+    }));
   };
 
   return (
@@ -153,28 +175,29 @@ export default function Home() {
       <section className="relative pt-12 pb-24 bg-white" id="avaliar">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-            {/* Hero Copy — V3 Accessibility Style */}
-            <motion.div 
-              initial={{ opacity: 0, x: -30 }}
+
+            {/* Left Column — Hero copy + trust + steps */}
+            <motion.div
+              initial={{ opacity: 0, x: -24 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.7 }}
               className="pt-4"
             >
-              <h1 className="text-[42px] font-display font-bold leading-tight mb-6 text-[#111111]">
+              <h1 className="text-[42px] font-display font-bold leading-tight mb-8 text-foreground">
                 Lesado? Nós buscamos seu direito.
               </h1>
-              <p className="text-xl text-[#333333] mb-10 max-w-lg leading-[1.75]">
+              <p className="text-xl text-muted-foreground mb-12 max-w-lg leading-relaxed">
                 Se você teve um problema como consumidor, não fique no prejuízo. Conectamos você a advogados especialistas de forma simples e segura.
               </p>
 
-              <div className="space-y-4 mb-10">
+              <div className="space-y-4 mb-12">
                 <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border-2 border-slate-200">
                   <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="font-bold text-[#111111] text-lg">100% Seguro</p>
-                    <p className="text-[#444444]">Seus dados estão protegidos por lei.</p>
+                    <p className="font-bold text-foreground text-xl">100% Seguro</p>
+                    <p className="text-base text-muted-foreground">Seus dados estão protegidos por lei.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border-2 border-slate-200">
@@ -182,439 +205,413 @@ export default function Home() {
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="font-bold text-[#111111] text-lg">Advogados OAB</p>
-                    <p className="text-[#444444]">Apenas profissionais registrados e verificados.</p>
+                    <p className="font-bold text-foreground text-xl">Advogados OAB</p>
+                    <p className="text-base text-muted-foreground">Apenas profissionais registrados e verificados.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[#f8f9fa] border-4 border-[#e9ecef] rounded-xl p-6">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-[#111111]">
-                  <ListOrdered className="w-6 h-6 text-primary" />
+              {/* Como Funciona */}
+              <div className="bg-slate-50 border-4 border-slate-200 rounded-xl p-6 md:p-8">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-foreground">
+                  <ListOrdered className="w-7 h-7 text-primary" />
                   Como funciona?
                 </h2>
-                <ol className="space-y-5">
+                <ol className="space-y-6">
                   <li className="flex gap-4">
                     <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg flex-shrink-0">1</div>
                     <div>
-                      <strong className="block text-[#111111] text-lg mb-0.5">Preencha o formulário</strong>
-                      <span className="text-[#333333]">Conte-nos o que aconteceu. Leva apenas 2 minutos.</span>
+                      <strong className="block text-foreground text-lg mb-1">Preencha o formulário</strong>
+                      <span className="text-muted-foreground">Conte-nos o que aconteceu. Leva apenas 2 minutos.</span>
                     </div>
                   </li>
                   <li className="flex gap-4">
                     <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg flex-shrink-0">2</div>
                     <div>
-                      <strong className="block text-[#111111] text-lg mb-0.5">Análise do caso</strong>
-                      <span className="text-[#333333]">Um advogado especialista avaliará seus direitos.</span>
+                      <strong className="block text-foreground text-lg mb-1">Análise do caso</strong>
+                      <span className="text-muted-foreground">Um advogado especialista avaliará seus direitos.</span>
                     </div>
                   </li>
                   <li className="flex gap-4">
                     <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg flex-shrink-0">3</div>
                     <div>
-                      <strong className="block text-[#111111] text-lg mb-0.5">Início do processo</strong>
-                      <span className="text-[#333333]">Você recebe instruções claras sobre os próximos passos.</span>
+                      <strong className="block text-foreground text-lg mb-1">Início do processo</strong>
+                      <span className="text-muted-foreground">Você recebe instruções claras sobre os próximos passos.</span>
                     </div>
                   </li>
                 </ol>
               </div>
             </motion.div>
 
-            {/* FORM CARD — V3 Accessibility Style */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
+            {/* Right Column — Multi-step form */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15 }}
-              className="bg-white rounded-xl border-4 border-[#e5e7eb] shadow-xl overflow-hidden"
+              transition={{ duration: 0.7, delay: 0.15 }}
+              className="bg-white rounded-xl border-4 border-slate-200 shadow-xl overflow-hidden"
               role="region"
               aria-label="Formulário de avaliação de caso"
             >
-              {/* Form header bar */}
-              <div className="bg-[#f3f4f6] border-b-4 border-[#e5e7eb] px-6 py-4 flex items-center justify-center">
-                <span className="inline-flex items-center gap-2 bg-emerald-600 text-white text-base font-bold px-5 py-2 rounded-full shadow-sm">
-                  <Clock className="w-4 h-4" />
-                  Triagem gratuita
-                </span>
-              </div>
+              {/* Step badge header */}
+              {step <= 3 && (
+                <div className="bg-slate-100 border-b-4 border-slate-200 px-6 py-4 flex items-center justify-between">
+                  <span className="text-lg font-bold text-foreground">
+                    Etapa {step} de 3
+                  </span>
+                  <span className="text-base text-muted-foreground flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Triagem gratuita
+                  </span>
+                </div>
+              )}
 
-              <div className="p-6 sm:p-8">
-              <AnimatePresence mode="wait">
-                {/* STEP 1: Description */}
-                {step === 1 && (
-                  <motion.div
-                    key="step1"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                  >
-                    <div className="mb-6">
-                      <h3 className="text-2xl font-display font-bold text-foreground mb-1">Conte o que aconteceu</h3>
-                      <p className="text-muted-foreground text-sm flex items-center gap-2">
-                        <Clock className="w-4 h-4" /> Triagem gratuita
-                      </p>
-                    </div>
+              <div className="p-6 md:p-8">
+                <AnimatePresence mode="wait">
 
-                    <form onSubmit={form1.handleSubmit(onStep1Submit)} className="space-y-6">
-                      <div>
-                        <label htmlFor="description" className="block text-sm font-bold text-foreground mb-2">
-                          Descreva o seu problema *
-                        </label>
-                        <p className="text-xs text-muted-foreground mb-2">Detalhe os fatos importantes para que o advogado entenda sua situação.</p>
-                        <textarea 
-                          id="description"
-                          {...form1.register("description")}
-                          className="w-full bg-white border-[3px] border-slate-300 rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all min-h-[160px] resize-y text-base leading-relaxed"
-                          placeholder="Ex: Comprei uma passagem e meu voo foi cancelado sem aviso prévio..."
-                        ></textarea>
-                        {form1.formState.errors.description ? (
-                          <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-3 rounded-lg border border-red-200">
-                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                            <span className="text-sm font-medium">{form1.formState.errors.description.message}</span>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground mt-2 text-right">
-                            {form1.watch("description")?.length || 0} / 2000
+                  {/* STEP 1 — Problem description */}
+                  {step === 1 && (
+                    <motion.div
+                      key="step1"
+                      initial={{ opacity: 0, x: 16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -16 }}
+                    >
+                      <h3 className="text-[28px] font-display font-bold text-foreground mb-8">
+                        Conte o que aconteceu
+                      </h3>
+
+                      <form onSubmit={onStep1Submit} className="space-y-8" noValidate>
+                        <div>
+                          <label htmlFor="description" className="block text-xl font-bold text-foreground mb-3">
+                            Descreva o seu problema *
+                          </label>
+                          <p className="text-base text-muted-foreground mb-3">
+                            Detalhe os fatos importantes para que o advogado entenda sua situação.
                           </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-bold text-foreground mb-3">Quais provas você tem? <span className="font-normal text-muted-foreground">(opcional)</span></label>
-                        <div className="flex flex-wrap gap-2">
-                          {EVIDENCES.map(ev => {
-                            const selected = form1.watch("evidences") || [];
-                            const isSelected = selected.includes(ev);
-                            return (
-                              <button
-                                key={ev}
-                                type="button"
-                                onClick={() => {
-                                  if (isSelected) {
-                                    form1.setValue("evidences", selected.filter(e => e !== ev));
-                                  } else {
-                                    form1.setValue("evidences", [...selected, ev]);
-                                  }
-                                }}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border-2 transition-all ${
-                                  isSelected 
-                                    ? "bg-primary border-primary text-white shadow-sm" 
-                                    : "bg-white border-slate-200 text-muted-foreground hover:border-primary/50 hover:bg-primary/5"
-                                }`}
-                              >
-                                {isSelected
-                                  ? <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                                  : <Circle className="w-4 h-4 flex-shrink-0" />
-                                }
-                                {ev}
-                              </button>
-                            );
-                          })}
+                          <textarea
+                            id="description"
+                            value={step1Data.description}
+                            onChange={e => setStep1Data(prev => ({ ...prev, description: e.target.value }))}
+                            className="w-full bg-white border-[3px] border-slate-400 rounded-lg p-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/30 transition-all min-h-[200px] resize-y"
+                            placeholder="Exemplo: Comprei um produto na internet que não foi entregue e a loja não responde..."
+                            aria-invalid={!!errors1.description}
+                            aria-describedby={errors1.description ? "desc-error" : undefined}
+                          />
+                          {errors1.description && (
+                            <div id="desc-error" role="alert" className="flex items-center gap-2 text-red-700 mt-3 bg-red-50 p-3 rounded-lg border-2 border-red-300">
+                              <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                              <span className="font-medium text-lg">{errors1.description}</span>
+                            </div>
+                          )}
+                          <p className="text-sm text-muted-foreground mt-2 text-right">
+                            {step1Data.description.length} / 2000
+                          </p>
                         </div>
-                      </div>
 
-                      <div>
-                        <label htmlFor="value" className="block text-sm font-bold text-foreground mb-2">Qual valor você busca de indenização? <span className="font-normal text-muted-foreground">(R$ - opcional)</span></label>
-                        <input 
-                          id="value"
-                          type="number"
-                          {...form1.register("value")}
-                          className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
-                          placeholder="Apenas números. Ex: 5000"
-                        />
-                      </div>
-
-                      <button 
-                        type="submit"
-                        className="group w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-[0_6px_0_0_hsl(214,82%,36%)] hover:shadow-[0_3px_0_0_hsl(214,82%,36%)] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] transition-all flex justify-center items-center gap-2"
-                      >
-                        Continuar para Meus Dados
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    </form>
-                  </motion.div>
-                )}
-
-                {/* STEP 2: Personal Data */}
-                {step === 2 && (
-                  <motion.div
-                    key="step2"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                  >
-                    <div className="flex items-center gap-3 mb-6">
-                      <button 
-                        onClick={() => setStep(1)}
-                        className="px-4 py-2 rounded-lg border-2 border-slate-200 font-bold text-sm text-muted-foreground hover:bg-slate-50 transition-colors flex items-center gap-2"
-                      >
-                        <ArrowRight className="w-4 h-4 rotate-180" /> Voltar
-                      </button>
-                      <div>
-                        <h3 className="text-2xl font-display font-bold text-foreground leading-tight">Seus Dados</h3>
-                        <p className="text-muted-foreground text-xs">Sigilo absoluto</p>
-                      </div>
-                    </div>
-
-                    <form onSubmit={form2.handleSubmit(onStep2Submit)} className="space-y-4">
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-bold text-foreground mb-2">Nome completo *</label>
-                        <input 
-                          id="name"
-                          {...form2.register("name")}
-                          className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
-                          placeholder="Digite seu nome completo"
-                        />
-                        {form2.formState.errors.name && (
-                          <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-2.5 rounded-lg border border-red-200">
-                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                            <span className="text-sm font-medium">{form2.formState.errors.name.message}</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label htmlFor="whatsapp" className="block text-sm font-bold text-foreground mb-2">WhatsApp *</label>
-                          <input 
+                          <fieldset>
+                            <legend className="block text-xl font-bold text-foreground mb-4">
+                              Quais provas você tem do ocorrido? <span className="font-normal text-muted-foreground text-base">(opcional)</span>
+                            </legend>
+                            <div className="space-y-3">
+                              {EVIDENCES.map(ev => {
+                                const isSelected = step1Data.evidences.includes(ev);
+                                return (
+                                  <label key={ev} className="flex items-center gap-4 cursor-pointer p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                                    <div className={`w-8 h-8 border-[3px] rounded flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? "bg-primary border-primary" : "bg-white border-slate-400"}`}>
+                                      {isSelected && <CheckCircle2 className="w-5 h-5 text-white" />}
+                                    </div>
+                                    <input
+                                      type="checkbox"
+                                      className="sr-only"
+                                      checked={isSelected}
+                                      onChange={() => toggleEvidence(ev)}
+                                    />
+                                    <span className="text-lg font-medium text-foreground">{ev}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </fieldset>
+                        </div>
+
+                        <div>
+                          <label htmlFor="value" className="block text-xl font-bold text-foreground mb-3">
+                            Qual valor você busca de indenização? <span className="font-normal text-muted-foreground text-base">(R$ - opcional)</span>
+                          </label>
+                          <input
+                            id="value"
+                            type="number"
+                            value={step1Data.value}
+                            onChange={e => setStep1Data(prev => ({ ...prev, value: e.target.value }))}
+                            className="w-full h-14 bg-white border-[3px] border-slate-400 rounded-lg px-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/30 transition-all"
+                            placeholder="Apenas números. Exemplo: 5000"
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="w-full h-16 rounded-lg bg-primary text-primary-foreground text-xl font-bold hover:bg-primary/90 focus:outline-none focus:ring-[4px] focus:ring-primary/40 transition-all flex justify-center items-center gap-3"
+                        >
+                          Continuar para próxima etapa <ArrowRight className="w-6 h-6" />
+                        </button>
+                      </form>
+                    </motion.div>
+                  )}
+
+                  {/* STEP 2 — Contact data */}
+                  {step === 2 && (
+                    <motion.div
+                      key="step2"
+                      initial={{ opacity: 0, x: 16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -16 }}
+                    >
+                      <button
+                        onClick={() => { setStep(1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                        className="text-lg font-bold text-primary hover:text-primary/80 mb-8 flex items-center gap-2 underline decoration-2 underline-offset-4"
+                      >
+                        <ArrowRight className="w-5 h-5 rotate-180" /> Voltar para a etapa anterior
+                      </button>
+
+                      <h3 className="text-[28px] font-display font-bold text-foreground mb-8">
+                        Seus Dados de Contato
+                      </h3>
+
+                      <form onSubmit={onStep2Submit} className="space-y-6" noValidate>
+                        <div>
+                          <label htmlFor="name" className="block text-xl font-bold text-foreground mb-3">
+                            Nome completo *
+                          </label>
+                          <input
+                            id="name"
+                            value={step2Data.name}
+                            onChange={e => setStep2Data(prev => ({ ...prev, name: e.target.value }))}
+                            className="w-full h-14 bg-white border-[3px] border-slate-400 rounded-lg px-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/30 transition-all"
+                            placeholder="Digite seu nome completo"
+                            aria-invalid={!!errors2.name}
+                            aria-describedby={errors2.name ? "name-error" : undefined}
+                          />
+                          {errors2.name && (
+                            <div id="name-error" role="alert" className="flex items-center gap-2 text-red-700 mt-3 bg-red-50 p-3 rounded-lg border-2 border-red-300">
+                              <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                              <span className="font-medium text-lg">{errors2.name}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <label htmlFor="whatsapp" className="block text-xl font-bold text-foreground mb-3">
+                            Número do WhatsApp *
+                          </label>
+                          <input
                             id="whatsapp"
-                            {...form2.register("whatsapp")}
-                            className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
-                            placeholder="(11) 99999-9999"
+                            value={step2Data.whatsapp}
+                            onChange={e => setStep2Data(prev => ({ ...prev, whatsapp: e.target.value }))}
+                            className="w-full h-14 bg-white border-[3px] border-slate-400 rounded-lg px-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/30 transition-all"
+                            placeholder="Exemplo: (11) 99999-9999"
+                            aria-invalid={!!errors2.whatsapp}
+                            aria-describedby={errors2.whatsapp ? "wa-error" : undefined}
                           />
-                          {form2.formState.errors.whatsapp && (
-                            <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-2.5 rounded-lg border border-red-200">
-                              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                              <span className="text-sm font-medium">{form2.formState.errors.whatsapp.message}</span>
+                          {errors2.whatsapp && (
+                            <div id="wa-error" role="alert" className="flex items-center gap-2 text-red-700 mt-3 bg-red-50 p-3 rounded-lg border-2 border-red-300">
+                              <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                              <span className="font-medium text-lg">{errors2.whatsapp}</span>
                             </div>
                           )}
                         </div>
+
                         <div>
-                          <label htmlFor="email" className="block text-sm font-bold text-foreground mb-2">E-mail *</label>
-                          <input 
+                          <label htmlFor="email" className="block text-xl font-bold text-foreground mb-3">
+                            E-mail *
+                          </label>
+                          <input
                             id="email"
-                            {...form2.register("email")}
                             type="email"
-                            className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
-                            placeholder="seu@email.com"
+                            value={step2Data.email}
+                            onChange={e => setStep2Data(prev => ({ ...prev, email: e.target.value }))}
+                            className="w-full h-14 bg-white border-[3px] border-slate-400 rounded-lg px-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/30 transition-all"
+                            placeholder="Exemplo: seuemail@dominio.com"
+                            aria-invalid={!!errors2.email}
+                            aria-describedby={errors2.email ? "email-error" : undefined}
                           />
-                          {form2.formState.errors.email && (
-                            <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-2.5 rounded-lg border border-red-200">
-                              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                              <span className="text-sm font-medium">{form2.formState.errors.email.message}</span>
+                          {errors2.email && (
+                            <div id="email-error" role="alert" className="flex items-center gap-2 text-red-700 mt-3 bg-red-50 p-3 rounded-lg border-2 border-red-300">
+                              <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                              <span className="font-medium text-lg">{errors2.email}</span>
                             </div>
                           )}
                         </div>
-                      </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="state" className="block text-sm font-bold text-foreground mb-2">Estado <span className="font-normal text-muted-foreground">(opcional)</span></label>
-                          <input 
-                            id="state"
-                            {...form2.register("state")}
-                            className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
-                            placeholder="Ex: SP"
-                          />
+                        <div className="bg-blue-50 border-2 border-primary/30 p-4 rounded-lg flex items-start gap-4 mt-2">
+                          <Lock className="w-7 h-7 text-primary flex-shrink-0 mt-1" />
+                          <p className="text-base text-foreground leading-relaxed">
+                            <strong>Privacidade garantida:</strong> Ao enviar seus dados, você concorda com nossos{" "}
+                            <Link href="/termos" className="text-primary font-medium hover:underline">Termos de Uso</Link>.
+                            Suas informações serão mantidas em absoluto sigilo.
+                          </p>
                         </div>
-                        <div>
-                          <label htmlFor="city" className="block text-sm font-bold text-foreground mb-2">Cidade <span className="font-normal text-muted-foreground">(opcional)</span></label>
-                          <input 
-                            id="city"
-                            {...form2.register("city")}
-                            className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
-                            placeholder="Ex: São Paulo"
-                          />
-                        </div>
-                      </div>
 
-                      <div className="bg-blue-50 border-2 border-primary/20 p-4 rounded-xl flex items-start gap-3">
-                        <Lock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <p className="text-sm text-foreground leading-relaxed">
-                          <strong>Privacidade garantida:</strong> Seus dados são protegidos por lei e usados exclusivamente para análise do seu caso.
+                        <button
+                          type="submit"
+                          disabled={submitCaseMutation.isPending}
+                          className="w-full h-16 rounded-lg bg-primary text-primary-foreground text-xl font-bold hover:bg-primary/90 focus:outline-none focus:ring-[4px] focus:ring-primary/40 disabled:opacity-50 transition-all flex justify-center items-center gap-3"
+                        >
+                          {submitCaseMutation.isPending ? "Processando..." : <>Enviar para Análise Profissional <ArrowRight className="w-6 h-6" /></>}
+                        </button>
+                      </form>
+                    </motion.div>
+                  )}
+
+                  {/* STEP 3 — Processing spinner */}
+                  {step === 3 && (
+                    <motion.div
+                      key="step3"
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="py-16 flex flex-col items-center text-center"
+                    >
+                      <div className="w-24 h-24 border-[8px] border-slate-200 border-t-primary rounded-full animate-spin mb-10" role="status" aria-label="Analisando..." />
+                      <h3 className="text-3xl font-display font-bold text-foreground mb-6">
+                        Analisando seu caso...
+                      </h3>
+                      <p className="text-xl text-muted-foreground max-w-md mx-auto">
+                        Por favor, não feche esta página. Estamos verificando os requisitos legais das informações enviadas.
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* STEP 4 — Payment CTA */}
+                  {step === 4 && (
+                    <motion.div
+                      key="step4"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="py-8"
+                    >
+                      <div className="mb-8 text-center">
+                        <div className="w-20 h-20 rounded-full bg-green-100 text-green-700 flex items-center justify-center mx-auto mb-6 border-4 border-green-200">
+                          <CheckCircle2 className="w-10 h-10" />
+                        </div>
+                        <h3 className="text-[32px] font-display font-bold text-foreground mb-4">
+                          Seu caso tem viabilidade!
+                        </h3>
+                        <p className="text-xl text-muted-foreground leading-relaxed">
+                          Identificamos fortes elementos para uma ação. Para conectar você a advogados interessados no seu caso, é necessário o pagamento de uma taxa única de acesso.
                         </p>
                       </div>
 
-                      <div className="flex items-start gap-3 py-1">
-                        <input 
-                          type="checkbox" 
-                          {...form2.register("terms")}
-                          id="terms"
-                          className="mt-1 w-5 h-5 rounded border-slate-300 bg-white text-primary focus:ring-primary accent-primary cursor-pointer"
-                        />
-                        <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                          Confirmo que as informações são verdadeiras e aceito os <Link href="/termos" className="text-primary font-medium hover:underline">Termos de Uso</Link> e Política de Privacidade.
-                        </label>
-                      </div>
-                      {form2.formState.errors.terms && (
-                        <div className="flex items-center gap-2 text-red-700 bg-red-50 p-2.5 rounded-lg border border-red-200">
-                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                          <span className="text-sm font-medium">{form2.formState.errors.terms.message}</span>
+                      <div className="bg-slate-50 border-[3px] border-slate-200 rounded-xl p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                          <p className="text-lg text-muted-foreground mb-1 font-medium">Taxa Única de Acesso à Plataforma</p>
+                          <p className="text-[40px] font-bold text-foreground">R$ 199,90</p>
                         </div>
-                      )}
+                        <ShieldCheck className="w-14 h-14 text-primary flex-shrink-0" />
+                      </div>
 
-                      <button 
-                        type="submit"
-                        disabled={submitCaseMutation.isPending}
-                        className="group w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-[0_6px_0_0_hsl(214,82%,36%)] hover:shadow-[0_3px_0_0_hsl(214,82%,36%)] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all flex justify-center items-center gap-2 mt-2"
+                      <form onSubmit={onPaymentSubmit} className="space-y-6" noValidate>
+                        <div>
+                          <label htmlFor="cpf" className="block text-xl font-bold text-foreground mb-3">CPF *</label>
+                          <input
+                            id="cpf"
+                            value={cpf}
+                            onChange={e => setCpf(e.target.value)}
+                            className="w-full h-14 bg-white border-[3px] border-slate-400 rounded-lg px-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/30 transition-all"
+                            placeholder="000.000.000-00"
+                            aria-invalid={!!errorsCpf}
+                            aria-describedby={errorsCpf ? "cpf-error" : undefined}
+                          />
+                          {errorsCpf && (
+                            <div id="cpf-error" role="alert" className="flex items-center gap-2 text-red-700 mt-3 bg-red-50 p-3 rounded-lg border-2 border-red-300">
+                              <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                              <span className="font-medium text-lg">{errorsCpf}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-xl font-bold text-foreground mb-3">Forma de Pagamento</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            <label className={`border-[3px] rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${payMethod === "pix" ? "border-primary bg-primary/10" : "border-slate-300 bg-white hover:bg-slate-50"}`}>
+                              <input type="radio" value="pix" checked={payMethod === "pix"} onChange={() => setPayMethod("pix")} className="sr-only" />
+                              <QrCode className={`w-6 h-6 ${payMethod === "pix" ? "text-primary" : "text-muted-foreground"}`} />
+                              <span className="text-base font-bold">PIX</span>
+                            </label>
+                            <label className={`border-[3px] rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${payMethod === "credit_card" ? "border-primary bg-primary/10" : "border-slate-300 bg-white hover:bg-slate-50"}`}>
+                              <input type="radio" value="credit_card" checked={payMethod === "credit_card"} onChange={() => setPayMethod("credit_card")} className="sr-only" />
+                              <CreditCard className={`w-6 h-6 ${payMethod === "credit_card" ? "text-primary" : "text-muted-foreground"}`} />
+                              <span className="text-base font-bold">Cartão</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={createPaymentMutation.isPending}
+                          className="w-full h-20 rounded-lg bg-green-600 text-white text-[22px] font-bold hover:bg-green-700 focus:outline-none focus:ring-[4px] focus:ring-green-600/40 disabled:opacity-50 transition-all flex justify-center items-center gap-3 shadow-lg"
+                        >
+                          <Lock className="w-7 h-7" />
+                          {createPaymentMutation.isPending ? "Processando..." : "Pagar e Acessar Advogados"}
+                        </button>
+                        <p className="text-center text-base text-muted-foreground">Pagamento 100% seguro. Suporte online disponível.</p>
+                      </form>
+                    </motion.div>
+                  )}
+
+                  {/* STEP 5 — PIX code */}
+                  {step === 5 && (
+                    <motion.div
+                      key="step5"
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-6"
+                    >
+                      <h3 className="text-2xl font-display font-bold text-foreground mb-2">PIX Gerado!</h3>
+                      <p className="text-muted-foreground mb-6">Escaneie o QR Code ou copie a chave.</p>
+                      <div className="w-48 h-48 bg-white p-2 rounded-xl mx-auto mb-6 flex items-center justify-center border border-slate-200">
+                        <QrCode className="w-full h-full text-black" />
+                      </div>
+                      <div className="bg-slate-50 border border-border rounded-xl p-3 mb-6 font-mono text-xs break-all text-muted-foreground">
+                        {pixCode}
+                      </div>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(pixCode || ""); alert("Código copiado!"); }}
+                        className="w-full py-3 rounded-xl bg-slate-100 border border-border text-foreground font-medium hover:bg-slate-200 transition-all"
                       >
-                        {submitCaseMutation.isPending ? "Processando..." : <>Enviar para Análise Profissional <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
+                        Copiar Chave PIX
                       </button>
-                    </form>
-                  </motion.div>
-                )}
+                      <div className="mt-6 pt-6 border-t border-border">
+                        <Link href="/area-do-cliente" className="text-primary hover:underline font-medium">
+                          Ir para Área do Cliente
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
 
-                {/* STEP 3: Analyzing Loading state */}
-                {step === 3 && (
-                  <motion.div
-                    key="step3"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="py-16 flex flex-col items-center text-center"
-                  >
-                    <div className="w-24 h-24 border-[8px] border-[#e5e7eb] border-t-primary rounded-full animate-spin mb-10"></div>
-                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-4">Analisando seu caso...</h3>
-                    <p className="text-lg text-[#333333] max-w-sm">
-                      Por favor, não feche esta página. Estamos verificando os requisitos legais das informações enviadas.
-                    </p>
-                  </motion.div>
-                )}
-
-                {/* STEP 4: Checkout */}
-                {step === 4 && (
-                  <motion.div
-                    key="step4"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <div className="mb-8 text-center">
-                      <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-5 border-4 border-[#bbf7d0]">
+                  {/* STEP 6 — Credit card success */}
+                  {step === 6 && (
+                    <motion.div
+                      key="step6"
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-10"
+                    >
+                      <div className="w-20 h-20 rounded-full bg-green-100 text-green-700 flex items-center justify-center mx-auto mb-6 border-4 border-green-200">
                         <CheckCircle2 className="w-10 h-10" />
                       </div>
-                      <h3 className="text-[28px] font-display font-bold text-[#111111] mb-3">Seu caso tem viabilidade!</h3>
-                      <p className="text-lg text-[#333333]">Identificamos fortes elementos para uma ação. Para conectar você a advogados, é necessário o pagamento de uma taxa única de acesso.</p>
-                    </div>
-
-                    <div className="bg-[#f8f9fa] border-[3px] border-[#e5e7eb] rounded-xl p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                      <div>
-                        <p className="text-base text-[#444444] mb-1 font-medium">Taxa Única de Acesso à Plataforma</p>
-                        <p className="text-[36px] font-bold text-[#111111]">R$ 199,90</p>
-                      </div>
-                      <ShieldCheck className="w-14 h-14 text-primary" />
-                    </div>
-
-                    <form onSubmit={checkoutForm.handleSubmit(onCheckoutSubmit)} className="space-y-4">
-                      <div>
-                        <label htmlFor="cpf" className="block text-sm font-bold text-foreground mb-2">CPF *</label>
-                        <input 
-                          id="cpf"
-                          {...checkoutForm.register("cpf")}
-                          className="w-full h-12 bg-white border-[3px] border-slate-300 rounded-xl px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/20 transition-all text-base"
-                          placeholder="000.000.000-00"
-                        />
-                        {checkoutForm.formState.errors.cpf && (
-                          <div className="flex items-center gap-2 text-red-700 mt-2 bg-red-50 p-2.5 rounded-lg border border-red-200">
-                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                            <span className="text-sm font-medium">{checkoutForm.formState.errors.cpf.message}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-bold text-foreground mb-2">Forma de Pagamento</label>
-                        <div className="grid grid-cols-2 gap-3">
-                          <label className={`border-2 rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "pix" ? "border-primary bg-primary/10" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
-                            <input type="radio" value="pix" {...checkoutForm.register("method")} className="hidden" />
-                            <QrCode className={`w-6 h-6 ${checkoutForm.watch("method") === "pix" ? "text-primary" : "text-muted-foreground"}`} />
-                            <span className="text-sm font-bold">PIX</span>
-                          </label>
-                          <label className={`border-2 rounded-xl p-4 cursor-pointer transition-all text-center flex flex-col items-center gap-2 ${checkoutForm.watch("method") === "credit_card" ? "border-primary bg-primary/10" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
-                            <input type="radio" value="credit_card" {...checkoutForm.register("method")} className="hidden" />
-                            <CreditCard className={`w-6 h-6 ${checkoutForm.watch("method") === "credit_card" ? "text-primary" : "text-muted-foreground"}`} />
-                            <span className="text-sm font-bold">Cartão</span>
-                          </label>
-                        </div>
-                      </div>
-
-                      <button 
-                        type="submit"
-                        disabled={createPaymentMutation.isPending}
-                        className="w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-base shadow-[0_6px_0_0_#15803d] hover:shadow-[0_3px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all flex justify-center items-center gap-2 mt-2"
+                      <h3 className="text-2xl font-display font-bold text-foreground mb-4">Pagamento Aprovado!</h3>
+                      <p className="text-muted-foreground mb-8">Seu caso já está disponível para os advogados da plataforma.</p>
+                      <Link
+                        href="/area-do-cliente"
+                        className="inline-flex py-4 px-8 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-all"
                       >
-                        <Lock className="w-5 h-5" />
-                        {createPaymentMutation.isPending ? "Processando..." : "Pagar e Acessar Advogados"}
-                      </button>
-                      <p className="text-center text-xs text-muted-foreground">Pagamento 100% seguro. Suporte online disponível.</p>
-                    </form>
-                  </motion.div>
-                )}
-
-                {/* STEP 5: PIX CODE */}
-                {step === 5 && (
-                  <motion.div
-                    key="step5"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center py-8"
-                  >
-                    <h3 className="text-[28px] font-display font-bold text-[#111111] mb-2">PIX Gerado!</h3>
-                    <p className="text-lg text-[#333333] mb-8">Escaneie o QR Code ou copie a chave abaixo.</p>
-                    
-                    <div className="w-52 h-52 bg-white border-4 border-[#e5e7eb] rounded-xl mx-auto mb-6 flex items-center justify-center">
-                      <QrCode className="w-40 h-40 text-black" />
-                    </div>
-
-                    <div className="bg-[#f3f4f6] border-2 border-[#e5e7eb] rounded-xl p-4 mb-6 font-mono text-sm break-all text-[#444444]">
-                      {pixCode}
-                    </div>
-
-                    <button 
-                      onClick={() => {
-                        navigator.clipboard.writeText(pixCode || "");
-                        alert("Código copiado!");
-                      }}
-                      className="w-full h-14 rounded-xl bg-slate-100 border-2 border-slate-300 text-[#111111] font-bold text-lg hover:bg-slate-200 transition-all"
-                    >
-                      Copiar Chave PIX
-                    </button>
-                    
-                    <div className="mt-8 pt-6 border-t-2 border-[#e5e7eb]">
-                      <Link href="/area-do-cliente" className="text-primary hover:underline text-lg font-bold">
-                        Ir para Área do Cliente →
+                        Acessar Área do Cliente
                       </Link>
-                    </div>
-                  </motion.div>
-                )}
-                
-                {/* STEP 6: Success Credit Card */}
-                {step === 6 && (
-                  <motion.div
-                    key="step6"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center py-12"
-                  >
-                    <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-6 border-4 border-[#bbf7d0]">
-                      <CheckCircle2 className="w-10 h-10" />
-                    </div>
-                    <h3 className="text-[32px] font-display font-bold text-[#111111] mb-4">Pagamento Aprovado!</h3>
-                    <p className="text-lg text-[#333333] mb-10">Seu caso já está disponível para os advogados da plataforma.</p>
-                    
-                    <Link 
-                      href="/area-do-cliente"
-                      className="inline-flex h-16 px-10 rounded-xl bg-primary text-white font-bold text-xl items-center justify-center hover:bg-primary/90 transition-all"
-                    >
-                      Acessar Área do Cliente
-                    </Link>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    </motion.div>
+                  )}
 
-              {step <= 2 && (
-                <div className="mt-6 flex items-center justify-center gap-6 text-sm text-[#666666] border-t-2 border-[#e5e7eb] pt-5">
-                  <div className="flex items-center gap-1.5"><Lock className="w-4 h-4 text-primary" /> Dados Protegidos</div>
-                  <div className="flex items-center gap-1.5"><Star className="w-4 h-4 text-primary" /> +3.000 Casos</div>
-                </div>
-              )}
-              </div>{/* end p-6 sm:p-8 */}
+                </AnimatePresence>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -626,8 +623,8 @@ export default function Home() {
           <h3 className="text-sm font-bold tracking-widest uppercase text-muted-foreground mb-6 text-center">Principais Causas</h3>
           <div className="flex overflow-x-auto gap-3 pb-4 no-scrollbar">
             {CAUSES.map((cause, i) => (
-              <a 
-                key={i} 
+              <a
+                key={i}
                 href="#avaliar"
                 className="whitespace-nowrap px-4 py-2 rounded-full bg-white border border-border shadow-sm hover:bg-primary/10 hover:border-primary/50 hover:text-primary transition-all text-sm font-medium"
               >
@@ -642,37 +639,25 @@ export default function Home() {
       <section className="py-32" id="como-funciona">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-20">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-6">Como a <span className="gold-gradient-text">Pequenas Causas</span> funciona</h2>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mb-6">
+              Como a <span className="gold-gradient-text">Pequenas Causas</span> funciona
+            </h2>
             <p className="text-lg text-muted-foreground">Conectamos você aos melhores advogados do Brasil de forma rápida, segura e 100% digital.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Connecting lines for desktop */}
-            <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-px bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 z-0"></div>
-            
+            <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-px bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 z-0" />
             {[
-              { 
-                icon: <FileText className="w-8 h-8" />, 
-                title: "1. Envie seu caso", 
-                desc: "Descreva o ocorrido em minutos, anexe provas e envie de forma totalmente online e gratuita." 
-              },
-              { 
-                icon: <Users className="w-8 h-8" />, 
-                title: "2. Receba propostas", 
-                desc: "Advogados verificados analisam seu caso e enviam propostas, inclusive no modelo ad exitum (só paga se ganhar)." 
-              },
-              { 
-                icon: <Scale className="w-8 h-8" />, 
-                title: "3. Resolva online", 
-                desc: "Acompanhe tudo pela plataforma. Sem filas, sem burocracia e com total transparência." 
-              }
-            ].map((step, i) => (
+              { icon: <FileText className="w-8 h-8" />, title: "1. Envie seu caso", desc: "Descreva o ocorrido em minutos, anexe provas e envie de forma totalmente online e gratuita." },
+              { icon: <Users className="w-8 h-8" />, title: "2. Receba propostas", desc: "Advogados verificados analisam seu caso e enviam propostas, inclusive no modelo ad exitum (só paga se ganhar)." },
+              { icon: <Scale className="w-8 h-8" />, title: "3. Resolva online", desc: "Acompanhe tudo pela plataforma. Sem filas, sem burocracia e com total transparência." }
+            ].map((s, i) => (
               <div key={i} className="relative z-10 glass-panel p-8 rounded-2xl text-center hover-elevate">
                 <div className="w-20 h-20 mx-auto rounded-full bg-background border border-primary/30 flex items-center justify-center text-primary mb-6 shadow-[0_0_30px_rgba(37,99,235,0.12)]">
-                  {step.icon}
+                  {s.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-4">{step.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{step.desc}</p>
+                <h3 className="text-xl font-bold mb-4">{s.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -681,13 +666,12 @@ export default function Home() {
 
       {/* MEDIA MENTIONS */}
       <section className="py-24 bg-slate-900 relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <span className="text-primary font-semibold tracking-wider text-sm uppercase">Reconhecimento Nacional</span>
             <h2 className="text-3xl md:text-4xl font-display font-bold mt-4 text-white">Somos destaque na mídia</h2>
           </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { source: "O Globo", date: "Dezembro 2025", title: '"Pequenas Causas Processos propõe maior segurança ao acesso à Justiça online"' },
@@ -745,7 +729,7 @@ export default function Home() {
               </div>
             ))}
           </div>
-          
+
           <div className="mt-16 text-center">
             <a href="#avaliar" className="inline-flex py-4 px-8 rounded-full bg-primary text-primary-foreground font-bold shadow-[0_0_20px_rgba(37,99,235,0.25)] hover:shadow-[0_0_30px_rgba(37,99,235,0.45)] hover:-translate-y-1 transition-all">
               ENVIAR MEU CASO AGORA
@@ -758,7 +742,6 @@ export default function Home() {
       <section className="py-24 bg-slate-50 border-t border-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-display font-bold mb-12 text-center">Fui lesado, e agora?</h2>
-          
           <div className="space-y-4">
             {FAQS.map((faq, i) => (
               <details key={i} className="group bg-white border border-border shadow-sm rounded-xl overflow-hidden [&_summary::-webkit-details-marker]:hidden">
@@ -777,14 +760,13 @@ export default function Home() {
 
       {/* LAWYER CTA */}
       <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/5"></div>
+        <div className="absolute inset-0 bg-primary/5" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <Building2 className="w-16 h-16 text-primary mx-auto mb-8" />
           <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">Advogado, cadastre-se aqui</h2>
           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
             Receba pedidos de propostas diariamente e amplie sua carteira de clientes. Cadastro 100% gratuito.
           </p>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div className="bg-background/80 border border-primary/20 rounded-xl p-6">
               <ShieldCheck className="w-8 h-8 text-primary mb-4 mx-auto" />
@@ -802,8 +784,7 @@ export default function Home() {
               <p className="text-sm text-muted-foreground">Expansão da clientela</p>
             </div>
           </div>
-          
-          <Link 
+          <Link
             href="/advogado/signup"
             className="inline-flex py-4 px-10 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-primary-foreground transition-all"
           >
@@ -812,7 +793,6 @@ export default function Home() {
           <p className="text-xs text-muted-foreground mt-6">Habilitação profissional sujeita a verificação</p>
         </div>
       </section>
-
     </Layout>
   );
 }
