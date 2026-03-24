@@ -240,7 +240,7 @@ export default function Home() {
                   >
                     <div className="bg-emerald-50 border-b-4 border-emerald-200 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-5 mb-6">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-bold text-[#111111]">Conte o que aconteceu</h3>
+                        <h3 className="text-sm font-bold text-[#111111]">Conte o que aconteceu</h3>
                         <span className="inline-flex items-center gap-1.5 bg-emerald-600 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-sm">
                           <Clock className="w-3.5 h-3.5" /> Triagem gratuita
                         </span>
