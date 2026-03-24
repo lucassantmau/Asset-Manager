@@ -220,7 +220,7 @@ export default function Home() {
                 </div>
                 <div>
                   <p className="font-bold text-foreground text-sm leading-tight">Etapas do processo</p>
-                  <p className="text-muted-foreground text-xs leading-tight">Triagem gratuita → Análise da causa → Advogado ingressa com processo, se cabível</p>
+                  <p className="text-muted-foreground text-xs leading-tight">Triagem gratuita → Análise da causa → Advogado ingressa com processo</p>
                 </div>
               </div>
             </motion.div>
