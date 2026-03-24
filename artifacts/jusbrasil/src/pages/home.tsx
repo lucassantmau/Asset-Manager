@@ -150,81 +150,89 @@ export default function Home() {
   return (
     <Layout>
       {/* HERO SECTION */}
-      <section className="relative pt-12 pb-24 bg-white" id="avaliar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-14 pb-28 hero-gradient" id="avaliar">
+        {/* Subtle top-right glow */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#032956] rounded-full opacity-40 blur-3xl pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-            {/* Hero Copy — V3 Accessibility Style */}
+            {/* Hero Copy — Editorial Juris */}
             <motion.div 
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="pt-4"
+              className="pt-6"
             >
-              <h1 className="text-[42px] font-display font-bold leading-tight mb-6 text-[#111111]">
-                Lesado? Nós buscamos seu direito.
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 mb-6">
+                <ShieldCheck className="w-4 h-4 text-[#fee001]" />
+                <span className="text-white/80 text-sm font-medium">Advogados verificados OAB</span>
+              </div>
+              <h1 className="text-[48px] md:text-[56px] font-black leading-[1.05] tracking-tight mb-6 text-white">
+                Seus Direitos<br />
+                <span className="text-[#fee001]">Defendidos</span> Sem<br />
+                Sair de Casa.
               </h1>
-              <p className="text-xl text-[#333333] mb-10 max-w-lg leading-[1.75]">
-                Se você teve um problema como consumidor, não fique no prejuízo. Conectamos você a advogados especialistas de forma simples e segura.
+              <p className="text-lg text-white/65 mb-10 max-w-lg leading-[1.6]">
+                Atendimento jurídico 100% digital especializado em pequenas causas. Recuperamos seu dinheiro e sua dignidade com agilidade editorial.
               </p>
 
-              <div className="space-y-4 mb-10">
-                <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border-2 border-slate-200">
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0">
-                    <ShieldCheck className="w-6 h-6" />
+              <div className="space-y-3 mb-10">
+                <div className="flex items-center gap-4 glass-panel p-4 rounded-xl">
+                  <div className="w-11 h-11 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-bold text-[#111111] text-lg">100% Seguro</p>
-                    <p className="text-[#444444]">Seus dados estão protegidos por lei.</p>
+                    <p className="font-bold text-foreground text-base">100% Seguro e Sigiloso</p>
+                    <p className="text-muted-foreground text-sm">Seus dados estão protegidos por lei.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border-2 border-slate-200">
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0">
-                    <CheckCircle2 className="w-6 h-6" />
+                <div className="flex items-center gap-4 glass-panel p-4 rounded-xl">
+                  <div className="w-11 h-11 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-bold text-[#111111] text-lg">Advogados OAB</p>
-                    <p className="text-[#444444]">Apenas profissionais registrados e verificados.</p>
+                    <p className="font-bold text-foreground text-base">Advogados OAB Verificados</p>
+                    <p className="text-muted-foreground text-sm">Apenas profissionais registrados.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[#f8f9fa] border-4 border-[#e9ecef] rounded-xl p-6">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-[#111111]">
-                  <ListOrdered className="w-6 h-6 text-primary" />
-                  Como funciona?
+              <div className="glass-panel rounded-xl p-6">
+                <h2 className="text-base font-bold mb-5 flex items-center gap-3 text-foreground">
+                  <ListOrdered className="w-5 h-5 text-[#fee001]" />
+                  Justiça em 3 passos
                 </h2>
                 <ol className="space-y-5">
                   <li className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg flex-shrink-0">1</div>
+                    <div className="w-9 h-9 rounded-lg bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-base flex-shrink-0">1</div>
                     <div>
-                      <strong className="block text-[#111111] text-lg mb-0.5">Preencha o formulário</strong>
-                      <span className="text-[#333333]">Conte-nos o que aconteceu. Leva apenas 2 minutos.</span>
+                      <strong className="block text-foreground text-sm font-bold mb-0.5">Preencha o formulário</strong>
+                      <span className="text-muted-foreground text-sm">Conte-nos o que aconteceu. Leva apenas 2 minutos.</span>
                     </div>
                   </li>
                   <li className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg flex-shrink-0">2</div>
+                    <div className="w-9 h-9 rounded-lg bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-base flex-shrink-0">2</div>
                     <div>
-                      <strong className="block text-[#111111] text-lg mb-0.5">Análise do caso</strong>
-                      <span className="text-[#333333]">Um advogado especialista avaliará seus direitos.</span>
+                      <strong className="block text-foreground text-sm font-bold mb-0.5">Análise do caso</strong>
+                      <span className="text-muted-foreground text-sm">Um advogado especialista avaliará seus direitos.</span>
                     </div>
                   </li>
                   <li className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg flex-shrink-0">3</div>
+                    <div className="w-9 h-9 rounded-lg bg-[#fee001] text-[#716300] flex items-center justify-center font-black text-base flex-shrink-0">3</div>
                     <div>
-                      <strong className="block text-[#111111] text-lg mb-0.5">Início do processo</strong>
-                      <span className="text-[#333333]">Você recebe instruções claras sobre os próximos passos.</span>
+                      <strong className="block text-foreground text-sm font-bold mb-0.5">Início do processo</strong>
+                      <span className="text-muted-foreground text-sm">Instruções claras sobre os próximos passos.</span>
                     </div>
                   </li>
                 </ol>
               </div>
             </motion.div>
 
-            {/* FORM CARD — V3 Accessibility Style */}
+            {/* FORM CARD — Editorial Juris */}
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="bg-white rounded-xl border-4 border-[#e5e7eb] shadow-xl overflow-hidden"
+              className="bg-white rounded-xl shadow-[0_8px_48px_0_rgba(0,0,0,0.28)] overflow-hidden"
               role="region"
               aria-label="Formulário de avaliação de caso"
             >
@@ -238,14 +246,14 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <div className="bg-emerald-50 border-b-4 border-emerald-200 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-5 mb-6">
+                    <div className="bg-[#001532] -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-5 mb-6">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-[#111111]">Conte o que aconteceu</h3>
-                        <span className="inline-flex items-center gap-1.5 bg-emerald-600 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-sm">
-                          <Clock className="w-3.5 h-3.5" /> Triagem gratuita
+                        <h3 className="text-sm font-bold text-white">Conte o que aconteceu</h3>
+                        <span className="inline-flex items-center gap-1.5 bg-[#fee001] text-[#716300] text-sm font-bold px-3 py-1.5 rounded-full">
+                          <Clock className="w-3.5 h-3.5" /> Consulta gratuita
                         </span>
                       </div>
-                      <p className="text-emerald-700 text-sm mt-1.5">Avaliamos seu caso sem custo. Leva apenas 2 minutos.</p>
+                      <p className="text-white/55 text-sm mt-1.5">Avaliamos seu caso sem custo. Leva apenas 2 minutos.</p>
                     </div>
 
                     <form onSubmit={form1.handleSubmit(onStep1Submit)} className="space-y-6">
@@ -291,8 +299,8 @@ export default function Home() {
                                 }}
                                 className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border-2 transition-all ${
                                   isSelected 
-                                    ? "bg-primary border-primary text-white shadow-sm" 
-                                    : "bg-white border-slate-200 text-muted-foreground hover:border-primary/50 hover:bg-primary/5"
+                                    ? "bg-[#001532] border-[#001532] text-white shadow-sm" 
+                                    : "bg-white border-muted text-muted-foreground hover:border-[#001532]/30 hover:bg-muted"
                                 }`}
                               >
                                 {isSelected
@@ -319,7 +327,7 @@ export default function Home() {
 
                       <button 
                         type="submit"
-                        className="group w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-[0_6px_0_0_hsl(214,82%,36%)] hover:shadow-[0_3px_0_0_hsl(214,82%,36%)] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] transition-all flex justify-center items-center gap-2"
+                        className="group w-full py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] transition-all flex justify-center items-center gap-2"
                       >
                         Continuar para Meus Dados
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -615,15 +623,15 @@ export default function Home() {
         </div>
       </section>
       {/* CAUSE CATEGORIES */}
-      <section className="py-12 border-y border-border bg-slate-50">
+      <section className="py-12 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-sm font-bold tracking-widest uppercase text-muted-foreground mb-6 text-center">Principais Causas</h3>
+          <h3 className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-6 text-center">Principais Causas que Atendemos</h3>
           <div className="flex overflow-x-auto gap-3 pb-4 no-scrollbar">
             {CAUSES.map((cause, i) => (
               <a 
                 key={i} 
                 href="#avaliar"
-                className="whitespace-nowrap px-4 py-2 rounded-full bg-white border border-border shadow-sm hover:bg-primary/10 hover:border-primary/50 hover:text-primary transition-all text-sm font-medium"
+                className="whitespace-nowrap px-4 py-2 rounded-full bg-white ghost-border shadow-ambient hover:bg-[#001532] hover:text-white transition-all text-sm font-medium text-foreground"
               >
                 {cause}
               </a>
@@ -632,66 +640,65 @@ export default function Home() {
         </div>
       </section>
       {/* HOW IT WORKS */}
-      <section className="py-32" id="como-funciona">
+      <section className="py-32 bg-background" id="como-funciona">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-20">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-6">Como a <span className="gold-gradient-text">Pequenas Causas</span> funciona</h2>
-            <p className="text-lg text-muted-foreground">Conectamos você aos melhores advogados do Brasil de forma rápida, segura e 100% digital.</p>
+            <h2 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">Nossas <span className="gold-gradient-text">Especialidades</span></h2>
+            <p className="text-lg text-muted-foreground leading-[1.6]">Resolvemos conflitos do cidadão com a precisão de uma consultoria de elite, focados na reparação rápida do seu dano moral e material.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Connecting lines for desktop */}
-            <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-px bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 z-0"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+            <div className="hidden md:block absolute top-14 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-[#fee001]/40 to-transparent z-0" />
             
             {[
               { 
-                icon: <FileText className="w-8 h-8" />, 
+                icon: <FileText className="w-7 h-7" />, 
                 title: "1. Envie seu caso", 
                 desc: "Descreva o ocorrido em minutos, anexe provas e envie de forma totalmente online e gratuita." 
               },
               { 
-                icon: <Users className="w-8 h-8" />, 
+                icon: <Users className="w-7 h-7" />, 
                 title: "2. Receba propostas", 
                 desc: "Advogados verificados analisam seu caso e enviam propostas, inclusive no modelo ad exitum (só paga se ganhar)." 
               },
               { 
-                icon: <Scale className="w-8 h-8" />, 
+                icon: <Scale className="w-7 h-7" />, 
                 title: "3. Resolva online", 
                 desc: "Acompanhe tudo pela plataforma. Sem filas, sem burocracia e com total transparência." 
               }
             ].map((step, i) => (
-              <div key={i} className="relative z-10 glass-panel p-8 rounded-2xl text-center hover-elevate">
-                <div className="w-20 h-20 mx-auto rounded-full bg-background border border-primary/30 flex items-center justify-center text-primary mb-6 shadow-[0_0_30px_rgba(37,99,235,0.12)]">
+              <div key={i} className="relative z-10 bg-card p-8 rounded-xl shadow-ambient text-center hover-elevate">
+                <div className="w-16 h-16 mx-auto rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] mb-6">
                   {step.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-4">{step.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{step.desc}</p>
+                <h3 className="text-xl font-bold mb-4 tracking-tight">{step.title}</h3>
+                <p className="text-muted-foreground leading-[1.6] text-sm">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
       {/* MEDIA MENTIONS */}
-      <section className="py-24 bg-slate-900 relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent"></div>
+      <section className="py-24 bg-[#001532] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,#032956_0%,transparent_60%)] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
-            <span className="text-primary font-semibold tracking-wider text-sm uppercase">Reconhecimento Nacional</span>
-            <h2 className="text-3xl md:text-4xl font-display font-bold mt-4 text-white">Somos destaque na mídia</h2>
+            <span className="text-[#fee001] font-bold tracking-widest text-xs uppercase">Reconhecimento Nacional</span>
+            <h2 className="text-3xl md:text-4xl font-black mt-3 text-white tracking-tight">Quem já recuperou seus direitos conosco.</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { source: "O Globo", date: "Dezembro 2025", title: '"Pequenas Causas Processos propõe maior segurança ao acesso à Justiça online"' },
               { source: "Valor Econômico", date: "Maio 2025", title: '"A plataforma conecta cidadãos a advogados de forma ágil e acessível."' },
               { source: "Terra", date: "Maio 2025", title: '"Pequenas Causas Processos facilita acesso ao Juizado Especial Cível"' }
             ].map((mention, i) => (
-              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-primary/50 transition-all group">
-                <div className="font-display text-2xl font-bold text-white/50 group-hover:text-primary transition-colors mb-6">{mention.source}</div>
-                <p className="text-lg font-medium mb-8 leading-snug text-white/80">{mention.title}</p>
-                <div className="flex justify-between items-center text-sm text-white/40">
+              <div key={i} className="bg-white/5 rounded-xl p-8 hover:bg-white/10 transition-all group">
+                <div className="text-2xl font-black text-white/40 group-hover:text-[#fee001] transition-colors mb-6 tracking-tight">{mention.source}</div>
+                <p className="text-base font-medium mb-8 leading-relaxed text-white/70">{mention.title}</p>
+                <div className="flex justify-between items-center text-sm text-white/30">
                   <span>{mention.date}</span>
-                  <span className="flex items-center gap-1 group-hover:text-primary transition-colors">Leia mais <ArrowRight className="w-4 h-4" /></span>
+                  <span className="flex items-center gap-1 group-hover:text-[#fee001] transition-colors">Leia mais <ArrowRight className="w-4 h-4" /></span>
                 </div>
               </div>
             ))}
@@ -699,33 +706,33 @@ export default function Home() {
         </div>
       </section>
       {/* TESTIMONIALS */}
-      <section className="py-32" id="depoimentos">
+      <section className="py-32 bg-muted" id="depoimentos">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">O que dizem sobre a Pequenas Causas</h2>
-            <div className="flex items-center justify-center gap-2 text-xl font-semibold">
+            <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">O que dizem sobre a <br className="hidden md:block" />Pequenas Causas</h2>
+            <div className="flex items-center justify-center gap-2 text-base font-semibold">
               <span className="text-foreground">Google Avaliações</span>
-              <span className="text-primary">5.0</span>
-              <div className="flex text-primary">
+              <span className="text-[#716300] font-black">4,5/5</span>
+              <div className="flex text-[#fee001]">
                 {[1,2,3,4,5].map(star => <Star key={star} className="w-5 h-5 fill-current" />)}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
               { name: "Vlamir Constin", text: "O site muito prático e fácil de usar. Tudo é muito transparente, simples de entender e objetivo. Me senti seguro para dar entrada no processo." },
               { name: "Julia Araújo", text: "Excelente! Eu não podia usar defensoria e o advogado da Pequenas Causas Processos deu entrada no juizado e paguei baratinho, não tive trabalho nenhum." },
               { name: "Leonardo Rodrigues", text: "Incrível a Assessoria e a atenção que recebi no meu caso, desde o primeiro momento me instruiu passo a passo. Parabéns pelo ótimo serviço." },
               { name: "Vinicius Viana", text: "Gostei bastante, após preencher o formulário é possível acompanhar o processo na área do cliente. O atendimento da equipe é excelente!" }
             ].map((review, i) => (
-              <div key={i} className="glass-panel p-6 rounded-2xl flex flex-col h-full">
-                <div className="flex text-primary mb-4">
+              <div key={i} className="bg-card p-6 rounded-xl shadow-ambient flex flex-col h-full">
+                <div className="flex text-[#fee001] mb-4">
                   {[1,2,3,4,5].map(star => <Star key={star} className="w-4 h-4 fill-current" />)}
                 </div>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-6 flex-grow">"{review.text}"</p>
+                <p className="text-muted-foreground text-sm leading-[1.6] mb-6 flex-grow">"{review.text}"</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center font-bold text-primary">
+                  <div className="w-10 h-10 rounded-xl bg-[#fee001]/20 flex items-center justify-center font-black text-[#716300]">
                     {review.name.charAt(0)}
                   </div>
                   <div>
@@ -738,25 +745,28 @@ export default function Home() {
           </div>
           
           <div className="mt-16 text-center">
-            <a href="#avaliar" className="inline-flex py-4 px-8 rounded-full bg-primary text-primary-foreground font-bold shadow-[0_0_20px_rgba(37,99,235,0.25)] hover:shadow-[0_0_30px_rgba(37,99,235,0.45)] hover:-translate-y-1 transition-all">
+            <a href="#avaliar" className="inline-flex py-4 px-10 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
               ENVIAR MEU CASO AGORA
             </a>
           </div>
         </div>
       </section>
       {/* FAQ */}
-      <section className="py-24 bg-slate-50 border-t border-border">
+      <section className="py-24 bg-background">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-display font-bold mb-12 text-center">Fui lesado, e agora?</h2>
+          <div className="text-center mb-12">
+            <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">Perguntas Frequentes</span>
+            <h2 className="text-3xl md:text-4xl font-black mt-3 tracking-tight">Fui lesado, e agora?</h2>
+          </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             {FAQS.map((faq, i) => (
-              <details key={i} className="group bg-white border border-border shadow-sm rounded-xl overflow-hidden [&_summary::-webkit-details-marker]:hidden">
-                <summary className="flex items-center justify-between p-6 cursor-pointer font-medium text-lg hover:text-primary transition-colors">
+              <details key={i} className="group bg-card shadow-ambient rounded-xl overflow-hidden [&_summary::-webkit-details-marker]:hidden">
+                <summary className="flex items-center justify-between p-6 cursor-pointer font-semibold text-base hover:text-[#001532] transition-colors">
                   {faq.q}
-                  <ChevronDown className="w-5 h-5 transition-transform group-open:rotate-180" />
+                  <ChevronDown className="w-5 h-5 transition-transform group-open:rotate-180 flex-shrink-0 ml-4" />
                 </summary>
-                <div className="p-6 pt-0 text-muted-foreground leading-relaxed">
+                <div className="px-6 pb-6 text-muted-foreground leading-[1.6] text-sm">
                   {faq.a}
                 </div>
               </details>
@@ -765,40 +775,51 @@ export default function Home() {
         </div>
       </section>
       {/* LAWYER CTA */}
-      <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/5"></div>
+      <section className="py-32 relative overflow-hidden hero-gradient">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,#032956_0%,transparent_60%)] pointer-events-none" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <Building2 className="w-16 h-16 text-primary mx-auto mb-8" />
-          <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">Advogado, cadastre-se aqui</h2>
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
+          <span className="text-[#fee001] text-xs font-bold tracking-widest uppercase">Para Advogados</span>
+          <h2 className="text-4xl md:text-5xl font-black mb-6 mt-3 text-white tracking-tight">Pare de perder dinheiro <br className="hidden md:block" />para grandes empresas.</h2>
+          <p className="text-lg text-white/60 mb-12 max-w-2xl mx-auto leading-[1.6]">
             Receba pedidos de propostas diariamente e amplie sua carteira de clientes. Cadastro 100% gratuito.
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-background/80 border border-primary/20 rounded-xl p-6">
-              <ShieldCheck className="w-8 h-8 text-primary mb-4 mx-auto" />
-              <h4 className="font-bold mb-2">Verificação Rigorosa</h4>
-              <p className="text-sm text-muted-foreground">Validação direta na OAB</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
+            <div className="bg-white/5 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] mx-auto mb-4">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h4 className="font-bold mb-2 text-white text-sm">Verificação Rigorosa</h4>
+              <p className="text-xs text-white/40">Validação direta na OAB</p>
             </div>
-            <div className="bg-background/80 border border-primary/20 rounded-xl p-6">
-              <FileText className="w-8 h-8 text-primary mb-4 mx-auto" />
-              <h4 className="font-bold mb-2">Casos Qualificados</h4>
-              <p className="text-sm text-muted-foreground">Clientes pré-filtrados</p>
+            <div className="bg-white/5 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] mx-auto mb-4">
+                <FileText className="w-6 h-6" />
+              </div>
+              <h4 className="font-bold mb-2 text-white text-sm">Casos Qualificados</h4>
+              <p className="text-xs text-white/40">Clientes pré-filtrados</p>
             </div>
-            <div className="bg-background/80 border border-primary/20 rounded-xl p-6">
-              <Users className="w-8 h-8 text-primary mb-4 mx-auto" />
-              <h4 className="font-bold mb-2">Crescimento</h4>
-              <p className="text-sm text-muted-foreground">Expansão da clientela</p>
+            <div className="bg-white/5 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] mx-auto mb-4">
+                <Users className="w-6 h-6" />
+              </div>
+              <h4 className="font-bold mb-2 text-white text-sm">Crescimento</h4>
+              <p className="text-xs text-white/40">Expansão da clientela</p>
             </div>
           </div>
           
-          <Link 
-            href="/advogado/signup"
-            className="inline-flex py-4 px-10 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-primary-foreground transition-all"
-          >
-            Cadastrar como Advogado
-          </Link>
-          <p className="text-xs text-muted-foreground mt-6">Habilitação profissional sujeita a verificação</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="#avaliar" className="px-8 py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
+              Recuperar Meus Direitos Agora
+            </a>
+            <Link 
+              href="/advogado/signup"
+              className="px-8 py-4 rounded-xl border border-white/20 text-white/80 font-medium text-base hover:bg-white/10 transition-all"
+            >
+              Ligar para um Especialista
+            </Link>
+          </div>
+          <p className="text-xs text-white/25 mt-8">Habilitação profissional sujeita a verificação</p>
         </div>
       </section>
     </Layout>
