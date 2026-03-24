@@ -16,12 +16,12 @@ export default function Terms() {
           <div className="glass-panel p-8 md:p-12 rounded-3xl prose prose-invert prose-primary max-w-none">
             <h2>1. Aceitação dos Termos</h2>
             <p>
-              Ao acessar e utilizar a plataforma Procjus Premium ("Plataforma"), você concorda em cumprir e sujeitar-se a estes Termos de Uso. Se você não concorda com qualquer parte destes termos, não deverá utilizar nossos serviços.
+              Ao acessar e utilizar a plataforma Pequenas Causas Processos ("Plataforma"), você concorda em cumprir e sujeitar-se a estes Termos de Uso. Se você não concorda com qualquer parte destes termos, não deverá utilizar nossos serviços.
             </p>
 
             <h2>2. Natureza do Serviço</h2>
             <p>
-              A Procjus Premium é uma plataforma tecnológica privada, não governamental, que atua exclusivamente como intermediária (marketplace) conectando usuários (cidadãos) a advogados independentes devidamente registrados na OAB.
+              A Pequenas Causas Processos é uma plataforma tecnológica privada, não governamental, que atua exclusivamente como intermediária (marketplace) conectando usuários (cidadãos) a advogados independentes devidamente registrados na OAB.
             </p>
             <ul>
               <li><strong>NÃO</strong> somos um escritório de advocacia.</li>
@@ -31,12 +31,12 @@ export default function Terms() {
 
             <h2>3. Taxa de Acesso à Tecnologia</h2>
             <p>
-              Para liberar as propostas e o contato com os advogados na plataforma, o usuário concorda em pagar uma taxa única de tecnologia no valor estipulado no checkout. Esta taxa remunera exclusivamente o uso do software, infraestrutura, triagem e ambiente seguro da Procjus Premium. Esta taxa não constitui honorários advocatícios.
+              Para liberar as propostas e o contato com os advogados na plataforma, o usuário concorda em pagar uma taxa única de tecnologia no valor estipulado no checkout. Esta taxa remunera exclusivamente o uso do software, infraestrutura, triagem e ambiente seguro da Pequenas Causas Processos. Esta taxa não constitui honorários advocatícios.
             </p>
 
             <h2>4. Relação Cliente-Advogado</h2>
             <p>
-              A contratação de serviços jurídicos ocorre de forma independente entre o Usuário e o Advogado escolhido. Os honorários advocatícios (seja um valor fixo ou um percentual <em>ad exitum</em> / no êxito) são negociados e acordados diretamente entre as partes. A Procjus não garante resultados em processos judiciais, pois decisões dependem exclusivamente do juízo competente.
+              A contratação de serviços jurídicos ocorre de forma independente entre o Usuário e o Advogado escolhido. Os honorários advocatícios (seja um valor fixo ou um percentual <em>ad exitum</em> / no êxito) são negociados e acordados diretamente entre as partes. A Pequenas Causas Processos não garante resultados em processos judiciais, pois decisões dependem exclusivamente do juízo competente.
             </p>
 
             <h2>5. Proteção de Dados e Privacidade</h2>

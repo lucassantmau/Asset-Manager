@@ -63,7 +63,7 @@ const FAQS = [
   { q: "O que o PROCON e sites de reclamação oferecem?", a: "Plataformas para solucionar problemas de consumo, com consequência sobre a reputação da empresa e possível penalização administrativa. Mas não garantem reembolso." },
   { q: "Como obter solução real e eficaz?", a: "Busque o Juizado Especial Cível (Pequenas Causas), somente a Justiça pode criar obrigações e estabelecer condenações." },
   { q: "O processo é rápido?", a: "O processo de pequenas causas foi criado para ser simples e rápido (Lei 9.099/95)." },
-  { q: "A Procjus é um serviço oficial da Justiça?", a: "Não. A Procjus é uma plataforma digital privada que conecta pessoas a advogados independentes. Não temos vínculo com o Poder Judiciário." }
+  { q: "A Pequenas Causas Processos é um serviço oficial da Justiça?", a: "Não. A Pequenas Causas Processos é uma plataforma digital privada que conecta pessoas a advogados independentes. Não temos vínculo com o Poder Judiciário." }
 ];
 
 export default function Home() {
@@ -284,7 +284,7 @@ export default function Home() {
 
                       <button 
                         type="submit"
-                        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2"
+                        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2"
                       >
                         Continuar <ArrowRight className="w-5 h-5" />
                       </button>
@@ -370,7 +370,7 @@ export default function Home() {
                       <button 
                         type="submit"
                         disabled={submitCaseMutation.isPending}
-                        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] disabled:opacity-50 transition-all flex justify-center items-center gap-2 mt-4"
+                        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] disabled:opacity-50 transition-all flex justify-center items-center gap-2 mt-4"
                       >
                         {submitCaseMutation.isPending ? "Processando..." : "Enviar para Análise"}
                       </button>
@@ -443,7 +443,7 @@ export default function Home() {
                       <button 
                         type="submit"
                         disabled={createPaymentMutation.isPending}
-                        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] disabled:opacity-50 transition-all flex justify-center items-center gap-2 mt-4"
+                        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] disabled:opacity-50 transition-all flex justify-center items-center gap-2 mt-4"
                       >
                         {createPaymentMutation.isPending ? "Processando..." : "Confirmar Pagamento"} <Lock className="w-4 h-4" />
                       </button>
@@ -504,7 +504,7 @@ export default function Home() {
                     
                     <Link 
                       href="/area-do-cliente"
-                      className="inline-flex py-4 px-8 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all"
+                      className="inline-flex py-4 px-8 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] transition-all"
                     >
                       Acessar Área do Cliente
                     </Link>
@@ -545,7 +545,7 @@ export default function Home() {
       <section className="py-32" id="como-funciona">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-20">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-6">Como a <span className="gold-gradient-text">Procjus</span> funciona</h2>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mb-6">Como a <span className="gold-gradient-text">Pequenas Causas</span> funciona</h2>
             <p className="text-lg text-muted-foreground">Conectamos você aos melhores advogados do Brasil de forma rápida, segura e 100% digital.</p>
           </div>
 
@@ -571,7 +571,7 @@ export default function Home() {
               }
             ].map((step, i) => (
               <div key={i} className="relative z-10 glass-panel p-8 rounded-2xl text-center hover-elevate">
-                <div className="w-20 h-20 mx-auto rounded-full bg-background border border-primary/30 flex items-center justify-center text-primary mb-6 shadow-[0_0_30px_rgba(212,175,55,0.15)]">
+                <div className="w-20 h-20 mx-auto rounded-full bg-background border border-primary/30 flex items-center justify-center text-primary mb-6 shadow-[0_0_30px_rgba(37,99,235,0.12)]">
                   {step.icon}
                 </div>
                 <h3 className="text-xl font-bold mb-4">{step.title}</h3>
@@ -593,9 +593,9 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { source: "O Globo", date: "Dezembro 2025", title: '"Procjus propõe maior segurança ao acesso à Justiça online"' },
-              { source: "Valor Econômico", date: "Maio 2025", title: '"A Procjus conecta cidadãos a advogados de forma ágil e acessível."' },
-              { source: "Terra", date: "Maio 2025", title: '"Plataforma Procjus facilita acesso ao Juizado Especial Cível"' }
+              { source: "O Globo", date: "Dezembro 2025", title: '"Pequenas Causas Processos propõe maior segurança ao acesso à Justiça online"' },
+              { source: "Valor Econômico", date: "Maio 2025", title: '"A plataforma conecta cidadãos a advogados de forma ágil e acessível."' },
+              { source: "Terra", date: "Maio 2025", title: '"Pequenas Causas Processos facilita acesso ao Juizado Especial Cível"' }
             ].map((mention, i) => (
               <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-primary/50 transition-all group">
                 <div className="font-display text-2xl font-bold text-white/50 group-hover:text-primary transition-colors mb-6">{mention.source}</div>
@@ -614,7 +614,7 @@ export default function Home() {
       <section className="py-32" id="depoimentos">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">O que dizem sobre a Procjus</h2>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">O que dizem sobre a Pequenas Causas</h2>
             <div className="flex items-center justify-center gap-2 text-xl font-semibold">
               <span className="text-foreground">Google Avaliações</span>
               <span className="text-primary">5.0</span>
@@ -627,7 +627,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { name: "Vlamir Constin", text: "O site muito prático e fácil de usar. Tudo é muito transparente, simples de entender e objetivo. Me senti seguro para dar entrada no processo." },
-              { name: "Julia Araújo", text: "Excelente! Eu não podia usar defensoria e o advogado da Procjus deu entrada no juizado e paguei baratinho, não tive trabalho nenhum." },
+              { name: "Julia Araújo", text: "Excelente! Eu não podia usar defensoria e o advogado da Pequenas Causas Processos deu entrada no juizado e paguei baratinho, não tive trabalho nenhum." },
               { name: "Leonardo Rodrigues", text: "Incrível a Assessoria e a atenção que recebi no meu caso, desde o primeiro momento me instruiu passo a passo. Parabéns pelo ótimo serviço." },
               { name: "Vinicius Viana", text: "Gostei bastante, após preencher o formulário é possível acompanhar o processo na área do cliente. O atendimento da equipe é excelente!" }
             ].map((review, i) => (
@@ -650,7 +650,7 @@ export default function Home() {
           </div>
           
           <div className="mt-16 text-center">
-            <a href="#avaliar" className="inline-flex py-4 px-8 rounded-full bg-primary text-primary-foreground font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] hover:-translate-y-1 transition-all">
+            <a href="#avaliar" className="inline-flex py-4 px-8 rounded-full bg-primary text-primary-foreground font-bold shadow-[0_0_20px_rgba(37,99,235,0.25)] hover:shadow-[0_0_30px_rgba(37,99,235,0.45)] hover:-translate-y-1 transition-all">
               ENVIAR MEU CASO AGORA
             </a>
           </div>

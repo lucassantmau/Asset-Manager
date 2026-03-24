@@ -47,7 +47,7 @@ export default function LawyerSignin() {
           className="glass-panel w-full max-w-md p-8 rounded-2xl relative z-10"
         >
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(37,99,235,0.25)]">
               <Scale className="w-8 h-8 text-background" />
             </div>
             <h1 className="text-2xl font-display font-bold">Portal do Advogado</h1>
@@ -87,7 +87,7 @@ export default function LawyerSignin() {
             <button 
               type="submit"
               disabled={signinMutation.isPending}
-              className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-4"
+              className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-4"
             >
               {signinMutation.isPending ? "Autenticando..." : "Entrar Seguramente"} <Lock className="w-4 h-4" />
             </button>

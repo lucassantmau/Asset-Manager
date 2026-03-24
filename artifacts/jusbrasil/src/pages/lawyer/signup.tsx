@@ -63,7 +63,7 @@ export default function LawyerSignup() {
             <div>
               <h1 className="text-3xl font-display font-bold mb-4">Cadastro de <span className="gold-gradient-text">Advogado</span></h1>
               <p className="text-muted-foreground leading-relaxed">
-                Junte-se a centenas de profissionais que já estão expandindo suas carteiras de clientes através da Procjus Premium.
+                Junte-se a centenas de profissionais que já estão expandindo suas carteiras de clientes através da Pequenas Causas Processos.
               </p>
             </div>
             
@@ -114,7 +114,7 @@ export default function LawyerSignup() {
                   <p className="text-muted-foreground mb-8">
                     Seus dados foram enviados para análise. Em breve, nossa equipe entrará em contato via WhatsApp para finalizar a verificação.
                   </p>
-                  <Link href="/" className="inline-flex py-3 px-6 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all">
+                  <Link href="/" className="inline-flex py-3 px-6 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] transition-all">
                     Voltar ao Início
                   </Link>
                 </div>
@@ -184,7 +184,7 @@ export default function LawyerSignup() {
                     <button 
                       type="submit"
                       disabled={registerMutation.isPending}
-                      className="w-full sm:w-auto py-3 px-8 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                      className="w-full sm:w-auto py-3 px-8 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                     >
                       {registerMutation.isPending ? "Enviando..." : "Criar Cadastro"} <ArrowRight className="w-4 h-4" />
                     </button>

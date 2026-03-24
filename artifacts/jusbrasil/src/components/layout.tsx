@@ -40,7 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Scale className="w-4.5 h-4.5" />
               </div>
               <span className="font-display font-bold text-xl tracking-wide text-foreground">
-                Procjus <span className="text-primary">Premium</span>
+                Pequenas Causas <span className="text-primary">Processos</span>
               </span>
             </Link>
 
@@ -135,11 +135,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link href="/" className="flex items-center gap-2 mb-5">
                 <Scale className="w-6 h-6 text-accent" />
                 <span className="font-display font-bold text-xl">
-                  Procjus <span className="text-accent">Premium</span>
+                  Pequenas Causas <span className="text-accent">Processos</span>
                 </span>
               </Link>
               <p className="text-slate-400 text-sm max-w-sm mb-6 leading-relaxed">
-                Apoio às Pequenas Causas Online. A Procjus é uma plataforma tecnológica privada que conecta cidadãos a advogados independentes verificados. Não somos um escritório de advocacia.
+                Apoio às Pequenas Causas Online. A Pequenas Causas Processos é uma plataforma tecnológica privada que conecta cidadãos a advogados independentes verificados. Não somos um escritório de advocacia.
               </p>
               <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-800 w-fit px-3 py-1.5 rounded-full border border-slate-700">
                 <ShieldCheck className="w-4 h-4 text-green-400" />
@@ -177,7 +177,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-xs text-slate-500">
-              &copy; {new Date().getFullYear()} Procjus Premium. Todos os direitos reservados.
+              &copy; {new Date().getFullYear()} Pequenas Causas Processos. Todos os direitos reservados.
             </p>
             <p className="text-xs text-slate-500">
               Não possuímos vínculo com o Poder Judiciário.
