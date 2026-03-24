@@ -171,9 +171,7 @@ export default function Home() {
                 <span className="text-[#fee001]">Defendidos</span> Sem<br />
                 Sair de Casa.
               </h1>
-              <p className="text-base text-white/65 mb-6 max-w-lg leading-[1.6]">
-                Atendimento jurídico 100% digital. Recuperamos seu dinheiro e sua dignidade com agilidade.
-              </p>
+              <p className="text-white/65 mb-6 max-w-lg text-[15px]">Atendimento jurídico 100% digital. Conectamos seu caso a advogados para avaliação e, se cabível, ação no Juizado Especial Cível</p>
 
               {/* Trust badges — 2×2 grid */}
               <div className="grid grid-cols-2 gap-2 mb-4">
