@@ -116,7 +116,7 @@ export default function Home() {
         evidence_protocolos: evidences.includes("Protocolos de Atendimento"),
         evidence_boletim: evidences.includes("Boletim de Ocorrência"),
         evidence_outros: evidences.includes("Outros"),
-        claim_value: step1Data.value ? parseFloat(String(step1Data.value)) || 0 : null,
+        claim_value: (() => { const v = parseFloat(String(step1Data.value ?? "")); return isNaN(v) ? null : v; })(),
         full_name: data.name,
         whatsapp: data.whatsapp,
         email: data.email,
