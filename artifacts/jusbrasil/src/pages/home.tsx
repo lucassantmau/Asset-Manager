@@ -203,9 +203,15 @@ export default function Home() {
                     <p className="text-muted-foreground text-xs">Avaliamos sem custo. Leva 2 minutos.</p>
                   </div>
                 </div>
-                <p className="text-white/50 text-xs leading-relaxed px-1 pt-1">
-                  Plataforma que conecta você a advogados de pequenas causas, com rapidez e segurança.
-                </p>
+                <div className="flex items-center gap-3 glass-panel p-3 rounded-xl">
+                  <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
+                    <Scale className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-foreground text-sm">Plataforma que conecta você</p>
+                    <p className="text-muted-foreground text-xs">a advogados de pequenas causas, com rapidez e segurança.</p>
+                  </div>
+                </div>
               </div>
 
               <div className="glass-panel rounded-xl p-4">
