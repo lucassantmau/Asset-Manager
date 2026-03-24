@@ -248,7 +248,7 @@ export default function Home() {
                   >
                     <div className="mb-6">
                       <h3 className="text-2xl font-display font-bold text-foreground mb-1">Conte o que aconteceu</h3>
-                      <p className="text-muted-foreground text-sm flex items-center gap-2">
+                      <p className="text-emerald-500 text-sm font-medium flex items-center gap-2">
                         <Clock className="w-4 h-4" /> Triagem gratuita
                       </p>
                     </div>
