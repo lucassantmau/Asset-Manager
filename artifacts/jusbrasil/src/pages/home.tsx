@@ -150,93 +150,99 @@ export default function Home() {
   return (
     <Layout>
       {/* HERO SECTION */}
-      <section className="relative pt-24 pb-32 overflow-hidden hero-gradient" id="avaliar">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_#EEF2FF_0%,_transparent_60%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_#FFF8ED_0%,_transparent_60%)]"></div>
-        </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Hero Copy */}
+      <section className="relative pt-12 pb-24 bg-white" id="avaliar">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            {/* Hero Copy — V3 Accessibility Style */}
             <motion.div 
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.6 }}
+              className="pt-4"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
-                <Scale className="w-4 h-4" />
-                Plataforma N°1 em Pequenas Causas
-              </div>
-              <h1 className="text-5xl lg:text-7xl font-display font-bold leading-tight mb-6">
-                Seus direitos merecem <span className="gold-gradient-text">defesa de excelência.</span>
+              <h1 className="text-[42px] font-display font-bold leading-tight mb-6 text-[#111111]">
+                Lesado? Nós buscamos seu direito.
               </h1>
-              <p className="text-xl text-muted-foreground mb-10 max-w-lg leading-relaxed">
-                Mais de 6.000 brasileiros já buscaram seus direitos com advogados verificados. Simples, 100% online e seguro.
+              <p className="text-xl text-[#333333] mb-10 max-w-lg leading-[1.75]">
+                Se você teve um problema como consumidor, não fique no prejuízo. Conectamos você a advogados especialistas de forma simples e segura.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                <div className="flex items-center gap-3 bg-white border border-border rounded-xl p-4 flex-1 shadow-sm">
-                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+              <div className="space-y-4 mb-10">
+                <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border-2 border-slate-200">
+                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground">100% Seguro</p>
-                    <p className="text-sm text-muted-foreground">Dados criptografados</p>
+                    <p className="font-bold text-[#111111] text-lg">100% Seguro</p>
+                    <p className="text-[#444444]">Seus dados estão protegidos por lei.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 bg-white border border-border rounded-xl p-4 flex-1 shadow-sm">
-                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border-2 border-slate-200">
+                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground">Advogados OAB</p>
-                    <p className="text-sm text-muted-foreground">Profissionais verificados</p>
+                    <p className="font-bold text-[#111111] text-lg">Advogados OAB</p>
+                    <p className="text-[#444444]">Apenas profissionais registrados e verificados.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-50 border-2 border-border rounded-xl p-6">
-                <h2 className="text-base font-bold mb-5 flex items-center gap-2 text-foreground">
-                  <ListOrdered className="w-5 h-5 text-primary" />
+              <div className="bg-[#f8f9fa] border-4 border-[#e9ecef] rounded-xl p-6">
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-[#111111]">
+                  <ListOrdered className="w-6 h-6 text-primary" />
                   Como funciona?
                 </h2>
-                <ol className="space-y-4">
+                <ol className="space-y-5">
                   <li className="flex gap-4">
-                    <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+                    <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg flex-shrink-0">1</div>
                     <div>
-                      <strong className="block text-foreground text-sm mb-0.5">Preencha o formulário</strong>
-                      <span className="text-muted-foreground text-sm">Conte-nos o que aconteceu. Leva 2 minutos.</span>
+                      <strong className="block text-[#111111] text-lg mb-0.5">Preencha o formulário</strong>
+                      <span className="text-[#333333]">Conte-nos o que aconteceu. Leva apenas 2 minutos.</span>
                     </div>
                   </li>
                   <li className="flex gap-4">
-                    <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+                    <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg flex-shrink-0">2</div>
                     <div>
-                      <strong className="block text-foreground text-sm mb-0.5">Análise do caso</strong>
-                      <span className="text-muted-foreground text-sm">Um advogado especialista avaliará seus direitos.</span>
+                      <strong className="block text-[#111111] text-lg mb-0.5">Análise do caso</strong>
+                      <span className="text-[#333333]">Um advogado especialista avaliará seus direitos.</span>
                     </div>
                   </li>
                   <li className="flex gap-4">
-                    <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+                    <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg flex-shrink-0">3</div>
                     <div>
-                      <strong className="block text-foreground text-sm mb-0.5">Início do processo</strong>
-                      <span className="text-muted-foreground text-sm">Você recebe instruções claras sobre os próximos passos.</span>
+                      <strong className="block text-[#111111] text-lg mb-0.5">Início do processo</strong>
+                      <span className="text-[#333333]">Você recebe instruções claras sobre os próximos passos.</span>
                     </div>
                   </li>
                 </ol>
               </div>
             </motion.div>
 
-            {/* FORM CARD */}
+            {/* FORM CARD — V3 Accessibility Style */}
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="glass-panel rounded-2xl p-6 sm:p-8 relative overflow-hidden"
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="bg-white rounded-xl border-4 border-[#e5e7eb] shadow-xl overflow-hidden"
+              role="region"
+              aria-label="Formulário de avaliação de caso"
             >
-              {/* Step Pills */}
+              {/* Form header bar */}
+              <div className="bg-[#f3f4f6] border-b-4 border-[#e5e7eb] px-6 py-4 flex items-center justify-between">
+                <span className="text-lg font-bold text-[#111111]">
+                  Etapa {Math.min(step, 3)} de 3
+                </span>
+                <span className="text-[#444444] flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Triagem gratuita
+                </span>
+              </div>
+
+              <div className="p-6 sm:p-8">
+              {/* Step indicator inside form for completed steps */}
               {step <= 2 && (
-                <div className="flex items-center justify-between mb-8 bg-slate-100 p-2 rounded-xl">
+                <div className="flex items-center justify-between mb-6 bg-slate-100 p-2 rounded-xl">
                   {[
                     { num: 1, label: "Caso" },
                     { num: 2, label: "Dados" },
@@ -245,12 +251,12 @@ export default function Home() {
                     <React.Fragment key={s.num}>
                       <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
                         step === s.num ? "bg-primary text-white shadow-md" :
-                        step > s.num ? "bg-emerald-100 text-emerald-700" : "text-muted-foreground"
+                        step > s.num ? "bg-emerald-100 text-emerald-700" : "text-[#6b7280]"
                       }`}>
                         <span>{s.num}</span>
                         <span>{s.label}</span>
                       </div>
-                      {i < 2 && <ArrowRight className="w-4 h-4 text-muted-foreground/40 mx-1 flex-shrink-0" />}
+                      {i < 2 && <ArrowRight className="w-4 h-4 text-[#9ca3af] mx-1 flex-shrink-0" />}
                     </React.Fragment>
                   ))}
                 </div>
@@ -487,12 +493,12 @@ export default function Home() {
                     key="step3"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="py-12 flex flex-col items-center text-center"
+                    className="py-16 flex flex-col items-center text-center"
                   >
-                    <div className="w-20 h-20 border-4 border-slate-200 border-t-primary rounded-full animate-spin mb-8"></div>
-                    <h3 className="text-2xl font-display font-bold mb-3">Análise em Andamento</h3>
-                    <p className="text-muted-foreground">
-                      Aguarde enquanto nossa inteligência artificial avalia os requisitos do seu caso...
+                    <div className="w-24 h-24 border-[8px] border-[#e5e7eb] border-t-primary rounded-full animate-spin mb-10"></div>
+                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-4">Analisando seu caso...</h3>
+                    <p className="text-lg text-[#333333] max-w-sm">
+                      Por favor, não feche esta página. Estamos verificando os requisitos legais das informações enviadas.
                     </p>
                   </motion.div>
                 )}
@@ -504,20 +510,20 @@ export default function Home() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    <div className="mb-6 text-center">
-                      <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle2 className="w-6 h-6" />
+                    <div className="mb-8 text-center">
+                      <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-5 border-4 border-[#bbf7d0]">
+                        <CheckCircle2 className="w-10 h-10" />
                       </div>
-                      <h3 className="text-2xl font-display font-bold text-foreground mb-2">Caso Aceito</h3>
-                      <p className="text-muted-foreground text-sm">Libere o acesso para receber propostas.</p>
+                      <h3 className="text-[28px] font-display font-bold text-[#111111] mb-3">Seu caso tem viabilidade!</h3>
+                      <p className="text-lg text-[#333333]">Identificamos fortes elementos para uma ação. Para conectar você a advogados, é necessário o pagamento de uma taxa única de acesso.</p>
                     </div>
 
-                    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6 flex items-center justify-between">
+                    <div className="bg-[#f8f9fa] border-[3px] border-[#e5e7eb] rounded-xl p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Taxa Única de Acesso</p>
-                        <p className="text-2xl font-bold text-primary">R$ 199,90</p>
+                        <p className="text-base text-[#444444] mb-1 font-medium">Taxa Única de Acesso à Plataforma</p>
+                        <p className="text-[36px] font-bold text-[#111111]">R$ 199,90</p>
                       </div>
-                      <ShieldCheck className="w-8 h-8 text-primary/30" />
+                      <ShieldCheck className="w-14 h-14 text-primary" />
                     </div>
 
                     <form onSubmit={checkoutForm.handleSubmit(onCheckoutSubmit)} className="space-y-4">
@@ -572,16 +578,16 @@ export default function Home() {
                     key="step5"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-center py-6"
+                    className="text-center py-8"
                   >
-                    <h3 className="text-2xl font-display font-bold text-foreground mb-2">PIX Gerado!</h3>
-                    <p className="text-muted-foreground text-sm mb-6">Escaneie o QR Code ou copie a chave.</p>
+                    <h3 className="text-[28px] font-display font-bold text-[#111111] mb-2">PIX Gerado!</h3>
+                    <p className="text-lg text-[#333333] mb-8">Escaneie o QR Code ou copie a chave abaixo.</p>
                     
-                    <div className="w-48 h-48 bg-white p-2 rounded-xl mx-auto mb-6 flex items-center justify-center">
-                      <QrCode className="w-full h-full text-black" />
+                    <div className="w-52 h-52 bg-white border-4 border-[#e5e7eb] rounded-xl mx-auto mb-6 flex items-center justify-center">
+                      <QrCode className="w-40 h-40 text-black" />
                     </div>
 
-                    <div className="bg-slate-50 border border-border rounded-xl p-3 mb-6 font-mono text-xs break-all text-muted-foreground">
+                    <div className="bg-[#f3f4f6] border-2 border-[#e5e7eb] rounded-xl p-4 mb-6 font-mono text-sm break-all text-[#444444]">
                       {pixCode}
                     </div>
 
@@ -590,14 +596,14 @@ export default function Home() {
                         navigator.clipboard.writeText(pixCode || "");
                         alert("Código copiado!");
                       }}
-                      className="w-full py-3 rounded-xl bg-secondary border border-border text-foreground font-medium hover:bg-slate-200 transition-all"
+                      className="w-full h-14 rounded-xl bg-slate-100 border-2 border-slate-300 text-[#111111] font-bold text-lg hover:bg-slate-200 transition-all"
                     >
                       Copiar Chave PIX
                     </button>
                     
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <Link href="/area-do-cliente" className="text-primary hover:underline text-sm font-medium">
-                        Ir para Área do Cliente
+                    <div className="mt-8 pt-6 border-t-2 border-[#e5e7eb]">
+                      <Link href="/area-do-cliente" className="text-primary hover:underline text-lg font-bold">
+                        Ir para Área do Cliente →
                       </Link>
                     </div>
                   </motion.div>
@@ -609,17 +615,17 @@ export default function Home() {
                     key="step6"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-center py-10"
+                    className="text-center py-12"
                   >
-                    <div className="w-20 h-20 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mx-auto mb-6">
+                    <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-6 border-4 border-[#bbf7d0]">
                       <CheckCircle2 className="w-10 h-10" />
                     </div>
-                    <h3 className="text-2xl font-display font-bold text-foreground mb-4">Pagamento Aprovado!</h3>
-                    <p className="text-muted-foreground mb-8">Seu caso já está disponível para os advogados da plataforma.</p>
+                    <h3 className="text-[32px] font-display font-bold text-[#111111] mb-4">Pagamento Aprovado!</h3>
+                    <p className="text-lg text-[#333333] mb-10">Seu caso já está disponível para os advogados da plataforma.</p>
                     
                     <Link 
                       href="/area-do-cliente"
-                      className="inline-flex py-4 px-8 rounded-xl bg-primary text-primary-foreground font-bold hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] transition-all"
+                      className="inline-flex h-16 px-10 rounded-xl bg-primary text-white font-bold text-xl items-center justify-center hover:bg-primary/90 transition-all"
                     >
                       Acessar Área do Cliente
                     </Link>
@@ -628,11 +634,12 @@ export default function Home() {
               </AnimatePresence>
 
               {step <= 2 && (
-                <div className="mt-8 flex items-center justify-center gap-4 text-xs text-muted-foreground border-t border-border pt-6">
-                  <div className="flex items-center gap-1"><Lock className="w-3 h-3 text-primary" /> Dados Protegidos</div>
-                  <div className="flex items-center gap-1"><Star className="w-3 h-3 text-primary" /> +3.000 Casos</div>
+                <div className="mt-6 flex items-center justify-center gap-6 text-sm text-[#666666] border-t-2 border-[#e5e7eb] pt-5">
+                  <div className="flex items-center gap-1.5"><Lock className="w-4 h-4 text-primary" /> Dados Protegidos</div>
+                  <div className="flex items-center gap-1.5"><Star className="w-4 h-4 text-primary" /> +3.000 Casos</div>
                 </div>
               )}
+              </div>{/* end p-6 sm:p-8 */}
             </motion.div>
           </div>
         </div>
