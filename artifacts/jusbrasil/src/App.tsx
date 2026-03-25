@@ -9,6 +9,8 @@ import ClientArea from "@/pages/client-area";
 import LoginPage from "@/pages/login";
 import CadastroPage from "@/pages/cadastro";
 import AreaClientePage from "@/pages/area-cliente";
+import CadastrarPage from "@/pages/Cadastro";
+import ObrigadoPage from "@/pages/Obrigado";
 import Terms from "@/pages/terms";
 import NotFound from "@/pages/not-found";
 
@@ -27,6 +29,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/login" component={LoginPage} />
       <Route path="/cadastro" component={CadastroPage} />
+      <Route path="/cadastrar" component={CadastrarPage} />
+      <Route path="/obrigado" component={ObrigadoPage} />
       <Route path="/area-cliente" component={AreaClientePage} />
       <Route path="/advogado/signup" component={LawyerSignup} />
       <Route path="/advogado/signin" component={LawyerSignin} />

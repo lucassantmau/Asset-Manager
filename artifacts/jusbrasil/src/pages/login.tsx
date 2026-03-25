@@ -4,13 +4,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Link, useLocation } from "wouter";
-import { supabase } from "@/lib/supabase";
 import { ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
+
+const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
@@ -25,16 +26,23 @@ export default function LoginPage() {
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     setLoading(true);
     setAuthError(null);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    });
-    setLoading(false);
-    if (error) {
-      setAuthError("E-mail ou senha incorretos. Tente novamente.");
-    } else {
-      navigate("/area-cliente");
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.email, password: data.password }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        setAuthError("E-mail ou senha incorretos. Tente novamente.");
+      } else {
+        localStorage.setItem("client_session", JSON.stringify({ email: json.email, name: json.name, uuid: json.uuid }));
+        navigate("/area-do-cliente");
+      }
+    } catch {
+      setAuthError("Erro de conexão. Tente novamente.");
     }
+    setLoading(false);
   };
 
   return (
@@ -57,6 +65,7 @@ export default function LoginPage() {
                   {...form.register("email")}
                   type="email"
                   placeholder="seu@email.com"
+                  autoComplete="email"
                   className="w-full h-11 bg-white border-2 border-slate-200 rounded-xl px-3 text-sm focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all"
                 />
                 {form.formState.errors.email && (
@@ -70,6 +79,7 @@ export default function LoginPage() {
                   {...form.register("password")}
                   type="password"
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   className="w-full h-11 bg-white border-2 border-slate-200 rounded-xl px-3 text-sm focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all"
                 />
                 {form.formState.errors.password && (
@@ -93,11 +103,11 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center space-y-2">
+            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
               <p className="text-sm text-muted-foreground">
                 Não tem conta?{" "}
-                <Link href="/cadastro" className="text-[#425f8e] font-bold hover:underline">
-                  Cadastre-se
+                <Link href="/cadastrar" className="text-[#425f8e] font-bold hover:underline">
+                  Criar acesso
                 </Link>
               </p>
             </div>

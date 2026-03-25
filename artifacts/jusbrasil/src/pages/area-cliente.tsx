@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { Layout } from "@/components/layout";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
-import type { User } from "@supabase/supabase-js";
 import {
   CheckCircle2,
   Clock,
@@ -14,6 +13,12 @@ import {
   Scale,
   Users,
 } from "lucide-react";
+
+interface ClientSession {
+  email: string;
+  name: string;
+  uuid: string;
+}
 
 interface CaseData {
   id: string;
@@ -37,7 +42,7 @@ const TIMELINE_STEPS = [
 
 export default function AreaClientePage() {
   const [, navigate] = useLocation();
-  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<ClientSession | null>(null);
   const [caseData, setCaseData] = useState<CaseData | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
   const [loadingCase, setLoadingCase] = useState(false);
@@ -47,15 +52,19 @@ export default function AreaClientePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate("/login");
-      } else {
-        setUser(session.user);
-        setLoadingSession(false);
-        fetchCase(session.user.email!);
-      }
-    });
+    const stored = localStorage.getItem("client_session");
+    if (!stored) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const parsed: ClientSession = JSON.parse(stored);
+      setSession(parsed);
+      setLoadingSession(false);
+      fetchCase(parsed.email);
+    } catch {
+      navigate("/login");
+    }
   }, []);
 
   const fetchCase = async (email: string) => {
@@ -72,18 +81,18 @@ export default function AreaClientePage() {
     if (!error && data) setCaseData(data);
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    localStorage.removeItem("client_session");
     navigate("/login");
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !session) return;
     setUploading(true);
     setUploadError(null);
 
-    const path = `${user.id}/${Date.now()}_${file.name}`;
+    const path = `${session.uuid}/${Date.now()}_${file.name}`;
     const { error } = await supabase.storage
       .from("case-documents")
       .upload(path, file, { upsert: false });
@@ -115,7 +124,7 @@ export default function AreaClientePage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-black text-foreground">Minha Área</h1>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <p className="text-sm text-muted-foreground">{session?.email}</p>
             </div>
             <button
               onClick={handleSignOut}
@@ -164,7 +173,7 @@ export default function AreaClientePage() {
                   <p className="text-xs text-muted-foreground font-medium mb-0.5">Descrição do Caso</p>
                   <p className="text-sm text-foreground leading-relaxed">{caseData.case_description}</p>
                 </div>
-                {caseData.claim_value && caseData.claim_value > 0 && (
+                {caseData.claim_value != null && caseData.claim_value > 0 && (
                   <div>
                     <p className="text-xs text-muted-foreground font-medium mb-0.5">Valor Buscado</p>
                     <p className="text-sm font-semibold text-emerald-700">
