@@ -6,6 +6,9 @@ import LawyerSignin from "@/pages/lawyer/signin";
 import BlogList from "@/pages/blog/index";
 import BlogPost from "@/pages/blog/post";
 import ClientArea from "@/pages/client-area";
+import LoginPage from "@/pages/login";
+import CadastroPage from "@/pages/cadastro";
+import AreaClientePage from "@/pages/area-cliente";
 import Terms from "@/pages/terms";
 import NotFound from "@/pages/not-found";
 
@@ -22,6 +25,9 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/cadastro" component={CadastroPage} />
+      <Route path="/area-cliente" component={AreaClientePage} />
       <Route path="/advogado/signup" component={LawyerSignup} />
       <Route path="/advogado/signin" component={LawyerSignin} />
       <Route path="/blog" component={BlogList} />

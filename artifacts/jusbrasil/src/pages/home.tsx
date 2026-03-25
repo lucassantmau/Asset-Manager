@@ -116,7 +116,7 @@ export default function Home() {
         evidence_protocolos: evidences.includes("Protocolos de Atendimento"),
         evidence_boletim: evidences.includes("Boletim de Ocorrência"),
         evidence_outros: evidences.includes("Outros"),
-        claim_value: (() => { const v = parseFloat(String(step1Data.value ?? "")); return isNaN(v) ? null : v; })(),
+        claim_value: parseFloat(String(step1Data.value)) || 0,
         full_name: data.name,
         whatsapp: data.whatsapp,
         email: data.email,
@@ -624,30 +624,31 @@ export default function Home() {
                     key="step7"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-center py-10"
+                    className="text-center py-8"
                   >
-                    <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-6 border-4 border-[#bbf7d0]">
+                    <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-5 border-4 border-[#bbf7d0]">
                       <CheckCircle2 className="w-10 h-10" />
                     </div>
-                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-3">Caso enviado com sucesso!</h3>
-                    <p className="text-base text-[#444444] mb-2 max-w-sm mx-auto leading-relaxed">
-                      Recebemos as informações do seu caso. Nossa equipe irá analisar e entrar em contato em breve pelo WhatsApp ou e-mail informado.
+                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-2">Parabéns! Caso enviado.</h3>
+                    <p className="text-sm text-[#555] mb-6 max-w-xs mx-auto leading-relaxed">
+                      Recebemos seu caso. Para conectar você a um advogado, conclua o pagamento da taxa de acesso.
                     </p>
-                    <p className="text-sm text-muted-foreground mb-8">Prazo de resposta: até 1 dia útil.</p>
 
-                    <div className="bg-[#f8f9fa] border border-slate-200 rounded-xl p-4 text-left mb-8 max-w-xs mx-auto">
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Próximos passos</p>
-                      <ol className="space-y-2 text-sm text-[#333]">
-                        <li className="flex items-start gap-2"><span className="w-5 h-5 rounded-full bg-[#fee001] text-[#716300] text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>Análise do seu caso por advogado especialista</li>
-                        <li className="flex items-start gap-2"><span className="w-5 h-5 rounded-full bg-[#fee001] text-[#716300] text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>Contato via WhatsApp com orientações</li>
-                        <li className="flex items-start gap-2"><span className="w-5 h-5 rounded-full bg-[#fee001] text-[#716300] text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>Se cabível, ingresso com a ação no Juizado Especial</li>
-                      </ol>
-                    </div>
+                    <a
+                      href="https://go.klivopay.com.br/t45jsqe1qe"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-base shadow-[0_5px_0_0_#15803d] hover:shadow-[0_2px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all mb-4"
+                    >
+                      <Lock className="w-4 h-4" /> Efetuar Pagamento
+                    </a>
 
-                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                      <Lock className="w-3.5 h-3.5 text-[#425f8e]" />
-                      <span>Seus dados estão protegidos e em sigilo absoluto</span>
-                    </div>
+                    <Link
+                      href="/login"
+                      className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Já paguei → Área do Cliente
+                    </Link>
                   </motion.div>
                 )}
               </AnimatePresence>
