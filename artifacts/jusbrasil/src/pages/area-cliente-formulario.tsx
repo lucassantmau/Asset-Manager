@@ -181,8 +181,14 @@ function UploadField({ label, req, category, multi, onAdd }: {
 
   const handle = useCallback((fileList: File[]) => {
     if (!fileList.length) return;
-    const entries: FileEntry[] = fileList.map(f => ({ file: f, category, name: f.name }));
-    setNames(prev => multi ? [...prev, ...fileList.map(f => f.name)] : fileList.map(f => f.name));
+    const MAX = 10 * 1024 * 1024;
+    const valid = fileList.filter(f => {
+      if (f.size > MAX) { alert(`"${f.name}" excede 10 MB e foi ignorado.`); return false; }
+      return true;
+    });
+    if (!valid.length) return;
+    const entries: FileEntry[] = valid.map(f => ({ file: f, category, name: f.name }));
+    setNames(prev => multi ? [...prev, ...valid.map(f => f.name)] : valid.map(f => f.name));
     onAdd(entries);
     if (ref.current) ref.current.value = "";
   }, [category, multi, onAdd]);
@@ -210,7 +216,7 @@ function UploadField({ label, req, category, multi, onAdd }: {
       {multi && names.map((n, i) => (
         <div key={i} style={{ fontSize:12, color:gold, background:"rgba(254,224,1,0.06)", padding:"5px 12px", borderRadius:8, marginTop:4 }}>✓ {n}</div>
       ))}
-      <input ref={ref} type="file" multiple={multi} accept="image/*,.pdf,.doc,.docx" style={{ display:"none" }} onChange={onChange} />
+      <input ref={ref} type="file" multiple={multi} accept="image/*,.pdf,.webp" style={{ display:"none" }} onChange={onChange} />
     </F>
   );
 }
@@ -259,6 +265,8 @@ export default function AreaClienteFormulario() {
   const [clientEmail, setClientEmail] = useState("");
   const [form, setForm]             = useState<FormState>(FORM0);
   const [files, setFiles]           = useState<FileEntry[]>([]);
+  const [aceiteTermos, setAceiteTermos]   = useState(false);
+  const [aceiteDados, setAceiteDados]     = useState(false);
 
   const sf = (field: keyof FormState) => (value: string) =>
     setForm(x => ({ ...x, [field]: value }));
@@ -329,6 +337,10 @@ export default function AreaClienteFormulario() {
       if (!form.pretensao.trim())      e.pretensao      = "Obrigatório";
       if (!form.tentouResolver)        e.tentouResolver = "Selecione uma opção";
       if (!form.registrouProcon)       e.registrouProcon = "Selecione uma opção";
+    }
+    if (stepNum === 4 || stepNum === 5) {
+      if (!aceiteTermos) e.aceiteTermos = "Aceite os termos para continuar";
+      if (!aceiteDados)  e.aceiteDados  = "Confirme a veracidade dos dados";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -680,12 +692,20 @@ export default function AreaClienteFormulario() {
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Documentos</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 16px" }}>Envie seus documentos e provas</p>
               <div style={{ background:"rgba(254,224,1,0.06)", border:"1px solid rgba(254,224,1,0.18)", borderRadius:12, padding:"12px 16px", fontSize:13, color:"rgba(254,224,1,0.8)", lineHeight:1.6, marginBottom:20 }}>
-                <strong style={{ color:gold }}>Dica:</strong> Envie documentos nítidos em PDF, JPG ou PNG. Quanto mais provas, mais forte é o seu caso.
+                <strong style={{ color:gold }}>Dica:</strong> Envie documentos nítidos em PDF, JPG, PNG ou WEBP (máx. 10 MB cada). Quanto mais provas, mais forte é o seu caso.
               </div>
+              <p style={{ fontSize:11, fontWeight:700, color:"rgba(200,220,255,0.75)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>Obrigatórios</p>
               <G1>
-                <UploadField label="CNH, CPF ou RG (identidade)" req category="identidade" onAdd={addFiles} />
+                <UploadField label="RG ou CNH (documento de identidade)" req category="identidade" onAdd={addFiles} />
                 <UploadField label="Comprovante de Residência" req category="residencia" onAdd={addFiles} />
-                <UploadField label="Provas (fotos, prints, contratos, notas fiscais...)" category="prova" multi onAdd={addFilesMulti} />
+              </G1>
+              <p style={{ fontSize:11, fontWeight:700, color:"rgba(200,220,255,0.75)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"20px 0 12px" }}>Opcionais — provas e documentos adicionais</p>
+              <G1>
+                <UploadField label="Contrato / Nota Fiscal" category="contrato_nota" multi onAdd={addFilesMulti} />
+                <UploadField label="Prints de conversas / telas" category="prints" multi onAdd={addFilesMulti} />
+                <UploadField label="Fotos" category="fotos" multi onAdd={addFilesMulti} />
+                <UploadField label="Boletim de Ocorrência" category="boletim" onAdd={addFiles} />
+                <UploadField label="Outros documentos" category="outros" multi onAdd={addFilesMulti} />
               </G1>
             </>}
 
@@ -730,14 +750,34 @@ export default function AreaClienteFormulario() {
                   : files.map((f,i) => <RR key={i} label={f.category} value={f.name} />)
                 }
               </Block>
+              {/* Checkboxes de aceite */}
+              <div style={{ display:"flex", flexDirection:"column", gap:10, margin:"16px 0 4px" }}>
+                <label style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer" }}>
+                  <input
+                    type="checkbox" checked={aceiteTermos} onChange={e => setAceiteTermos(e.target.checked)}
+                    style={{ width:18, height:18, marginTop:1, accentColor:gold, cursor:"pointer", flexShrink:0 }}
+                  />
+                  <span style={{ fontSize:13, color:"rgba(255,255,255,0.7)", lineHeight:1.5 }}>
+                    Li e aceito os <span style={{ color:gold }}>Termos de Uso</span> e a <span style={{ color:gold }}>Política de Privacidade</span>.
+                  </span>
+                </label>
+                {errors.aceiteTermos && <span style={{ fontSize:11, color:"#f87171", marginLeft:28 }}>{errors.aceiteTermos}</span>}
+                <label style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer" }}>
+                  <input
+                    type="checkbox" checked={aceiteDados} onChange={e => setAceiteDados(e.target.checked)}
+                    style={{ width:18, height:18, marginTop:1, accentColor:gold, cursor:"pointer", flexShrink:0 }}
+                  />
+                  <span style={{ fontSize:13, color:"rgba(255,255,255,0.7)", lineHeight:1.5 }}>
+                    Declaro que todas as informações fornecidas são verdadeiras e de minha responsabilidade.
+                  </span>
+                </label>
+                {errors.aceiteDados && <span style={{ fontSize:11, color:"#f87171", marginLeft:28 }}>{errors.aceiteDados}</span>}
+              </div>
               {errors.submit && (
                 <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#fca5a5", marginBottom:12 }}>
                   ⚠️ {errors.submit}
                 </div>
               )}
-              <p style={{ fontSize:11, color:"rgba(255,255,255,0.25)", textAlign:"center", lineHeight:1.6, marginTop:8 }}>
-                Ao confirmar, você declara que os dados são verdadeiros. Após o envio não é possível alterar.
-              </p>
             </>}
 
             {/* Navigation */}
@@ -767,7 +807,7 @@ export default function AreaClienteFormulario() {
                   cursor: submitting ? "not-allowed" : "pointer",
                   border:"none", boxShadow:`0 4px 0 0 #b8a000`, fontFamily:"inherit",
                 }}>
-                  {submitting ? "⏳ Enviando..." : "✓ Confirmar Envio"}
+                  {submitting ? "⏳ Enviando..." : "Enviar Caso"}
                 </button>
               )}
             </div>
