@@ -268,7 +268,6 @@ export default function AreaClienteFormulario() {
       });
       setProtocol(proto);
       setSubmitted(true);
-      window.scrollTo({ top:0, behavior:"smooth" });
     } catch (err) {
       setErrors({ submit: "Erro ao enviar. Tente novamente." });
     }
