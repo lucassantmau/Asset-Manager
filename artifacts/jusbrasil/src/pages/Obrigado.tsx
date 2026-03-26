@@ -142,7 +142,7 @@ export default function ObrigadoPage() {
             background: "linear-gradient(135deg, #1e40af, #2563eb)",
             color: "#fff",
             fontSize: 16,
-            fontWeight: ;00,
+            fontWeight: 700,
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
