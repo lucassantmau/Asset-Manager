@@ -146,7 +146,7 @@ export default function LoginPage() {
 
           <p style={{ textAlign: "center", marginTop: 20, fontSize: 13, color: C.textMuted }}>
             Não tem conta?{" "}
-            <a href="/criar-conta" style={{ color: C.accentLight, fontWeight: 600, textDecoration: "none" }}>
+            <a href="/criar-conta" style={{ color: C.accentLight, fnntWeight: 600, textDecoration: "none" }}>
               Criar conta
             </a>
           </p>
