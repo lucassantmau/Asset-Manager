@@ -163,7 +163,7 @@ import React from "react";
 export default function AreaClienteFormulario() {
   const [step, setStep]        = useState(0);
   const [errs, setErrs]        = useState<Record<string,string>>({});
-  const [submitting, setSub]   = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubErr] = useState<string|null>(null);
   const [done, setDone]        = useState(false);
   const [protocol, setProtocol]= useState("");
@@ -238,16 +238,16 @@ export default function AreaClienteFormulario() {
 
   const handleSubmit = async () => {
     if (!validate(5)) return;
-    setSub(true);
+    setSubmitting(true);
     try {
       const proto = "PCC-" + Date.now().toString(36).toUpperCase().slice(-8);
       const uploadedFiles: { category: string; name: string; url: string }[] = [];
       for (const f of files) {
         const safeName = f.file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const url = await supabaseUpload("pequenas-causas-docs", `${proto}/${f.category}/${safeName}`, f.file);
-        uploadedFiles.push({ category: f.category, name: f.name, url });
+        uploadedFiles.push({ category: f.category, name: f.file.name, url });
       }
-      await supabaseFrom("case_submissions", {
+      await supabaseFrom("pequenas_causas_submissions", {
         client_email: clientEmail || a.email,
         protocolo: proto,
         autores: [a],
@@ -256,7 +256,7 @@ export default function AreaClienteFormulario() {
         detalhes_causa: c,
         provas_links: [],
         documentos: uploadedFiles,
-        status: "pendente",
+        status: "aguardando_analise",
       });
       setProtocol(proto);
       setDone(true);
@@ -264,7 +264,7 @@ export default function AreaClienteFormulario() {
     } catch (err: any) {
       setSubErr(err.message || "Erro ao enviar");
     } finally {
-      setSub(false);
+      setSubmitting(false);
     }
   };
 
