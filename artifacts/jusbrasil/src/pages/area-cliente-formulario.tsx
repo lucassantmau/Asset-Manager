@@ -162,7 +162,7 @@ import React from "react";
 
 export default function AreaClienteFormulario() {
   const [step, setStep]        = useState(0);
-  const [errs, setErrs]        = useState<Record<string,string>>({});
+  const [errors, setErrors]    = useState<Record<string,string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [protocol, setProtocol]= useState("");
@@ -219,7 +219,7 @@ export default function AreaClienteFormulario() {
       if (!c.fatos.trim()) e.fatos = "Obrigatório";
       if (!c.pedido.trim()) e.pedido = "Obrigatório";
     }
-    setErrs(e);
+    setErrors(e);
     return Object.keys(e).length === 0;
   };
 
@@ -230,7 +230,7 @@ export default function AreaClienteFormulario() {
     }
   };
   const back = () => {
-    setErrs({});
+    setErrors({});
     setStep(s => s - 1);
     window.scrollTo({ top:0, behavior:"smooth" });
   };
@@ -270,7 +270,7 @@ export default function AreaClienteFormulario() {
       setSubmitted(true);
       window.scrollTo({ top:0, behavior:"smooth" });
     } catch (err) {
-      setErrs({ submit: "Erro ao enviar. Tente novamente." });
+      setErrors({ submit: "Erro ao enviar. Tente novamente." });
     } finally {
       setSubmitting(false);
     }
@@ -346,45 +346,45 @@ export default function AreaClienteFormulario() {
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Dados do Autor</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Quem está entrando com o processo</p>
               <G1>
-                <F label="Nome completo" req err={errs.nome}>
+                <F label="Nome completo" req err={errors.nome}>
                   <Inp value={a.nome} onChange={e=>setA(x=>({...x,nome:e.target.value}))} placeholder="Seu nome completo" />
                 </F>
               </G1>
               <div style={{ height:14 }} />
               <G2>
-                <F label="CPF / CNPJ" req err={errs.cpf}>
+                <F label="CPF / CNPJ" req err={errors.cpf}>
                   <Inp value={a.cpf} onChange={e=>setA(x=>({...x,cpf:e.target.value}))} placeholder="000.000.000-00" />
                 </F>
                 <F label="RG">
                   <Inp value={a.rg} onChange={e=>setA(x=>({...x,rg:e.target.value}))} placeholder="RG" />
                 </F>
-                <F label="Telefone / WhatsApp" req err={errs.telefone}>
+                <F label="Telefone / WhatsApp" req err={errors.telefone}>
                   <Inp value={a.telefone} onChange={e=>setA(x=>({...x,telefone:e.target.value}))} placeholder="(11) 99999-9999" />
                 </F>
-                <F label="E-mail" req err={errs.email}>
+                <F label="E-mail" req err={errors.email}>
                   <Inp type="email" value={a.email} onChange={e=>setA(x=>({...x,email:e.target.value}))} placeholder="email@exemplo.com" />
                 </F>
-                <F label="CEP" req err={errs.cep}>
+                <F label="CEP" req err={errors.cep}>
                   <Inp value={a.cep} onChange={e=>setA(x=>({...x,cep:e.target.value}))} placeholder="00000-000" />
                 </F>
                 <Full>
-                  <F label="Endereço" req err={errs.endereco}>
+                  <F label="Endereço" req err={errors.endereco}>
                     <Inp value={a.endereco} onChange={e=>setA(x=>({...x,endereco:e.target.value}))} placeholder="Rua, Avenida..." />
                   </F>
                 </Full>
-                <F label="Número" req err={errs.numero}>
+                <F label="Número" req err={errors.numero}>
                   <Inp value={a.numero} onChange={e=>setA(x=>({...x,numero:e.target.value}))} placeholder="N°" />
                 </F>
                 <F label="Complemento">
                   <Inp value={a.complemento} onChange={e=>setA(x=>({...x,complemento:e.target.value}))} placeholder="Apto, bloco..." />
                 </F>
-                <F label="Bairro" req err={errs.bairro}>
+                <F label="Bairro" req err={errors.bairro}>
                   <Inp value={a.bairro} onChange={e=>setA(x=>({...x,bairro:e.target.value}))} placeholder="Bairro" />
                 </F>
-                <F label="Cidade" req err={errs.cidade}>
+                <F label="Cidade" req err={errors.cidade}>
                   <Inp value={a.cidade} onChange={e=>setA(x=>({...x,cidade:e.target.value}))} placeholder="Cidade" />
                 </F>
-                <F label="Estado" req err={errs.estado}>
+                <F label="Estado" req err={errors.estado}>
                   <Sel value={a.estado} onChange={e=>setA(x=>({...x,estado:e.target.value}))}>
                     <option value="">Selecione a UF</option>
                     {ESTADOS.map(uf=><option key={uf}>{uf}</option>)}
@@ -446,14 +446,14 @@ export default function AreaClienteFormulario() {
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Detalhes da Causa</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Descreva o ocorrido e o que você busca</p>
               <G1>
-                <F label="Valor da causa (R$)" req err={errs.valor}>
+                <F label="Valor da causa (R$)" req err={errors.valor}>
                   <Inp value={c.valor} onChange={e=>setC(x=>({...x,valor:e.target.value}))} placeholder="Ex: 5.000,00" />
                 </F>
-                <F label="Fatos — o que aconteceu?" req err={errs.fatos}>
+                <F label="Fatos — o que aconteceu?" req err={errors.fatos}>
                   <TA value={c.fatos} onChange={e=>setC(x=>({...x,fatos:e.target.value}))} rows={8}
                     placeholder="Descreva detalhadamente os fatos que motivaram a ação..." />
                 </F>
-                <F label="Pedido — o que você quer que o juiz decida?" req err={errs.pedido}>
+                <F label="Pedido — o que você quer que o juiz decida?" req err={errors.pedido}>
                   <TA value={c.pedido} onChange={e=>setC(x=>({...x,pedido:e.target.value}))} rows={5}
                     placeholder="Ex: Que o réu seja condenado a pagar indenização de R$ X..." />
                 </F>
@@ -503,9 +503,9 @@ export default function AreaClienteFormulario() {
                   : files.map((f,i) => <RR key={i} label={f.category} value={f.name} />)
                 }
               </Block>
-              {errs.submit && (
+              {errors.submit && (
                 <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#fca5a5", marginBottom:12 }}>
-                  ⚠️ {errs.submit}
+                  ⚠️ {errors.submit}
                 </div>
               )}
               <p style={{ fontSize:11, color:"rgba(255,255,255,0.25)", textAlign:"center", lineHeight:1.6, marginTop:8 }}>
