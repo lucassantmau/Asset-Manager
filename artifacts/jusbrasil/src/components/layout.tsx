@@ -28,7 +28,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/" className="flex items-center gap-2.5">
               <ShieldCheck className="w-7 h-7 text-[#001532]" />
               <span className="font-black text-lg tracking-tight text-[#001532] leading-none">
-                Pequenas Causas <span className="text-[#001532]/60 font-semibold">Processos</span>
+                Pequenas Causas <span className="text-[#001532]/60 font-semibold border-t-[#fee004] border-r-[#fee004] border-b-[#fee004] border-l-[#fee004]">Processos</span>
               </span>
             </Link>
 
@@ -69,7 +69,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
-
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -96,11 +95,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </motion.div>
         )}
       </AnimatePresence>
-
       <main className="flex-1 w-full pt-[68px]">
         {children}
       </main>
-
       {/* Floating WhatsApp */}
       <a
         href="https://api.whatsapp.com/send?phone=5511963714953"
@@ -111,7 +108,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       >
         <MessageCircle className="w-7 h-7" />
       </a>
-
       {/* Footer */}
       <footer className="bg-[#001532] text-white pt-16 pb-8 mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
