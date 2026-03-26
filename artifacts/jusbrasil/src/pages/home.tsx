@@ -720,33 +720,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* MEDIA MENTIONS */}
-      <section className="py-24 bg-[#001532] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,#032956_0%,transparent_60%)] pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-16">
-            <span className="text-[#fee001] font-bold tracking-widest text-xs uppercase">Reconhecimento Nacional</span>
-            <h2 className="text-3xl md:text-4xl font-black mt-3 text-white tracking-tight">Quem já recuperou seus direitos conosco.</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { source: "O Globo", date: "Dezembro 2025", title: '"Pequenas Causas Processos propõe maior segurança ao acesso à Justiça online"' },
-              { source: "Valor Econômico", date: "Maio 2025", title: '"A plataforma conecta cidadãos a advogados de forma ágil e acessível."' },
-              { source: "Terra", date: "Maio 2025", title: '"Pequenas Causas Processos facilita acesso ao Juizado Especial Cível"' }
-            ].map((mention, i) => (
-              <div key={i} className="bg-white/5 rounded-xl p-8 hover:bg-white/10 transition-all group">
-                <div className="text-2xl font-black text-white/40 group-hover:text-[#fee001] transition-colors mb-6 tracking-tight">{mention.source}</div>
-                <p className="text-base font-medium mb-8 leading-relaxed text-white/70">{mention.title}</p>
-                <div className="flex justify-between items-center text-sm text-white/30">
-                  <span>{mention.date}</span>
-                  <span className="flex items-center gap-1 group-hover:text-[#fee001] transition-colors">Leia mais <ArrowRight className="w-4 h-4" /></span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
       {/* TESTIMONIALS */}
       <section className="py-32 bg-muted" id="depoimentos">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
