@@ -19,21 +19,99 @@ async function supabaseUpload(bucket: string, path: string, file: File): Promise
   return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
 }
 
+// ─── Masks ────────────────────────────────────────────────────────────────────
+
+function maskCPF(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  return d
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+}
+function maskCNPJ(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 14);
+  return d
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/(\d{2})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3/$4")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+function maskPhone(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 10) return d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+  return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
+}
+function maskCEP(v: string) {
+  return v.replace(/\D/g, "").slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
+}
+function maskCurrency(v: string) {
+  const d = v.replace(/\D/g, "");
+  if (!d) return "";
+  const num = parseInt(d, 10) / 100;
+  return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function validCPF(v: string) { return v.replace(/\D/g, "").length === 11; }
+function validCNPJ(v: string) { return v.replace(/\D/g, "").length === 14; }
+
+async function fetchViaCEP(cep: string) {
+  const c = cep.replace(/\D/g, "");
+  if (c.length !== 8) return null;
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${c}/json/`);
+    const d = await res.json();
+    if (d.erro) return null;
+    return d as { logradouro: string; bairro: string; localidade: string; uf: string };
+  } catch { return null; }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Autor {
-  nome: string; cpf: string; rg: string; telefone: string; email: string;
-  cep: string; endereco: string; numero: string; complemento: string;
-  bairro: string; cidade: string; estado: string;
+interface FormState {
+  autorNome: string; autorCPF: string; autorRG: string;
+  autorNascimento: string; autorEstadoCivil: string; autorProfissao: string;
+  autorEmail: string; autorTelefone: string; autorWhatsApp: string;
+  autorCEP: string; autorRua: string; autorNumero: string;
+  autorComplemento: string; autorBairro: string; autorCidade: string; autorEstado: string;
+  reuTipo: "PF" | "PJ";
+  reuNome: string; reuCPF: string; reuCNPJ: string;
+  reuCEP: string; reuRua: string; reuNumero: string;
+  reuComplemento: string; reuBairro: string; reuCidade: string; reuEstado: string;
+  reuTelefone: string; reuEmail: string;
+  tipoCausa: string; tipoCausaOutro: string;
+  valorEstimado: string; descricaoFatos: string; pretensao: string;
+  tentouResolver: string; descricaoTentativa: string; registrouProcon: string;
 }
-interface Reu {
-  nome: string; cpf: string; telefone: string; email: string;
-  cep: string; endereco: string; numero: string; bairro: string; cidade: string; estado: string;
-}
+
+const FORM0: FormState = {
+  autorNome: "", autorCPF: "", autorRG: "",
+  autorNascimento: "", autorEstadoCivil: "", autorProfissao: "",
+  autorEmail: "", autorTelefone: "", autorWhatsApp: "",
+  autorCEP: "", autorRua: "", autorNumero: "",
+  autorComplemento: "", autorBairro: "", autorCidade: "", autorEstado: "",
+  reuTipo: "PJ",
+  reuNome: "", reuCPF: "", reuCNPJ: "",
+  reuCEP: "", reuRua: "", reuNumero: "",
+  reuComplemento: "", reuBairro: "", reuCidade: "", reuEstado: "",
+  reuTelefone: "", reuEmail: "",
+  tipoCausa: "", tipoCausaOutro: "",
+  valorEstimado: "", descricaoFatos: "", pretensao: "",
+  tentouResolver: "", descricaoTentativa: "", registrouProcon: "",
+};
+
 interface FileEntry { file: File; category: string; name: string; }
 
 const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS",
   "MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+
+const ESTADO_CIVIL = ["Solteiro(a)","Casado(a)","Divorciado(a)","Viúvo(a)","União Estável","Separado(a)"];
+
+const TIPOS_CAUSA = [
+  "Consumidor (compra/serviço)", "Cobrança indevida", "Banco / financeira",
+  "Plano de saúde", "Seguro", "Negativa de crédito", "Telefonia / internet",
+  "Energia elétrica / água", "Locação de imóvel", "Condomínio",
+  "Acidente de trânsito", "Danos materiais", "Danos morais",
+  "Relação de trabalho (informal)", "Outros serviços", "Outro",
+];
 
 const STEPS = ["Autor","Réu","Causa","Documentos","Revisão"] as const;
 
@@ -42,13 +120,14 @@ const STEPS = ["Autor","Réu","Causa","Documentos","Revisão"] as const;
 const gold = "#fee001";
 const dark = "#001532";
 
-function F({ label, req, err, children }: { label: string; req?: boolean; err?: string; children: React.ReactNode }) {
+function F({ label, req, err, hint, children }: { label: string; req?: boolean; err?: string; hint?: string; children: React.ReactNode }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
       <label style={{ fontSize:11, fontWeight:700, color:"rgba(200,220,255,0.75)", textTransform:"uppercase", letterSpacing:"0.05em" }}>
         {label}{req && <span style={{ color:"#f87171", marginLeft:2 }}>*</span>}
       </label>
       {children}
+      {hint && !err && <span style={{ fontSize:11, color:"rgba(255,255,255,0.3)" }}>{hint}</span>}
       {err && <span style={{ fontSize:11, color:"#f87171" }}>{err}</span>}
     </div>
   );
@@ -62,7 +141,7 @@ const inp: React.CSSProperties = {
 const Inp = (p: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input {...p} style={{ ...inp, ...p.style }}
     onFocus={e => { e.currentTarget.style.borderColor="rgba(254,224,1,0.5)"; e.currentTarget.style.background="rgba(255,255,255,0.1)"; }}
-    onBlur={e  => { e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"; e.currentTarget.style.background="rgba(255,255,255,0.06)"; }}
+    onBlur={e  => { e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"; e.currentTarget.style.background="rgba(255,255,255,0.06)"; if (p.onBlur) p.onBlur(e); }}
   />
 );
 const Sel = ({ children, ...p }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) => (
@@ -75,6 +154,21 @@ const TA = (p: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
   />
 );
 
+function Toggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div style={{ display:"flex", gap:8 }}>
+      {["sim","não"].map(opt => (
+        <button key={opt} type="button" onClick={() => onChange(opt)} style={{
+          flex:1, height:44, borderRadius:12, border:`1.5px solid ${value===opt ? gold : "rgba(255,255,255,0.1)"}`,
+          background: value===opt ? "rgba(254,224,1,0.12)" : "rgba(255,255,255,0.04)",
+          color: value===opt ? gold : "rgba(255,255,255,0.4)", fontSize:14, fontWeight:700,
+          cursor:"pointer", fontFamily:"inherit", textTransform:"capitalize", transition:"all 0.2s",
+        }}>{opt.charAt(0).toUpperCase()+opt.slice(1)}</button>
+      ))}
+    </div>
+  );
+}
+
 // ─── Upload field ─────────────────────────────────────────────────────────────
 
 function UploadField({ label, req, category, multi, onAdd }: {
@@ -83,17 +177,13 @@ function UploadField({ label, req, category, multi, onAdd }: {
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [names, setNames] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
 
   const handle = useCallback((fileList: File[]) => {
     if (!fileList.length) return;
-    setBusy(true);
     const entries: FileEntry[] = fileList.map(f => ({ file: f, category, name: f.name }));
-    const newNames = fileList.map(f => f.name);
-    setNames(prev => multi ? [...prev, ...newNames] : newNames);
+    setNames(prev => multi ? [...prev, ...fileList.map(f => f.name)] : fileList.map(f => f.name));
     onAdd(entries);
-    setBusy(false);
     if (ref.current) ref.current.value = "";
   }, [category, multi, onAdd]);
 
@@ -115,7 +205,7 @@ function UploadField({ label, req, category, multi, onAdd }: {
           cursor:"pointer", fontSize:13, color: hasFiles ? gold : "rgba(255,255,255,0.4)", transition:"all 0.2s",
         }}
       >
-        {busy ? "⏳ Processando..." : hasFiles && !multi ? `✓ ${names[0]}` : `📎 ${multi ? "Selecionar arquivos" : "Selecionar arquivo"}`}
+        {hasFiles && !multi ? `✓ ${names[0]}` : `📎 ${multi ? "Selecionar arquivos" : "Selecionar arquivo"}`}
       </div>
       {multi && names.map((n, i) => (
         <div key={i} style={{ fontSize:12, color:gold, background:"rgba(254,224,1,0.06)", padding:"5px 12px", borderRadius:8, marginTop:4 }}>✓ {n}</div>
@@ -130,7 +220,7 @@ function UploadField({ label, req, category, multi, onAdd }: {
 function RR({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display:"flex", gap:12, padding:"6px 0", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-      <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)", fontWeight:600, minWidth:90, flexShrink:0, paddingTop:2 }}>{label}</span>
+      <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)", fontWeight:600, minWidth:100, flexShrink:0, paddingTop:2 }}>{label}</span>
       <span style={{ fontSize:13, color:"rgba(255,255,255,0.8)", lineHeight:1.5 }}>{value || "—"}</span>
     </div>
   );
@@ -161,32 +251,31 @@ const Full = ({ children }: { children: React.ReactNode }) => (
 import React from "react";
 
 export default function AreaClienteFormulario() {
-  const [step, setStep]        = useState(0);
-  const [errors, setErrors]    = useState<Record<string,string>>({});
+  const [step, setStep]             = useState(0);
+  const [errors, setErrors]         = useState<Record<string,string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [protocol, setProtocol]= useState("");
+  const [submitted, setSubmitted]   = useState(false);
+  const [protocol, setProtocol]     = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  const [form, setForm]             = useState<FormState>(FORM0);
+  const [files, setFiles]           = useState<FileEntry[]>([]);
 
-  const [a, setA] = useState<Autor>({ nome:"",cpf:"",rg:"",telefone:"",email:"",cep:"",endereco:"",numero:"",complemento:"",bairro:"",cidade:"",estado:"" });
-  const [r, setR] = useState<Reu>({ nome:"",cpf:"",telefone:"",email:"",cep:"",endereco:"",numero:"",bairro:"",cidade:"",estado:"" });
-  const [c, setC] = useState({ valor:"", fatos:"", pedido:"" });
-  const [files, setFiles] = useState<FileEntry[]>([]);
+  const sf = (field: keyof FormState) => (value: string) =>
+    setForm(x => ({ ...x, [field]: value }));
 
   useEffect(() => {
     try {
       const s = localStorage.getItem("client_session") || localStorage.getItem("user") || "{}";
       const p = JSON.parse(s);
-      if (p.email) { setClientEmail(p.email); setA(x => ({...x, email: p.email})); }
-      if (p.name)  setA(x => ({...x, nome: p.name}));
+      if (p.email) { setClientEmail(p.email); setForm(x => ({ ...x, autorEmail: p.email })); }
+      if (p.name)  setForm(x => ({ ...x, autorNome: p.name }));
     } catch {}
   }, []);
 
   const addFiles = useCallback((entries: FileEntry[]) => {
     setFiles(prev => {
       const cats = new Set(entries.map(e => e.category));
-      const filtered = prev.filter(e => !cats.has(e.category));
-      return [...filtered, ...entries];
+      return [...prev.filter(e => !cats.has(e.category)), ...entries];
     });
   }, []);
 
@@ -194,30 +283,52 @@ export default function AreaClienteFormulario() {
     setFiles(prev => [...prev, ...entries]);
   }, []);
 
-  // Validate per-step or all (stepNum=5)
+  // ─── ViaCEP ─────────────────────────────────────────────────────────────────
+
+  const handleAutorCEPBlur = async () => {
+    const data = await fetchViaCEP(form.autorCEP);
+    if (data) setForm(x => ({ ...x, autorRua: data.logradouro, autorBairro: data.bairro, autorCidade: data.localidade, autorEstado: data.uf }));
+  };
+  const handleReuCEPBlur = async () => {
+    const data = await fetchViaCEP(form.reuCEP);
+    if (data) setForm(x => ({ ...x, reuRua: data.logradouro, reuBairro: data.bairro, reuCidade: data.localidade, reuEstado: data.uf }));
+  };
+
+  // ─── Validate ────────────────────────────────────────────────────────────────
+
   const validate = (stepNum: number): boolean => {
     const e: Record<string,string> = {};
     if (stepNum === 0 || stepNum === 5) {
-      if (!a.nome.trim())     e.nome     = "Obrigatório";
-      if (!a.cpf.trim())      e.cpf      = "Obrigatório";
-      if (!a.telefone.trim()) e.telefone = "Obrigatório";
-      if (!a.email.trim())    e.email    = "Obrigatório";
-      if (!a.cep.trim())      e.cep      = "Obrigatório";
-      if (!a.endereco.trim()) e.endereco = "Obrigatório";
-      if (!a.numero.trim())   e.numero   = "Obrigatório";
-      if (!a.bairro.trim())   e.bairro   = "Obrigatório";
-      if (!a.cidade.trim())   e.cidade   = "Obrigatório";
-      if (!a.estado)          e.estado   = "Obrigatório";
+      if (!form.autorNome.trim())     e.autorNome     = "Obrigatório";
+      if (!form.autorCPF.trim())      e.autorCPF      = "Obrigatório";
+      else if (!validCPF(form.autorCPF)) e.autorCPF  = "CPF inválido";
+      if (!form.autorEmail.trim())    e.autorEmail    = "Obrigatório";
+      if (!form.autorTelefone.trim()) e.autorTelefone = "Obrigatório";
+      if (!form.autorCEP.trim())      e.autorCEP      = "Obrigatório";
+      if (!form.autorRua.trim())      e.autorRua      = "Obrigatório";
+      if (!form.autorNumero.trim())   e.autorNumero   = "Obrigatório";
+      if (!form.autorBairro.trim())   e.autorBairro   = "Obrigatório";
+      if (!form.autorCidade.trim())   e.autorCidade   = "Obrigatório";
+      if (!form.autorEstado)          e.autorEstado   = "Obrigatório";
     }
     if (stepNum === 1 || stepNum === 5) {
-      if (!r.nome.trim())     e["r.nome"]     = "Obrigatório";
-      if (!r.cpf.trim())      e["r.cpf"]      = "Obrigatório";
-      if (!r.telefone.trim()) e["r.telefone"] = "Obrigatório";
+      if (!form.reuNome.trim()) e.reuNome = "Obrigatório";
+      if (form.reuTipo === "PF") {
+        if (!form.reuCPF.trim())      e.reuCPF  = "Obrigatório";
+        else if (!validCPF(form.reuCPF)) e.reuCPF = "CPF inválido";
+      } else {
+        if (!form.reuCNPJ.trim())     e.reuCNPJ = "Obrigatório";
+        else if (!validCNPJ(form.reuCNPJ)) e.reuCNPJ = "CNPJ inválido";
+      }
     }
     if (stepNum === 2 || stepNum === 5) {
-      if (!c.valor.trim()) e.valor = "Obrigatório";
-      if (!c.fatos.trim()) e.fatos = "Obrigatório";
-      if (!c.pedido.trim()) e.pedido = "Obrigatório";
+      if (!form.tipoCausa)             e.tipoCausa      = "Selecione o tipo de causa";
+      if (!form.valorEstimado.trim())  e.valorEstimado  = "Obrigatório";
+      if (!form.descricaoFatos.trim()) e.descricaoFatos = "Obrigatório";
+      else if (form.descricaoFatos.trim().length < 100) e.descricaoFatos = "Mínimo 100 caracteres";
+      if (!form.pretensao.trim())      e.pretensao      = "Obrigatório";
+      if (!form.tentouResolver)        e.tentouResolver = "Selecione uma opção";
+      if (!form.registrouProcon)       e.registrouProcon = "Selecione uma opção";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -248,22 +359,22 @@ export default function AreaClienteFormulario() {
       }
       await supabaseFrom("pequenas_causas_submissions", {
         protocol: proto, status: "aguardando_analise",
-        autor_nome: a.nome, autor_cpf: a.cpf, autor_rg: a.rg,
-        autor_nascimento: "", autor_estado_civil: "",
-        autor_profissao: "", autor_email: a.email,
-        autor_telefone: a.telefone, autor_whatsapp: a.telefone,
-        autor_cep: a.cep, autor_rua: a.endereco, autor_numero: a.numero,
-        autor_complemento: a.complemento, autor_bairro: a.bairro,
-        autor_cidade: a.cidade, autor_estado_uf: a.estado,
-        reu_tipo: "", reu_nome: r.nome, reu_cpf: r.cpf, reu_cnpj: "",
-        reu_cep: r.cep, reu_rua: r.endereco, reu_numero: r.numero,
-        reu_complemento: "", reu_bairro: r.bairro,
-        reu_cidade: r.cidade, reu_estado_uf: r.estado,
-        reu_telefone: r.telefone, reu_email: r.email,
-        tipo_causa: "", tipo_causa_outro: "",
-        valor_estimado: c.valor, descricao_fatos: c.fatos,
-        pretensao: c.pedido, tentou_resolver: "",
-        descricao_tentativa: "", registrou_procon: "",
+        autor_nome: form.autorNome, autor_cpf: form.autorCPF, autor_rg: form.autorRG,
+        autor_nascimento: form.autorNascimento, autor_estado_civil: form.autorEstadoCivil,
+        autor_profissao: form.autorProfissao, autor_email: form.autorEmail,
+        autor_telefone: form.autorTelefone, autor_whatsapp: form.autorWhatsApp,
+        autor_cep: form.autorCEP, autor_rua: form.autorRua, autor_numero: form.autorNumero,
+        autor_complemento: form.autorComplemento, autor_bairro: form.autorBairro,
+        autor_cidade: form.autorCidade, autor_estado_uf: form.autorEstado,
+        reu_tipo: form.reuTipo, reu_nome: form.reuNome, reu_cpf: form.reuCPF, reu_cnpj: form.reuCNPJ,
+        reu_cep: form.reuCEP, reu_rua: form.reuRua, reu_numero: form.reuNumero,
+        reu_complemento: form.reuComplemento, reu_bairro: form.reuBairro,
+        reu_cidade: form.reuCidade, reu_estado_uf: form.reuEstado,
+        reu_telefone: form.reuTelefone, reu_email: form.reuEmail,
+        tipo_causa: form.tipoCausa, tipo_causa_outro: form.tipoCausaOutro,
+        valor_estimado: form.valorEstimado, descricao_fatos: form.descricaoFatos,
+        pretensao: form.pretensao, tentou_resolver: form.tentouResolver,
+        descricao_tentativa: form.descricaoTentativa, registrou_procon: form.registrouProcon,
         arquivos_urls: uploadedFiles,
       });
       setProtocol(proto);
@@ -286,8 +397,8 @@ export default function AreaClienteFormulario() {
         <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"16px 20px", textAlign:"left" }}>
           <RR label="Protocolo" value={<span style={{ color:gold, fontWeight:800, letterSpacing:"0.05em" }}>{protocol}</span>} />
           <RR label="Status"    value={<span style={{ color:"#4ade80" }}>Aguardando análise</span>} />
-          <RR label="E-mail"    value={clientEmail || a.email} />
-          <RR label="Autor"     value={a.nome} />
+          <RR label="E-mail"    value={clientEmail || form.autorEmail} />
+          <RR label="Autor"     value={form.autorNome} />
         </div>
       </div>
     </div>
@@ -344,48 +455,72 @@ export default function AreaClienteFormulario() {
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Dados do Autor</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Quem está entrando com o processo</p>
               <G1>
-                <F label="Nome completo" req err={errors.nome}>
-                  <Inp value={a.nome} onChange={e=>setA(x=>({...x,nome:e.target.value}))} placeholder="Seu nome completo" />
+                <F label="Nome completo" req err={errors.autorNome}>
+                  <Inp value={form.autorNome} onChange={e => sf("autorNome")(e.target.value)} placeholder="Seu nome completo" />
                 </F>
               </G1>
-              <div style={{ height:14 }} />
+              <div style={{ height:16 }} />
               <G2>
-                <F label="CPF / CNPJ" req err={errors.cpf}>
-                  <Inp value={a.cpf} onChange={e=>setA(x=>({...x,cpf:e.target.value}))} placeholder="000.000.000-00" />
+                <F label="CPF" req err={errors.autorCPF}>
+                  <Inp value={form.autorCPF} onChange={e => sf("autorCPF")(maskCPF(e.target.value))} placeholder="000.000.000-00" maxLength={14} />
                 </F>
                 <F label="RG">
-                  <Inp value={a.rg} onChange={e=>setA(x=>({...x,rg:e.target.value}))} placeholder="RG" />
+                  <Inp value={form.autorRG} onChange={e => sf("autorRG")(e.target.value)} placeholder="RG" />
                 </F>
-                <F label="Telefone / WhatsApp" req err={errors.telefone}>
-                  <Inp value={a.telefone} onChange={e=>setA(x=>({...x,telefone:e.target.value}))} placeholder="(11) 99999-9999" />
+                <F label="Data de nascimento">
+                  <Inp type="date" value={form.autorNascimento} onChange={e => sf("autorNascimento")(e.target.value)} style={{ colorScheme:"dark" }} />
                 </F>
-                <F label="E-mail" req err={errors.email}>
-                  <Inp type="email" value={a.email} onChange={e=>setA(x=>({...x,email:e.target.value}))} placeholder="email@exemplo.com" />
-                </F>
-                <F label="CEP" req err={errors.cep}>
-                  <Inp value={a.cep} onChange={e=>setA(x=>({...x,cep:e.target.value}))} placeholder="00000-000" />
+                <F label="Estado civil">
+                  <Sel value={form.autorEstadoCivil} onChange={e => sf("autorEstadoCivil")(e.target.value)}>
+                    <option value="">Selecione</option>
+                    {ESTADO_CIVIL.map(ec => <option key={ec}>{ec}</option>)}
+                  </Sel>
                 </F>
                 <Full>
-                  <F label="Endereço" req err={errors.endereco}>
-                    <Inp value={a.endereco} onChange={e=>setA(x=>({...x,endereco:e.target.value}))} placeholder="Rua, Avenida..." />
+                  <F label="Profissão">
+                    <Inp value={form.autorProfissao} onChange={e => sf("autorProfissao")(e.target.value)} placeholder="Ex: Advogado, Engenheiro..." />
                   </F>
                 </Full>
-                <F label="Número" req err={errors.numero}>
-                  <Inp value={a.numero} onChange={e=>setA(x=>({...x,numero:e.target.value}))} placeholder="N°" />
+                <F label="E-mail" req err={errors.autorEmail}>
+                  <Inp type="email" value={form.autorEmail} onChange={e => sf("autorEmail")(e.target.value)} placeholder="email@exemplo.com" />
+                </F>
+                <F label="Telefone" req err={errors.autorTelefone}>
+                  <Inp value={form.autorTelefone} onChange={e => sf("autorTelefone")(maskPhone(e.target.value))} placeholder="(11) 99999-9999" maxLength={15} />
+                </F>
+                <Full>
+                  <F label="WhatsApp">
+                    <Inp value={form.autorWhatsApp} onChange={e => sf("autorWhatsApp")(maskPhone(e.target.value))} placeholder="(11) 99999-9999 (se diferente do telefone)" maxLength={15} />
+                  </F>
+                </Full>
+                <F label="CEP" req err={errors.autorCEP} hint="Preenchimento automático">
+                  <Inp
+                    value={form.autorCEP}
+                    onChange={e => sf("autorCEP")(maskCEP(e.target.value))}
+                    onBlur={handleAutorCEPBlur}
+                    placeholder="00000-000" maxLength={9}
+                  />
+                </F>
+                <Full>
+                  <F label="Rua / Logradouro" req err={errors.autorRua}>
+                    <Inp value={form.autorRua} onChange={e => sf("autorRua")(e.target.value)} placeholder="Rua, Avenida..." />
+                  </F>
+                </Full>
+                <F label="Número" req err={errors.autorNumero}>
+                  <Inp value={form.autorNumero} onChange={e => sf("autorNumero")(e.target.value)} placeholder="N°" />
                 </F>
                 <F label="Complemento">
-                  <Inp value={a.complemento} onChange={e=>setA(x=>({...x,complemento:e.target.value}))} placeholder="Apto, bloco..." />
+                  <Inp value={form.autorComplemento} onChange={e => sf("autorComplemento")(e.target.value)} placeholder="Apto, bloco..." />
                 </F>
-                <F label="Bairro" req err={errors.bairro}>
-                  <Inp value={a.bairro} onChange={e=>setA(x=>({...x,bairro:e.target.value}))} placeholder="Bairro" />
+                <F label="Bairro" req err={errors.autorBairro}>
+                  <Inp value={form.autorBairro} onChange={e => sf("autorBairro")(e.target.value)} placeholder="Bairro" />
                 </F>
-                <F label="Cidade" req err={errors.cidade}>
-                  <Inp value={a.cidade} onChange={e=>setA(x=>({...x,cidade:e.target.value}))} placeholder="Cidade" />
+                <F label="Cidade" req err={errors.autorCidade}>
+                  <Inp value={form.autorCidade} onChange={e => sf("autorCidade")(e.target.value)} placeholder="Cidade" />
                 </F>
-                <F label="Estado" req err={errors.estado}>
-                  <Sel value={a.estado} onChange={e=>setA(x=>({...x,estado:e.target.value}))}>
-                    <option value="">Selecione a UF</option>
-                    {ESTADOS.map(uf=><option key={uf}>{uf}</option>)}
+                <F label="Estado (UF)" req err={errors.autorEstado}>
+                  <Sel value={form.autorEstado} onChange={e => sf("autorEstado")(e.target.value)}>
+                    <option value="">Selecione</option>
+                    {ESTADOS.map(uf => <option key={uf}>{uf}</option>)}
                   </Sel>
                 </F>
               </G2>
@@ -394,46 +529,85 @@ export default function AreaClienteFormulario() {
             {/* ── Step 1: Réu ───────────────────────────────────── */}
             {step === 1 && <>
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Dados do Réu</h2>
-              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>A parte contra quem você está processando</p>
+              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 20px" }}>A parte contra quem você está processando</p>
+
+              {/* PF / PJ toggle */}
+              <div style={{ marginBottom:20 }}>
+                <label style={{ fontSize:11, fontWeight:700, color:"rgba(200,220,255,0.75)", textTransform:"uppercase", letterSpacing:"0.05em", display:"block", marginBottom:8 }}>
+                  Tipo de pessoa
+                </label>
+                <div style={{ display:"flex", gap:8 }}>
+                  {(["PF","PJ"] as const).map(t => (
+                    <button key={t} type="button" onClick={() => setForm(x => ({ ...x, reuTipo: t, reuCPF:"", reuCNPJ:"" }))} style={{
+                      flex:1, height:44, borderRadius:12, border:`1.5px solid ${form.reuTipo===t ? gold : "rgba(255,255,255,0.1)"}`,
+                      background: form.reuTipo===t ? "rgba(254,224,1,0.12)" : "rgba(255,255,255,0.04)",
+                      color: form.reuTipo===t ? gold : "rgba(255,255,255,0.4)", fontSize:14, fontWeight:700,
+                      cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s",
+                    }}>
+                      {t === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <G1>
-                <F label="Nome / Razão Social" req err={errs["r.nome"]}>
-                  <Inp value={r.nome} onChange={e=>setR(x=>({...x,nome:e.target.value}))} placeholder="Nome da empresa ou pessoa" />
+                <F label={form.reuTipo === "PJ" ? "Razão Social / Nome da Empresa" : "Nome completo"} req err={errors.reuNome}>
+                  <Inp value={form.reuNome} onChange={e => sf("reuNome")(e.target.value)} placeholder={form.reuTipo === "PJ" ? "Ex: Empresa LTDA" : "Nome da pessoa"} />
                 </F>
               </G1>
-              <div style={{ height:14 }} />
+              <div style={{ height:16 }} />
               <G2>
-                <F label="CPF / CNPJ" req err={errs["r.cpf"]}>
-                  <Inp value={r.cpf} onChange={e=>setR(x=>({...x,cpf:e.target.value}))} placeholder="000.000.000-00 ou CNPJ" />
-                </F>
-                <F label="Telefone" req err={errs["r.telefone"]}>
-                  <Inp value={r.telefone} onChange={e=>setR(x=>({...x,telefone:e.target.value}))} placeholder="(11) 99999-9999" />
+                {form.reuTipo === "PF" ? (
+                  <F label="CPF" req err={errors.reuCPF}>
+                    <Inp value={form.reuCPF} onChange={e => sf("reuCPF")(maskCPF(e.target.value))} placeholder="000.000.000-00" maxLength={14} />
+                  </F>
+                ) : (
+                  <F label="CNPJ" req err={errors.reuCNPJ}>
+                    <Inp value={form.reuCNPJ} onChange={e => sf("reuCNPJ")(maskCNPJ(e.target.value))} placeholder="00.000.000/0001-00" maxLength={18} />
+                  </F>
+                )}
+                <F label="Telefone">
+                  <Inp value={form.reuTelefone} onChange={e => sf("reuTelefone")(maskPhone(e.target.value))} placeholder="(11) 99999-9999" maxLength={15} />
                 </F>
                 <Full>
                   <F label="E-mail">
-                    <Inp type="email" value={r.email} onChange={e=>setR(x=>({...x,email:e.target.value}))} placeholder="email@exemplo.com (se souber)" />
+                    <Inp type="email" value={form.reuEmail} onChange={e => sf("reuEmail")(e.target.value)} placeholder="email@exemplo.com (se souber)" />
                   </F>
                 </Full>
-                <F label="CEP">
-                  <Inp value={r.cep} onChange={e=>setR(x=>({...x,cep:e.target.value}))} placeholder="00000-000" />
+                <Full>
+                  <p style={{ fontSize:12, color:"rgba(255,255,255,0.3)", margin:"4px 0 8px", lineHeight:1.5 }}>
+                    Endereço do réu (opcional — preencha o CEP para autocompletar)
+                  </p>
+                </Full>
+                <F label="CEP" hint="Opcional">
+                  <Inp
+                    value={form.reuCEP}
+                    onChange={e => sf("reuCEP")(maskCEP(e.target.value))}
+                    onBlur={handleReuCEPBlur}
+                    placeholder="00000-000" maxLength={9}
+                  />
                 </F>
                 <Full>
-                  <F label="Endereço">
-                    <Inp value={r.endereco} onChange={e=>setR(x=>({...x,endereco:e.target.value}))} placeholder="Endereço completo" />
+                  <F label="Rua / Logradouro">
+                    <Inp value={form.reuRua} onChange={e => sf("reuRua")(e.target.value)} placeholder="Rua, Avenida..." />
                   </F>
                 </Full>
                 <F label="Número">
-                  <Inp value={r.numero} onChange={e=>setR(x=>({...x,numero:e.target.value}))} placeholder="N°" />
+                  <Inp value={form.reuNumero} onChange={e => sf("reuNumero")(e.target.value)} placeholder="N°" />
+                </F>
+                <F label="Complemento">
+                  <Inp value={form.reuComplemento} onChange={e => sf("reuComplemento")(e.target.value)} placeholder="Apto, sala..." />
                 </F>
                 <F label="Bairro">
-                  <Inp value={r.bairro} onChange={e=>setR(x=>({...x,bairro:e.target.value}))} placeholder="Bairro" />
+                  <Inp value={form.reuBairro} onChange={e => sf("reuBairro")(e.target.value)} placeholder="Bairro" />
                 </F>
                 <F label="Cidade">
-                  <Inp value={r.cidade} onChange={e=>setR(x=>({...x,cidade:e.target.value}))} placeholder="Cidade" />
+                  <Inp value={form.reuCidade} onChange={e => sf("reuCidade")(e.target.value)} placeholder="Cidade" />
                 </F>
-                <F label="Estado">
-                  <Sel value={r.estado} onChange={e=>setR(x=>({...x,estado:e.target.value}))}>
-                    <option value="">Selecione a UF</option>
-                    {ESTADOS.map(uf=><option key={uf}>{uf}</option>)}
+                <F label="Estado (UF)">
+                  <Sel value={form.reuEstado} onChange={e => sf("reuEstado")(e.target.value)}>
+                    <option value="">Selecione</option>
+                    {ESTADOS.map(uf => <option key={uf}>{uf}</option>)}
                   </Sel>
                 </F>
               </G2>
@@ -444,16 +618,59 @@ export default function AreaClienteFormulario() {
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Detalhes da Causa</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Descreva o ocorrido e o que você busca</p>
               <G1>
-                <F label="Valor da causa (R$)" req err={errors.valor}>
-                  <Inp value={c.valor} onChange={e=>setC(x=>({...x,valor:e.target.value}))} placeholder="Ex: 5.000,00" />
+                <F label="Tipo de causa" req err={errors.tipoCausa}>
+                  <Sel value={form.tipoCausa} onChange={e => sf("tipoCausa")(e.target.value)}>
+                    <option value="">Selecione o tipo</option>
+                    {TIPOS_CAUSA.map(t => <option key={t}>{t}</option>)}
+                  </Sel>
                 </F>
-                <F label="Fatos — o que aconteceu?" req err={errors.fatos}>
-                  <TA value={c.fatos} onChange={e=>setC(x=>({...x,fatos:e.target.value}))} rows={8}
-                    placeholder="Descreva detalhadamente os fatos que motivaram a ação..." />
+                {form.tipoCausa === "Outro" && (
+                  <F label="Especifique o tipo de causa" req>
+                    <Inp value={form.tipoCausaOutro} onChange={e => sf("tipoCausaOutro")(e.target.value)} placeholder="Descreva o tipo de causa" />
+                  </F>
+                )}
+                <F label="Valor estimado da causa" req err={errors.valorEstimado} hint="Ex: 5.000,00">
+                  <div style={{ position:"relative" }}>
+                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:14, color:"rgba(255,255,255,0.5)", pointerEvents:"none" }}>R$</span>
+                    <Inp
+                      value={form.valorEstimado}
+                      onChange={e => sf("valorEstimado")(maskCurrency(e.target.value))}
+                      placeholder="0,00" style={{ paddingLeft:36 }}
+                    />
+                  </div>
                 </F>
-                <F label="Pedido — o que você quer que o juiz decida?" req err={errors.pedido}>
-                  <TA value={c.pedido} onChange={e=>setC(x=>({...x,pedido:e.target.value}))} rows={5}
-                    placeholder="Ex: Que o réu seja condenado a pagar indenização de R$ X..." />
+                <F label="Descrição dos fatos — o que aconteceu?" req err={errors.descricaoFatos}
+                  hint={`${form.descricaoFatos.trim().length}/100 caracteres mínimos`}>
+                  <TA
+                    value={form.descricaoFatos}
+                    onChange={e => sf("descricaoFatos")(e.target.value)}
+                    rows={8}
+                    placeholder="Descreva detalhadamente os fatos que motivaram a ação. Inclua datas, valores e o que aconteceu..."
+                  />
+                </F>
+                <F label="Pretensão — o que você quer que o juiz decida?" req err={errors.pretensao}>
+                  <TA
+                    value={form.pretensao}
+                    onChange={e => sf("pretensao")(e.target.value)}
+                    rows={4}
+                    placeholder="Ex: Que o réu seja condenado a pagar indenização de R$ X por danos morais..."
+                  />
+                </F>
+                <F label="Tentou resolver antes de processar?" req err={errors.tentouResolver}>
+                  <Toggle value={form.tentouResolver} onChange={sf("tentouResolver")} />
+                </F>
+                {form.tentouResolver === "sim" && (
+                  <F label="Como tentou resolver?">
+                    <TA
+                      value={form.descricaoTentativa}
+                      onChange={e => sf("descricaoTentativa")(e.target.value)}
+                      rows={3}
+                      placeholder="Ex: Entrei em contato pelo SAC, fui à loja..."
+                    />
+                  </F>
+                )}
+                <F label="Registrou reclamação no PROCON?" req err={errors.registrouProcon}>
+                  <Toggle value={form.registrouProcon} onChange={sf("registrouProcon")} />
                 </F>
               </G1>
             </>}
@@ -477,23 +694,35 @@ export default function AreaClienteFormulario() {
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Revisão e Confirmação</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 20px" }}>Confira os dados antes de enviar</p>
               <Block title="Autor">
-                <RR label="Nome"     value={a.nome} />
-                <RR label="CPF/CNPJ" value={a.cpf} />
-                <RR label="Telefone" value={a.telefone} />
-                <RR label="E-mail"   value={a.email} />
-                <RR label="Endereço" value={`${a.endereco}, ${a.numero}${a.complemento?` - ${a.complemento}`:""}, ${a.bairro}, ${a.cidade} - ${a.estado}`} />
+                <RR label="Nome"          value={form.autorNome} />
+                <RR label="CPF"           value={form.autorCPF} />
+                {form.autorRG && <RR label="RG" value={form.autorRG} />}
+                {form.autorNascimento && <RR label="Nascimento" value={form.autorNascimento} />}
+                {form.autorEstadoCivil && <RR label="Estado civil" value={form.autorEstadoCivil} />}
+                <RR label="E-mail"        value={form.autorEmail} />
+                <RR label="Telefone"      value={form.autorTelefone} />
+                {form.autorWhatsApp && <RR label="WhatsApp" value={form.autorWhatsApp} />}
+                <RR label="Endereço"      value={`${form.autorRua}, ${form.autorNumero}${form.autorComplemento?` - ${form.autorComplemento}`:""}, ${form.autorBairro}, ${form.autorCidade} - ${form.autorEstado}`} />
               </Block>
               <Block title="Réu">
-                <RR label="Nome"     value={r.nome} />
-                <RR label="CPF/CNPJ" value={r.cpf} />
-                <RR label="Telefone" value={r.telefone} />
-                {r.email  && <RR label="E-mail"     value={r.email} />}
-                {r.cidade && <RR label="Localização" value={`${r.cidade} - ${r.estado}`} />}
+                <RR label="Tipo"          value={form.reuTipo === "PF" ? "Pessoa Física" : "Pessoa Jurídica"} />
+                <RR label="Nome"          value={form.reuNome} />
+                {form.reuTipo === "PF"
+                  ? <RR label="CPF"  value={form.reuCPF} />
+                  : <RR label="CNPJ" value={form.reuCNPJ} />
+                }
+                {form.reuTelefone && <RR label="Telefone" value={form.reuTelefone} />}
+                {form.reuEmail    && <RR label="E-mail"   value={form.reuEmail} />}
+                {form.reuCidade   && <RR label="Localização" value={`${form.reuCidade} - ${form.reuEstado}`} />}
               </Block>
               <Block title="Causa">
-                <RR label="Valor"  value={`R$ ${c.valor}`} />
-                <RR label="Fatos"  value={<span style={{ whiteSpace:"pre-wrap" }}>{c.fatos}</span>} />
-                <RR label="Pedido" value={<span style={{ whiteSpace:"pre-wrap" }}>{c.pedido}</span>} />
+                <RR label="Tipo"          value={form.tipoCausa === "Outro" ? form.tipoCausaOutro : form.tipoCausa} />
+                <RR label="Valor"         value={`R$ ${form.valorEstimado}`} />
+                <RR label="Fatos"         value={<span style={{ whiteSpace:"pre-wrap" }}>{form.descricaoFatos}</span>} />
+                <RR label="Pretensão"     value={<span style={{ whiteSpace:"pre-wrap" }}>{form.pretensao}</span>} />
+                <RR label="Tentou resolver" value={form.tentouResolver} />
+                {form.tentouResolver === "sim" && form.descricaoTentativa && <RR label="Como tentou" value={form.descricaoTentativa} />}
+                <RR label="PROCON"        value={form.registrouProcon} />
               </Block>
               <Block title="Documentos">
                 {files.length === 0
