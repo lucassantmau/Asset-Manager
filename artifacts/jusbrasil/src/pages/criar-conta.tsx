@@ -70,7 +70,7 @@ const T: Record<string, React.CSSProperties> = {
     display: "block",
     fontSize: 13,
     fontWeight: 600,
-    crelr: C.text,
+    color: C.text,
     marginBottom: 6,
   },
   input: {
@@ -91,7 +91,7 @@ const T: Record<string, React.CSSProperties> = {
     borderRadius: 10,
     border: "none",
     background: C.accent,
-    crelr: "#fff",
+    color: "#fff",
     fontSize: 15,
     fontWeight: 700,
     cursor: "pointer",
@@ -109,7 +109,6 @@ const T: Record<string, React.CSSProperties> = {
 export default function CriarConta() {
   const [, navigate] = useLocation();
 
-  // Pré-preenche o email a partir do query param ?email=
   const searchParams = new URLSearchParams(window.location.search);
   const emailParam = searchParams.get("email") || "";
 
@@ -119,14 +118,40 @@ export default function CriarConta() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [accessChecked, setAccessChecked] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
-  // Se já tem sessão ativa, redireciona direto
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
+    async function checkAccess() {
+      // Se já tem sessão ativa, redireciona direto
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
         navigate("/area-do-cliente");
+        return;
       }
-    });
+
+      const targetEmail = new URLSearchParams(window.location.search).get("email") || "";
+
+      if (!targetEmail) {
+        setAccessDenied(true);
+        setAccessChecked(true);
+        return;
+      }
+
+      const { data, error: queryError } = await supabase
+        .from("pequenas_causas_submissions")
+        .select("pagamento_confirmado")
+        .eq("autor_email", targetEmail)
+        .eq("pagamento_confirmado", true)
+        .maybeSingle();
+
+      if (queryError || data === null) {
+        setAccessDenied(true);
+      }
+      setAccessChecked(true);
+    }
+
+    checkAccess();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -186,16 +211,52 @@ export default function CriarConta() {
     setLoading(false);
   }
 
+  const topBar = (
+    <div style={T.topBar}>
+      <span style={T.logo}>
+        Pequenas Causas <span style={T.logoSpan}>Processos</span>
+      </span>
+    </div>
+  );
+
+  // Loading enquanto verifica pagamento
+  if (!accessChecked) {
+    return (
+      <div style={{ ...T.page, alignItems: "center", justifyContent: "center" }}>
+        {topBar}
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <p style={{ color: C.textMuted, fontSize: 14 }}>Verificando acesso…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Tela de acesso negado
+  if (accessDenied) {
+    return (
+      <div style={T.page}>
+        {topBar}
+        <div style={T.prap}>
+          <div style={{ ...T.card, textAlign: "center" }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: C.error, marginBottom: 12 }}>
+              Acesso não autorizado
+            </h2>
+            <p style={{ color: C.textMuted, fontSize: 14, lineHeight: 1.7, marginBottom: 0 }}>
+              Somente clientes que realizaram o pagamento podem criar uma conta. Se você já pagou, aguarde a confirmação do pagamento.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Tela de confirmação por e-mail
   if (success) {
     return (
       <div style={T.page}>
-        <div style={T.topBar}>
-          <span style={T.logo}>
-            Pequenas Causas <span style={T.logoSpan}>Processos</span>
-          </span>
-        </div>
-        <div style={T.wrap}>
+        {topBar}
+        <div style={T.prap}>
           <div style={{ ...T.card, textAlign: "center" }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>📧</div>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 12 }}>
@@ -233,12 +294,8 @@ export default function CriarConta() {
 
   return (
     <div style={T.page}>
-      <div style={T.topBar}>
-        <span style={T.logo}>
-          Pequenas Causas <span style={T.logoSpan}>Processos</span>
-        </span>
-      </div>
-      <div style={T.wrap}>
+      {topBar}
+      <div style={T.prap}>
         {/* Badge de progresso */}
         <div style={{
           display: "flex",
