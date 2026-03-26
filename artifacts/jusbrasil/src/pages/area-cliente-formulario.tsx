@@ -249,7 +249,7 @@ export default function AreaClienteFormulario() {
       }
       await supabaseFrom("pequenas_causas_submissions", {
         client_email: clientEmail || a.email,
-        protocolo: proto,
+        protocol: proto,
         autores: [a],
         reus: [r],
         testemunhas: [],
