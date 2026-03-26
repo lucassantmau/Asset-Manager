@@ -165,7 +165,7 @@ export default function AreaClienteFormulario() {
   const [errs, setErrs]        = useState<Record<string,string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubErr] = useState<string|null>(null);
-  const [done, setDone]        = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [protocol, setProtocol]= useState("");
   const [clientEmail, setClientEmail] = useState("");
 
@@ -264,10 +264,11 @@ export default function AreaClienteFormulario() {
         tipo_causa: "", tipo_causa_outro: "",
         valor_estimado: c.valor, descricao_fatos: c.fatos,
         pretensao: c.pedido, tentou_resolver: "",
-        documentos: uploadedFiles,
+        descricao_tentativa: "", registrou_procon: "",
+        arquivos_urls: uploadedFiles,
       });
       setProtocol(proto);
-      setDone(true);
+      setSubmitted(true);
       window.scrollTo({ top:0, behavior:"smooth" });
     } catch (err: any) {
       setSubErr(err.message || "Erro ao enviar");
@@ -277,7 +278,7 @@ export default function AreaClienteFormulario() {
   };
 
   // ─── Success ──────────────────────────────────────────────────────────────────
-  if (done) return (
+  if (submitted) return (
     <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,#032956,${dark})`, display:"flex", alignItems:"center", justifyContent:"center", padding:"32px 16px" }}>
       <div style={{ maxWidth:440, width:"100%", textAlign:"center" }}>
         <div style={{ width:80, height:80, borderRadius:"50%", background:"rgba(254,224,1,0.12)", border:`2px solid rgba(254,224,1,0.4)`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", fontSize:36 }}>✓</div>
