@@ -100,7 +100,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
       {/* Floating WhatsApp */}
       <a
-        href="https://api.whatsapp.com/send?phone=5511963714953"
+        href="https://api.whatsapp.com/send?phone=5511969284925"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#25D366] rounded-full shadow-ambient hover:-translate-y-1 transition-all flex items-center justify-center text-white"
@@ -142,7 +142,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div>
               <h4 className="font-bold text-base mb-5 text-white/80">Atendimento</h4>
               <a
-                href="https://api.whatsapp.com/send?phone=5511963714953"
+                href="https://api.whatsapp.com/send?phone=5511969284925"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium text-white/70"
