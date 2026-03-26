@@ -6,12 +6,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { createClient } from "@supabase/supabase-js";
-
-// ── Supabase ──────────────────────────────────────────────────
-const SUPABASE_URL = "https://ollfczufqavxzgvktvkb.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sbGZjenVmcWF2eHpndmt0dmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA2ODUsImV4cCI6MjA4OTkzNjY4NX0.wVEYoQv8epExO-WSCihojxt3Ti3pQkBjmvdCiV_fiKo";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { supabase } from "@/lib/supabase";
 
 // ── Cores e estilos ──────────────────────────────────────────────
 const C = {
@@ -118,8 +113,8 @@ export default function CriarConta() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [accessChecked, setAccessChecked] = useState(false);
-  const [accessDenied, setAccessDenied] = useState(false);
+  const [paymentChecked, setPaymentChecked] = useState(false);
+  const [paymentValid, setPaymentValid] = useState(false);
 
   useEffect(() => {
     async function checkAccess() {
@@ -133,8 +128,8 @@ export default function CriarConta() {
       const targetEmail = new URLSearchParams(window.location.search).get("email") || "";
 
       if (!targetEmail) {
-        setAccessDenied(true);
-        setAccessChecked(true);
+        setPaymentValid(false);
+        setPaymentChecked(true);
         return;
       }
 
@@ -146,9 +141,11 @@ export default function CriarConta() {
         .maybeSingle();
 
       if (queryError || data === null) {
-        setAccessDenied(true);
+        setPaymentValid(false);
+      } else {
+        setPaymentValid(true);
       }
-      setAccessChecked(true);
+      setPaymentChecked(true);
     }
 
     checkAccess();
@@ -220,7 +217,7 @@ export default function CriarConta() {
   );
 
   // Loading enquanto verifica pagamento
-  if (!accessChecked) {
+  if (!paymentChecked) {
     return (
       <div style={{ ...T.page, alignItems: "center", justifyContent: "center" }}>
         {topBar}
@@ -232,7 +229,7 @@ export default function CriarConta() {
   }
 
   // Tela de acesso negado
-  if (accessDenied) {
+  if (!paymentValid) {
     return (
       <div style={T.page}>
         {topBar}
