@@ -248,15 +248,23 @@ export default function AreaClienteFormulario() {
         uploadedFiles.push({ category: f.category, name: f.file.name, url });
       }
       await supabaseFrom("pequenas_causas_submissions", {
-        client_email: clientEmail || a.email,
-        protocol: proto,
-        autores: [a],
-        reus: [r],
-        testemunhas: [],
-        detalhes_causa: c,
-        provas_links: [],
+        protocol: proto, status: "aguardando_analise",
+        autor_nome: a.nome, autor_cpf: a.cpf, autor_rg: a.rg,
+        autor_nascimento: "", autor_estado_civil: "",
+        autor_profissao: "", autor_email: a.email,
+        autor_telefone: a.telefone, autor_whatsapp: a.telefone,
+        autor_cep: a.cep, autor_rua: a.endereco, autor_numero: a.numero,
+        autor_complemento: a.complemento, autor_bairro: a.bairro,
+        autor_cidade: a.cidade, autor_estado_uf: a.estado,
+        reu_tipo: "", reu_nome: r.nome, reu_cpf: r.cpf, reu_cnpj: "",
+        reu_cep: r.cep, reu_rua: r.endereco, reu_numero: r.numero,
+        reu_complemento: "", reu_bairro: r.bairro,
+        reu_cidade: r.cidade, reu_estado_uf: r.estado,
+        reu_telefone: r.telefone, reu_email: r.email,
+        tipo_causa: "", tipo_causa_outro: "",
+        valor_estimado: c.valor, descricao_fatos: c.fatos,
+        pretensao: c.pedido, tentou_resolver: "",
         documentos: uploadedFiles,
-        status: "aguardando_analise",
       });
       setProtocol(proto);
       setDone(true);
