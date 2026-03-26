@@ -1,119 +1,162 @@
-import React, { useState } from "react";
-import { Layout } from "@/components/layout";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Link, useLocation } from "wouter";
-import { ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
+/**
+ * login.tsx
+ * Página de login — usa Supabase Auth diretamente.
+ */
 
-const loginSchema = z.object({
-  email: z.string().email("E-mail inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-});
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { createClient } from "@supabase/supabase-js";
 
-const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const SUPABASE_URL = "https://ollfczufqavxzgvktvkb.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sbGZjenVmcWF2eHpndmt0dmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA2ODUsImV4cCI6MjA4OTkzNjY4NX0.wVEYoQv8epExO-WSCihojxt3Ti3pQkBjmvdCiV_fiKo";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const C = {
+  bg: "#f8fafc",
+  card: "#ffffff",
+  accent: "#1e40af",
+  accentLight: "#3b82f6",
+  text: "#0f172a",
+  textMuted: "#64748b",
+  border: "#e2e8f0",
+  borderFocus: "#3b82f6",
+  error: "#dc2626",
+  errorBg: "rgba(220,38,38,0.05)",
+};
+
+const T: Record<string, React.CSSProperties> = {
+  page: {
+    minHeight: "100vh",
+    background: C.bg,
+    fontFamily: "'Inter', 'Segoe UI', sans-serif",
+    display: "flex",
+    flexDirection: "column",
+  },
+  topBar: {
+    background: "#0f172a",
+    padding: "14px 24px",
+    display: "flex",
+    alignItems: "center",
+  },
+  logo: { color: "#fff", fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px" },
+  logoSpan: { color: C.accentLight },
+  wrap: { maxWidth: 420, margin: "0 auto", padding: "60px 24px", flex: 1 },
+  card: {
+    background: C.card,
+    borderRadius: 16,
+    padding: "36px 32px",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+    border: `1px solid ${C.border}`,
+  },
+  label: { display: "block", fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 6 },
+  input: {
+    width: "100%", padding: "10px 14px", borderRadius: 8,
+    border: `1.5px solid ${C.border}`, fontSize: 14, color: C.text,
+    background: "#fff", outline: "none", boxSizing: "border-box" as const,
+  },
+  btn: {
+    width: "100%", padding: "13px", borderRadius: 10, border: "none",
+    background: C.accent, color: "#fff", fontSize: 15, fontWeight: 700,
+    cursor: "pointer", marginTop: 8,
+  },
+};
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
-  });
-
-  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (!email.trim() || !password) {
+      setError("Preencha e-mail e senha.");
+      return;
+    }
     setLoading(true);
-    setAuthError(null);
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: data.email, password: data.password }),
-      });
-      const json = await res.json();
-      if (!res.ok || json.error) {
-        setAuthError("E-mail ou senha incorretos. Tente novamente.");
-      } else {
-        localStorage.setItem("client_session", JSON.stringify({ email: json.email, name: json.name, uuid: json.uuid }));
-        navigate("/area-do-cliente");
-      }
-    } catch {
-      setAuthError("Erro de conexão. Tente novamente.");
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    if (authError) {
+      setError("E-mail ou senha incorretos. Verifique e tente novamente.");
+    } else {
+      navigate("/area-do-cliente");
     }
     setLoading(false);
-  };
+  }
 
   return (
-    <Layout>
-      <div className="min-h-[85vh] flex items-center justify-center px-4 py-16 hero-gradient">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-full bg-[#fee001] flex items-center justify-center mx-auto mb-4">
-              <ShieldCheck className="w-7 h-7 text-[#716300]" />
+    <div style={T.page}>
+      <div style={T.topBar}>
+        <span style={T.logo}>
+          Pequenas Causas <span style={T.logoSpan}>Processos</span>
+        </span>
+      </div>
+      <div style={T.wrap}>
+        <div style={T.card}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, marginBottom: 8, marginTop: 0 }}>
+            Entrar na sua conta
+          </h1>
+          <p style={{ color: C.textMuted, fontSize: 14, marginBottom: 28, marginTop: 0 }}>
+            Acesse o portal para acompanhar seu processo.
+          </p>
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div style={{ marginBottom: 18 }}>
+              <label style={T.label} htmlFor="email">E-mail</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                style={T.input}
+                autoFocus
+              />
             </div>
-            <h1 className="text-2xl font-black text-white mb-1">Área do Cliente</h1>
-            <p className="text-white/60 text-sm">Acesse sua conta para acompanhar seu caso</p>
-          </div>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-foreground mb-1.5">E-mail</label>
-                <input
-                  {...form.register("email")}
-                  type="email"
-                  placeholder="seu@email.com"
-                  autoComplete="email"
-                  className="w-full h-11 bg-white border-2 border-slate-200 rounded-xl px-3 text-sm focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all"
-                />
-                {form.formState.errors.email && (
-                  <p className="text-red-600 text-xs mt-1">{form.formState.errors.email.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-foreground mb-1.5">Senha</label>
-                <input
-                  {...form.register("password")}
-                  type="password"
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  className="w-full h-11 bg-white border-2 border-slate-200 rounded-xl px-3 text-sm focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all"
-                />
-                {form.formState.errors.password && (
-                  <p className="text-red-600 text-xs mt-1">{form.formState.errors.password.message}</p>
-                )}
-              </div>
-
-              {authError && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-xl text-sm">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {authError}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-[#fee001] text-[#716300] font-bold text-sm shadow-[0_5px_0_0_#caa800] hover:shadow-[0_2px_0_0_#caa800] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Entrar"}
-              </button>
-            </form>
-
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-              <p className="text-sm text-muted-foreground">
-                Não tem conta?{" "}
-                <Link href="/cadastrar" className="text-[#425f8e] font-bold hover:underline">
-                  Criar acesso
-                </Link>
-              </p>
+            <div style={{ marginBottom: 24 }}>
+              <label style={T.label} htmlFor="password">Senha</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Sua senha"
+                style={T.input}
+              />
             </div>
-          </div>
+
+            {error && (
+              <div style={{
+                background: C.errorBg, border: "1px solid rgba(220,38,38,0.2)",
+                borderRadius: 8, padding: "10px 14px", marginBottom: 16,
+              }}>
+                <p style={{ color: C.error, fontSize: 12, margin: 0 }}>❌ {error}</p>
+              </div>
+            )}
+
+            <button type="submit" disabled={loading} style={{ ...T.btn, opacity: loading ? 0.7 : 1 }}>
+              {loading ? "Entrando..." : "Entrar →"}
+            </button>
+          </form>
+
+          <p style={{ textAlign: "center", marginTop: 20, fontSize: 13, color: C.textMuted }}>
+            Não tem conta?{" "}
+            <a href="/criar-conta" style={{ color: C.accentLight, fontWeight: 600, textDecoration: "none" }}>
+              Criar conta
+            </a>
+          </p>
         </div>
       </div>
-    </Layout>
+
+      <style>{`
+        input:focus { border-color: ${C.borderFocus} !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+        button:hover { opacity: 0.88 !important; }
+      `}</style>
+    </div>
   );
 }
