@@ -164,7 +164,6 @@ export default function AreaClienteFormulario() {
   const [step, setStep]        = useState(0);
   const [errs, setErrs]        = useState<Record<string,string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [submitErr, setSubErr] = useState<string|null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [protocol, setProtocol]= useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -271,7 +270,7 @@ export default function AreaClienteFormulario() {
       setSubmitted(true);
       window.scrollTo({ top:0, behavior:"smooth" });
     } catch (err) {
-      setSubErr((err as Error).message || "Erro ao enviar");
+      setErrs({ submit: "Erro ao enviar. Tente novamente." });
     } finally {
       setSubmitting(false);
     }
@@ -504,9 +503,9 @@ export default function AreaClienteFormulario() {
                   : files.map((f,i) => <RR key={i} label={f.category} value={f.name} />)
                 }
               </Block>
-              {submitErr && (
+              {errs.submit && (
                 <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#fca5a5", marginBottom:12 }}>
-                  ⚠️ {submitErr}
+                  ⚠️ {errs.submit}
                 </div>
               )}
               <p style={{ fontSize:11, color:"rgba(255,255,255,0.25)", textAlign:"center", lineHeight:1.6, marginTop:8 }}>
