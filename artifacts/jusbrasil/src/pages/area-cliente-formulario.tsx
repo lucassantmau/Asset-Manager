@@ -1,497 +1,551 @@
-import React, { useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import {
-  CheckCircle2, ChevronLeft, ChevronRight, Upload, X,
-  Loader2, AlertCircle, User, Building2, Scale, FileText, Eye,
-} from "lucide-react";
+import { useState, useCallback, useRef, useEffect, ChangeEvent, DragEvent } from "react";
+const SUPABASE_URL = "https://ollfczufqavxzgvktvkb.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sbGZjenVmcWF2eHpndmt0dmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjY2ODUsImV4cCI6MjA4OTkzNjY4NX0.wVEYoQv8epExO-WSCihojxt3Ti3pQkBjmvdCiV_fiKo";
+async function supabaseFrom(table: string, payload: Record<string, unknown>) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || data.error || "Erro ao salvar");
+  return data;
+}
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+async function supabaseSelect(table: string, filter: string) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}&limit=1`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+  });
+  return res.json() as Promise<Record<string, unknown>[]>;
+}
+
+async function supabaseUpload(bucket: string, path: string, file: File): Promise<string> {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": file.type || "application/octet-stream",
+      "x-upsert": "true",
+    },
+    body: file,
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message || "Erro no upload"); }
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Autor {
+  nome: string; cpf: string; rg: string; telefone: string; email: string;
+  cep: string; endereco: string; numero: string; complemento: string;
+  bairro: string; cidade: string; estado: string;
+}
+interface Reu {
+  nome: string; cpf: string; telefone: string; email: string;
+  cep: string; endereco: string; numero: string; bairro: string; cidade: string; estado: string;
+}
+interface FileRef { url: string; name: string; }
 
 const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS",
   "MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
-function Field({ label, required, error, children }: {
-  label: string; required?: boolean; error?: string; children: React.ReactNode;
-}) {
+const STEPS = ["Autor","Réu","Causa","Documentos","Revisão"] as const;
+
+// ─── Tiny UI primitives ───────────────────────────────────────────────────────
+
+const gold = "#fee001";
+const dark = "#001532";
+
+function F({ label, req, err, children }: { label: string; req?: boolean; err?: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs font-semibold text-blue-200 uppercase tracking-wider">
-        {label}{required && <span className="text-yellow-400 ml-0.5">*</span>}
+    <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+      <label style={{ fontSize:11, fontWeight:700, color:"rgba(200,220,255,0.75)", textTransform:"uppercase", letterSpacing:"0.05em" }}>
+        {label}{req && <span style={{ color:"#f87171", marginLeft:2 }}>*</span>}
       </label>
       {children}
-      {error && <span className="text-red-400 text-xs">{error}</span>}
+      {err && <span style={{ fontSize:11, color:"#f87171" }}>{err}</span>}
     </div>
   );
 }
 
-const inputCls = "h-11 rounded-xl border border-white/10 bg-white/8 px-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-yellow-400/60 focus:bg-white/12 transition-all backdrop-blur-sm";
-const selectCls = inputCls + " appearance-none cursor-pointer";
-const textareaCls = "rounded-xl border border-white/10 bg-white/8 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-yellow-400/60 focus:bg-white/12 transition-all backdrop-blur-sm resize-y min-h-[120px]";
+const inp: React.CSSProperties = {
+  height:44, borderRadius:12, border:"1.5px solid rgba(255,255,255,0.1)",
+  background:"rgba(255,255,255,0.06)", padding:"0 16px", fontSize:14,
+  color:"white", outline:"none", width:"100%", boxSizing:"border-box",
+  fontFamily:"inherit",
+};
+const Inp = (p: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <input {...p} style={{ ...inp, ...p.style }}
+    onFocus={e => { e.currentTarget.style.borderColor = "rgba(254,224,1,0.5)"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+    onBlur={e  => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+  />
+);
+const Sel = ({ children, ...p }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) => (
+  <select {...p} style={{ ...inp, cursor:"pointer", appearance:"none" as any }}>{children}</select>
+);
+const TA = (p: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
+  <textarea {...p} style={{ ...inp, height:"auto", minHeight:120, padding:"12px 16px", resize:"vertical", lineHeight:1.6, ...p.style }}
+    onFocus={e => { e.currentTarget.style.borderColor = "rgba(254,224,1,0.5)"; }}
+    onBlur={e  => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
+  />
+);
 
-function Inp(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={`${inputCls} ${props.className ?? ""}`} />;
-}
-function Sel({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) {
-  return <select {...props} className={selectCls}>{children}</select>;
-}
-function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={`${textareaCls} ${props.className ?? ""}`} />;
-}
+// ─── Upload field ─────────────────────────────────────────────────────────────
 
-// ─── File Upload ──────────────────────────────────────────────────────────────
-
-function UploadField({ label, required, bucket, path, multi, onDone }: {
-  label: string; required?: boolean; bucket: string; path: string;
-  multi?: boolean; onDone: (files: { url: string; name: string }[]) => void;
+function UploadField({ label, req, bucket, folder, multi, onDone }: {
+  label: string; req?: boolean; bucket: string; folder: string;
+  multi?: boolean; onDone: (files: FileRef[]) => void;
 }) {
   const ref = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [files, setFiles] = useState<{ url: string; name: string }[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<FileRef[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [drag, setDrag] = useState(false);
 
-  const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const list = Array.from(e.target.files || []);
-    if (!list.length) return;
-    setUploading(true); setErr(null);
-    const results: { url: string; name: string }[] = [];
-    for (const f of list) {
-      const fp = `${path}/${Date.now()}_${f.name}`;
-      const { error } = await supabase.storage.from(bucket).upload(fp, f, { upsert: true });
-      if (!error) {
-        const { data } = supabase.storage.from(bucket).getPublicUrl(fp);
-        results.push({ url: data.publicUrl, name: f.name });
-      }
+  const upload = useCallback(async (files: File[]) => {
+    if (!files.length) return;
+    setBusy(true); setErr(null);
+    const results: FileRef[] = [];
+    for (const f of files) {
+      try {
+        const path = `${folder}/${Date.now()}_${f.name}`;
+        const url = await supabaseUpload(bucket, path, f);
+        results.push({ url, name: f.name });
+      } catch { setErr("Falha ao enviar " + f.name); }
     }
-    const all = multi ? [...files, ...results] : results;
-    setFiles(all); onDone(all); setUploading(false);
+    const all = multi ? [...done, ...results] : results;
+    setDone(all); onDone(all); setBusy(false);
     if (ref.current) ref.current.value = "";
-  };
+  }, [done, multi, bucket, folder, onDone]);
 
-  const remove = (i: number) => {
-    const updated = files.filter((_, idx) => idx !== i);
-    setFiles(updated); onDone(updated);
-  };
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => upload(Array.from(e.target.files || []));
+  const onDrop   = (e: DragEvent) => { e.preventDefault(); setDrag(false); upload(Array.from(e.dataTransfer.files)); };
 
+  const remove = (i: number) => { const u = done.filter((_,idx)=>idx!==i); setDone(u); onDone(u); };
+
+  const active = done.length > 0 && !multi;
   return (
-    <Field label={label} required={required}>
+    <F label={label} req={req} err={err ?? undefined}>
       <div
         onClick={() => ref.current?.click()}
-        className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all text-sm
-          ${files.length ? "border-yellow-400/40 bg-yellow-400/5 text-yellow-300" : "border-white/15 bg-white/5 hover:border-yellow-400/40 hover:bg-yellow-400/5 text-white/40"}`}
+        onDragOver={e => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={onDrop}
+        style={{
+          display:"flex", alignItems:"center", gap:10, padding:"12px 16px",
+          borderRadius:12, border:`2px dashed ${drag ? gold : active ? "rgba(254,224,1,0.4)" : "rgba(255,255,255,0.12)"}`,
+          background: drag ? "rgba(254,224,1,0.06)" : active ? "rgba(254,224,1,0.04)" : "rgba(255,255,255,0.03)",
+          cursor:"pointer", fontSize:13,
+          color: active ? gold : "rgba(255,255,255,0.4)",
+          transition:"all 0.2s",
+        }}
       >
-        {uploading
-          ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>
-          : files.length && !multi
-            ? <><CheckCircle2 className="w-4 h-4 text-yellow-400" /> {files[0].name}</>
-            : <><Upload className="w-4 h-4" /> {multi ? "Selecionar arquivos" : "Selecionar arquivo"}</>}
+        {busy ? "⏳ Enviando..." : active ? `✓ ${done[0].name}` : `📎 ${multi ? "Selecionar arquivos" : "Selecionar arquivo"}`}
       </div>
-      {err && <span className="text-red-400 text-xs">{err}</span>}
-      {multi && files.length > 0 && (
-        <div className="flex flex-col gap-1 mt-1">
-          {files.map((f, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs text-yellow-300 bg-yellow-400/10 px-3 py-1.5 rounded-lg">
-              <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate flex-1">{f.name}</span>
-              <button type="button" onClick={() => remove(i)} className="text-white/40 hover:text-red-400 flex-shrink-0"><X className="w-3 h-3" /></button>
-            </div>
-          ))}
+      {err && <span style={{ fontSize:11, color:"#f87171" }}>{err}</span>}
+      {multi && done.map((f,i) => (
+        <div key={i} style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color:gold, background:"rgba(254,224,1,0.06)", padding:"6px 12px", borderRadius:8, marginTop:4 }}>
+          <span style={{ flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>✓ {f.name}</span>
+          <button type="button" onClick={() => remove(i)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.35)", lineHeight:1 }}>✕</button>
         </div>
-      )}
-      <input ref={ref} type="file" className="hidden" multiple={multi} accept="image/*,.pdf,.doc,.docx" onChange={handle} />
-    </Field>
+      ))}
+      <input ref={ref} type="file" multiple={multi} accept="image/*,.pdf,.doc,.docx" style={{ display:"none" }} onChange={onChange} />
+    </F>
   );
 }
 
-// ─── Step Icons & Labels ──────────────────────────────────────────────────────
+// ─── Review row ───────────────────────────────────────────────────────────────
 
-const STEPS = [
-  { label: "Autor",     icon: User },
-  { label: "Réu",      icon: Building2 },
-  { label: "Causa",    icon: Scale },
-  { label: "Docs",     icon: FileText },
-  { label: "Revisão",  icon: Eye },
-];
+function RR({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div style={{ display:"flex", gap:12, padding:"6px 0", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+      <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)", fontWeight:600, minWidth:90, flexShrink:0, paddingTop:2 }}>{label}</span>
+      <span style={{ fontSize:13, color:"rgba(255,255,255,0.8)", lineHeight:1.5 }}>{value || "—"}</span>
+    </div>
+  );
+}
+function Block({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, overflow:"hidden", marginBottom:12 }}>
+      <div style={{ background:"rgba(254,224,1,0.07)", borderBottom:"1px solid rgba(255,255,255,0.06)", padding:"8px 16px" }}>
+        <span style={{ fontSize:10, fontWeight:800, color:gold, textTransform:"uppercase", letterSpacing:"0.08em" }}>{title}</span>
+      </div>
+      <div style={{ padding:"4px 16px 12px" }}>{children}</div>
+    </div>
+  );
+}
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Grid helpers ─────────────────────────────────────────────────────────────
+
+const G2 = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>{children}</div>
+);
+const G1 = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:16 }}>{children}</div>
+);
+const Full = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ gridColumn:"1 / -1" }}>{children}</div>
+);
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+import React from "react";
 
 export default function AreaClienteFormulario() {
-  const [step, setStep] = useState(0);
-  const [clientEmail, setClientEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [step, setStep]         = useState(0);
+  const [errs, setErrs]         = useState<Record<string,string>>({});
+  const [submitting, setSub]    = useState(false);
+  const [submitErr, setSubErr]  = useState<string|null>(null);
+  const [done, setDone]         = useState(false);
+  const [email, setEmail]       = useState("");
 
-  // Step 1 — Autor
-  const [autor, setAutor] = useState({
-    nome: "", cpf: "", rg: "", telefone: "", email: "",
-    cep: "", endereco: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "",
-  });
-
-  // Step 2 — Réu
-  const [reu, setReu] = useState({
-    nome: "", cpf: "", telefone: "", email: "",
-    cep: "", endereco: "", numero: "", bairro: "", cidade: "", estado: "",
-  });
-
-  // Step 3 — Causa
-  const [causa, setCausa] = useState({ valor: "", fatos: "", pedido: "" });
-
-  // Step 4 — Docs
-  const [docIdentidade, setDocIdentidade] = useState<{ url: string; name: string }[]>([]);
-  const [docResidencia, setDocResidencia] = useState<{ url: string; name: string }[]>([]);
-  const [provas, setProvas] = useState<{ url: string; name: string }[]>([]);
+  // Step data
+  const [a, setA] = useState<Autor>({ nome:"",cpf:"",rg:"",telefone:"",email:"",cep:"",endereco:"",numero:"",complemento:"",bairro:"",cidade:"",estado:"" });
+  const [r, setR] = useState<Reu>({ nome:"",cpf:"",telefone:"",email:"",cep:"",endereco:"",numero:"",bairro:"",cidade:"",estado:"" });
+  const [c, setC] = useState({ valor:"", fatos:"", pedido:"" });
+  const [docId,   setDocId]   = useState<FileRef[]>([]);
+  const [docRes,  setDocRes]  = useState<FileRef[]>([]);
+  const [provas,  setProvas]  = useState<FileRef[]>([]);
 
   useEffect(() => {
     try {
       const s = localStorage.getItem("client_session") || localStorage.getItem("user") || "{}";
       const p = JSON.parse(s);
-      if (p.email) { setClientEmail(p.email); setAutor(a => ({ ...a, email: p.email })); }
-      if (p.name)  setAutor(a => ({ ...a, nome: p.name }));
+      if (p.email) { setEmail(p.email); setA(x => ({...x, email: p.email})); }
+      if (p.name)  setA(x => ({...x, nome: p.name}));
     } catch {}
   }, []);
 
-  // ─── Validation per step ───────────────────────────────────────────────────
-
+  // Validate current step
   const validate = (): boolean => {
-    const errs: Record<string, string> = {};
+    const e: Record<string,string> = {};
     if (step === 0) {
-      if (!autor.nome.trim())     errs.nome = "Obrigatório";
-      if (!autor.cpf.trim())      errs.cpf = "Obrigatório";
-      if (!autor.telefone.trim()) errs.telefone = "Obrigatório";
-      if (!autor.email.trim())    errs.email = "Obrigatório";
-      if (!autor.cep.trim())      errs.cep = "Obrigatório";
-      if (!autor.endereco.trim()) errs.endereco = "Obrigatório";
-      if (!autor.numero.trim())   errs.numero = "Obrigatório";
-      if (!autor.bairro.trim())   errs.bairro = "Obrigatório";
-      if (!autor.cidade.trim())   errs.cidade = "Obrigatório";
-      if (!autor.estado)          errs.estado = "Obrigatório";
+      if (!a.nome.trim())     e.nome     = "Obrigatório";
+      if (!a.cpf.trim())      e.cpf      = "Obrigatório";
+      if (!a.telefone.trim()) e.telefone = "Obrigatório";
+      if (!a.email.trim())    e.email    = "Obrigatório";
+      if (!a.cep.trim())      e.cep      = "Obrigatório";
+      if (!a.endereco.trim()) e.endereco = "Obrigatório";
+      if (!a.numero.trim())   e.numero   = "Obrigatório";
+      if (!a.bairro.trim())   e.bairro   = "Obrigatório";
+      if (!a.cidade.trim())   e.cidade   = "Obrigatório";
+      if (!a.estado)          e.estado   = "Obrigatório";
     }
     if (step === 1) {
-      if (!reu.nome.trim())     errs["reu.nome"] = "Obrigatório";
-      if (!reu.cpf.trim())      errs["reu.cpf"] = "Obrigatório";
-      if (!reu.telefone.trim()) errs["reu.telefone"] = "Obrigatório";
+      if (!r.nome.trim())     e["r.nome"]     = "Obrigatório";
+      if (!r.cpf.trim())      e["r.cpf"]      = "Obrigatório";
+      if (!r.telefone.trim()) e["r.telefone"] = "Obrigatório";
     }
     if (step === 2) {
-      if (!causa.valor.trim()) errs.valor = "Obrigatório";
-      if (!causa.fatos.trim()) errs.fatos = "Obrigatório";
-      if (!causa.pedido.trim()) errs.pedido = "Obrigatório";
+      if (!c.valor.trim()) e.valor = "Obrigatório";
+      if (!c.fatos.trim()) e.fatos = "Obrigatório";
+      if (!c.pedido.trim()) e.pedido = "Obrigatório";
     }
-    setFieldErrors(errs);
-    return Object.keys(errs).length === 0;
+    setErrs(e);
+    return Object.keys(e).length === 0;
   };
 
-  const next = () => { if (validate()) { setStep(s => s + 1); window.scrollTo({ top: 0, behavior: "smooth" }); } };
-  const back = () => { setFieldErrors({}); setStep(s => s - 1); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const next = () => { if (validate()) { setStep(s => s+1); window.scrollTo({top:0,behavior:"smooth"}); } };
+  const back = () => { setErrs({}); setStep(s => s-1); window.scrollTo({top:0,behavior:"smooth"}); };
 
-  // ─── Submit ────────────────────────────────────────────────────────────────
-
-  const handleSubmit = async () => {
-    setSubmitting(true); setSubmitError(null);
-    const { error } = await supabase.from("case_submissions").insert({
-      client_email: clientEmail || autor.email,
-      autores: [autor],
-      reus: [reu],
-      testemunhas: [],
-      detalhes_causa: causa,
-      provas_links: [],
-      documentos_autor: {
-        identidade: docIdentidade[0] ?? null,
-        residencia: docResidencia[0] ?? null,
-      },
-      provas_documentais: provas,
-      status: "pendente",
-    });
-    setSubmitting(false);
-    if (error) setSubmitError(`Erro: ${error.message}`);
-    else setSubmitted(true);
+  const submit = async () => {
+    setSub(true); setSubErr(null);
+    try {
+      await supabaseFrom("case_submissions", {
+        client_email: email || a.email,
+        autores: [a],
+        reus: [r],
+        testemunhas: [],
+        detalhes_causa: c,
+        provas_links: [],
+        documentos_autor: { identidade: docId[0] ?? null, residencia: docRes[0] ?? null },
+        provas_documentais: provas,
+        status: "pendente",
+      });
+      setDone(true);
+      window.scrollTo({top:0,behavior:"smooth"});
+    } catch (err: any) {
+      setSubErr(err.message || "Erro ao enviar");
+    } finally { setSub(false); }
   };
 
-  // ─── Success ───────────────────────────────────────────────────────────────
-
-  if (submitted) {
-    return (
-      <div style={{ background: "linear-gradient(160deg,#032956 0%,#001532 100%)" }} className="min-h-screen flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center">
-          <div className="w-20 h-20 rounded-full bg-yellow-400/15 border-2 border-yellow-400/40 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-yellow-400" />
-          </div>
-          <h1 className="text-3xl font-black text-white mb-3">Caso enviado!</h1>
-          <p className="text-blue-200 mb-6 leading-relaxed">Seu caso foi submetido com sucesso. Nossa equipe irá analisar e entrar em contato em breve pelo e-mail cadastrado.</p>
-          <div className="bg-white/8 border border-white/10 rounded-2xl p-5 text-left space-y-3 mb-8">
-            <Row label="Status"  value={<span className="text-yellow-400 font-bold text-xs bg-yellow-400/10 px-3 py-1 rounded-full">Aguardando análise</span>} />
-            <Row label="E-mail"  value={clientEmail || autor.email} />
-            <Row label="Autor"   value={autor.nome} />
-          </div>
+  // ─── Success screen ─────────────────────────────────────────────────────────
+  if (done) return (
+    <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,#032956,${dark})`, display:"flex", alignItems:"center", justifyContent:"center", padding:"32px 16px" }}>
+      <div style={{ maxWidth:420, width:"100%", textAlign:"center" }}>
+        <div style={{ width:80, height:80, borderRadius:"50%", background:"rgba(254,224,1,0.12)", border:`2px solid rgba(254,224,1,0.4)`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", fontSize:36 }}>✓</div>
+        <h1 style={{ color:"white", fontSize:28, fontWeight:900, margin:"0 0 12px" }}>Caso enviado!</h1>
+        <p style={{ color:"rgba(180,210,255,0.7)", fontSize:14, lineHeight:1.7, margin:"0 0 24px" }}>
+          Nossa equipe irá analisar e entrar em contato pelo e-mail cadastrado em até 2 dias úteis.
+        </p>
+        <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"16px 20px", textAlign:"left" }}>
+          <RR label="Status"  value={<span style={{ color:gold, fontWeight:700 }}>Aguardando análise</span>} />
+          <RR label="E-mail"  value={email || a.email} />
+          <RR label="Autor"   value={a.nome} />
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // ─── Render ────────────────────────────────────────────────────────────────
+  // ─── Progress bar ───────────────────────────────────────────────────────────
+  const pct = ((step+1)/STEPS.length)*100;
 
   return (
-    <div style={{ background: "linear-gradient(160deg,#032956 0%,#001532 100%)" }} className="min-h-screen py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,#032956,${dark})`, padding:"32px 16px", fontFamily:"'Inter',system-ui,sans-serif" }}>
+      <div style={{ maxWidth:680, margin:"0 auto" }}>
 
         {/* Header */}
-        <div className="mb-8 text-center">
-          <p className="text-yellow-400 text-xs font-bold uppercase tracking-widest mb-1">Pequenas Causas Processos</p>
-          <h1 className="text-2xl font-black text-white">Submissão de Caso</h1>
-          <p className="text-blue-200/70 text-sm mt-1">Preencha os dados para iniciar seu processo</p>
+        <div style={{ textAlign:"center", marginBottom:32 }}>
+          <p style={{ color:gold, fontSize:11, fontWeight:800, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 6px" }}>Pequenas Causas Processos</p>
+          <h1 style={{ color:"white", fontSize:26, fontWeight:900, margin:"0 0 4px" }}>Submissão de Caso</h1>
+          <p style={{ color:"rgba(180,210,255,0.6)", fontSize:13, margin:0 }}>Preencha os dados para iniciar seu processo</p>
         </div>
 
-        {/* Progress */}
-        <div className="flex items-center gap-0 mb-8">
-          {STEPS.map((s, i) => {
-            const Icon = s.icon;
-            const active = i === step;
-            const done = i < step;
+        {/* Step indicators */}
+        <div style={{ display:"flex", alignItems:"center", marginBottom:28 }}>
+          {STEPS.map((label, i) => {
+            const isDone   = i < step;
+            const isActive = i === step;
             return (
               <React.Fragment key={i}>
-                <div className="flex flex-col items-center flex-1">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all mb-1.5
-                    ${done  ? "bg-yellow-400 border-yellow-400 text-[#001532]"
-                    : active ? "bg-yellow-400/15 border-yellow-400 text-yellow-400"
-                    :         "bg-white/5 border-white/15 text-white/30"}`}>
-                    {done ? <CheckCircle2 className="w-5 h-5" /> : <Icon className="w-4 h-4" />}
+                <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+                  <div style={{
+                    width:40, height:40, borderRadius:"50%",
+                    border:`2px solid ${isDone||isActive ? gold : "rgba(255,255,255,0.12)"}`,
+                    background: isDone ? gold : isActive ? "rgba(254,224,1,0.12)" : "rgba(255,255,255,0.04)",
+                    color: isDone ? dark : isActive ? gold : "rgba(255,255,255,0.25)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize:isDone?18:13, fontWeight:800,
+                    transition:"all 0.3s",
+                  }}>
+                    {isDone ? "✓" : i+1}
                   </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wide ${active ? "text-yellow-400" : done ? "text-yellow-400/70" : "text-white/25"}`}>
-                    {s.label}
+                  <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color: isActive ? gold : isDone ? "rgba(254,224,1,0.6)" : "rgba(255,255,255,0.2)" }}>
+                    {label}
                   </span>
                 </div>
-                {i < STEPS.length - 1 && (
-                  <div className={`h-px flex-1 max-w-[32px] mb-5 transition-all ${done ? "bg-yellow-400/60" : "bg-white/10"}`} />
-                )}
+                {i < STEPS.length-1 && <div style={{ height:1, flex:1, maxWidth:32, marginBottom:20, background: i<step ? "rgba(254,224,1,0.5)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }} />}
               </React.Fragment>
             );
           })}
         </div>
 
         {/* Card */}
-        <div className="bg-white/6 border border-white/10 rounded-3xl backdrop-blur-md shadow-2xl overflow-hidden">
+        <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:24, overflow:"hidden", backdropFilter:"blur(12px)" }}>
+          {/* Gold progress bar */}
+          <div style={{ height:3, background:`linear-gradient(90deg,${gold},#fbbf24)`, width:`${pct}%`, transition:"width 0.4s ease" }} />
 
-          {/* Gold top bar */}
-          <div className="h-1 bg-gradient-to-r from-yellow-400 to-yellow-300" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+          <div style={{ padding:"28px 28px 32px" }}>
 
-          <div className="p-6 sm:p-8">
+            {/* ── Step 0: Autor ───────────────────────────────────── */}
+            {step === 0 && <>
+              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Dados do Autor</h2>
+              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Quem está entrando com o processo</p>
+              <G1>
+                <F label="Nome completo" req err={errs.nome}>
+                  <Inp value={a.nome} onChange={e=>setA(x=>({...x,nome:e.target.value}))} placeholder="Seu nome completo" />
+                </F>
+              </G1>
+              <div style={{ height:14 }} />
+              <G2>
+                <F label="CPF / CNPJ" req err={errs.cpf}>
+                  <Inp value={a.cpf} onChange={e=>setA(x=>({...x,cpf:e.target.value}))} placeholder="000.000.000-00" />
+                </F>
+                <F label="RG">
+                  <Inp value={a.rg} onChange={e=>setA(x=>({...x,rg:e.target.value}))} placeholder="RG" />
+                </F>
+                <F label="Telefone / WhatsApp" req err={errs.telefone}>
+                  <Inp value={a.telefone} onChange={e=>setA(x=>({...x,telefone:e.target.value}))} placeholder="(11) 99999-9999" />
+                </F>
+                <F label="E-mail" req err={errs.email}>
+                  <Inp type="email" value={a.email} onChange={e=>setA(x=>({...x,email:e.target.value}))} placeholder="email@exemplo.com" />
+                </F>
+                <F label="CEP" req err={errs.cep}>
+                  <Inp value={a.cep} onChange={e=>setA(x=>({...x,cep:e.target.value}))} placeholder="00000-000" />
+                </F>
+                <Full>
+                  <F label="Endereço" req err={errs.endereco}>
+                    <Inp value={a.endereco} onChange={e=>setA(x=>({...x,endereco:e.target.value}))} placeholder="Rua, Avenida..." />
+                  </F>
+                </Full>
+                <F label="Número" req err={errs.numero}>
+                  <Inp value={a.numero} onChange={e=>setA(x=>({...x,numero:e.target.value}))} placeholder="N°" />
+                </F>
+                <F label="Complemento">
+                  <Inp value={a.complemento} onChange={e=>setA(x=>({...x,complemento:e.target.value}))} placeholder="Apto, bloco..." />
+                </F>
+                <F label="Bairro" req err={errs.bairro}>
+                  <Inp value={a.bairro} onChange={e=>setA(x=>({...x,bairro:e.target.value}))} placeholder="Bairro" />
+                </F>
+                <F label="Cidade" req err={errs.cidade}>
+                  <Inp value={a.cidade} onChange={e=>setA(x=>({...x,cidade:e.target.value}))} placeholder="Cidade" />
+                </F>
+                <F label="Estado" req err={errs.estado}>
+                  <Sel value={a.estado} onChange={e=>setA(x=>({...x,estado:e.target.value}))}>
+                    <option value="">Selecione a UF</option>
+                    {ESTADOS.map(uf=><option key={uf}>{uf}</option>)}
+                  </Sel>
+                </F>
+              </G2>
+            </>}
 
-            {/* ─── Step 0: Autor ────────────────────────────────────────── */}
-            {step === 0 && (
-              <StepSection title="Dados do Autor" subtitle="Quem está entrando com o processo">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="sm:col-span-2">
-                    <Field label="Nome completo" required error={fieldErrors.nome}>
-                      <Inp value={autor.nome} onChange={e => setAutor(a => ({...a, nome: e.target.value}))} placeholder="Seu nome completo" />
-                    </Field>
-                  </div>
-                  <Field label="CPF / CNPJ" required error={fieldErrors.cpf}>
-                    <Inp value={autor.cpf} onChange={e => setAutor(a => ({...a, cpf: e.target.value}))} placeholder="000.000.000-00" />
-                  </Field>
-                  <Field label="RG">
-                    <Inp value={autor.rg} onChange={e => setAutor(a => ({...a, rg: e.target.value}))} placeholder="RG" />
-                  </Field>
-                  <Field label="Telefone / WhatsApp" required error={fieldErrors.telefone}>
-                    <Inp value={autor.telefone} onChange={e => setAutor(a => ({...a, telefone: e.target.value}))} placeholder="(11) 99999-9999" />
-                  </Field>
-                  <Field label="E-mail" required error={fieldErrors.email}>
-                    <Inp type="email" value={autor.email} onChange={e => setAutor(a => ({...a, email: e.target.value}))} placeholder="email@exemplo.com" />
-                  </Field>
-                  <Field label="CEP" required error={fieldErrors.cep}>
-                    <Inp value={autor.cep} onChange={e => setAutor(a => ({...a, cep: e.target.value}))} placeholder="00000-000" />
-                  </Field>
-                  <div className="sm:col-span-2">
-                    <Field label="Endereço" required error={fieldErrors.endereco}>
-                      <Inp value={autor.endereco} onChange={e => setAutor(a => ({...a, endereco: e.target.value}))} placeholder="Rua, Avenida..." />
-                    </Field>
-                  </div>
-                  <Field label="Número" required error={fieldErrors.numero}>
-                    <Inp value={autor.numero} onChange={e => setAutor(a => ({...a, numero: e.target.value}))} placeholder="N°" />
-                  </Field>
-                  <Field label="Complemento">
-                    <Inp value={autor.complemento} onChange={e => setAutor(a => ({...a, complemento: e.target.value}))} placeholder="Apto, bloco..." />
-                  </Field>
-                  <Field label="Bairro" required error={fieldErrors.bairro}>
-                    <Inp value={autor.bairro} onChange={e => setAutor(a => ({...a, bairro: e.target.value}))} placeholder="Bairro" />
-                  </Field>
-                  <Field label="Cidade" required error={fieldErrors.cidade}>
-                    <Inp value={autor.cidade} onChange={e => setAutor(a => ({...a, cidade: e.target.value}))} placeholder="Cidade" />
-                  </Field>
-                  <Field label="Estado" required error={fieldErrors.estado}>
-                    <Sel value={autor.estado} onChange={e => setAutor(a => ({...a, estado: e.target.value}))}>
-                      <option value="">Selecione a UF</option>
-                      {ESTADOS.map(uf => <option key={uf}>{uf}</option>)}
-                    </Sel>
-                  </Field>
+            {/* ── Step 1: Réu ─────────────────────────────────────── */}
+            {step === 1 && <>
+              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Dados do Réu</h2>
+              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>A parte contra quem você está processando</p>
+              <G1>
+                <F label="Nome / Razão Social" req err={errs["r.nome"]}>
+                  <Inp value={r.nome} onChange={e=>setR(x=>({...x,nome:e.target.value}))} placeholder="Nome da empresa ou pessoa" />
+                </F>
+              </G1>
+              <div style={{ height:14 }} />
+              <G2>
+                <F label="CPF / CNPJ" req err={errs["r.cpf"]}>
+                  <Inp value={r.cpf} onChange={e=>setR(x=>({...x,cpf:e.target.value}))} placeholder="000.000.000-00 ou CNPJ" />
+                </F>
+                <F label="Telefone" req err={errs["r.telefone"]}>
+                  <Inp value={r.telefone} onChange={e=>setR(x=>({...x,telefone:e.target.value}))} placeholder="(11) 99999-9999" />
+                </F>
+                <Full>
+                  <F label="E-mail">
+                    <Inp type="email" value={r.email} onChange={e=>setR(x=>({...x,email:e.target.value}))} placeholder="email@exemplo.com (se souber)" />
+                  </F>
+                </Full>
+                <F label="CEP">
+                  <Inp value={r.cep} onChange={e=>setR(x=>({...x,cep:e.target.value}))} placeholder="00000-000" />
+                </F>
+                <Full>
+                  <F label="Endereço">
+                    <Inp value={r.endereco} onChange={e=>setR(x=>({...x,endereco:e.target.value}))} placeholder="Endereço completo" />
+                  </F>
+                </Full>
+                <F label="Número">
+                  <Inp value={r.numero} onChange={e=>setR(x=>({...x,numero:e.target.value}))} placeholder="N°" />
+                </F>
+                <F label="Bairro">
+                  <Inp value={r.bairro} onChange={e=>setR(x=>({...x,bairro:e.target.value}))} placeholder="Bairro" />
+                </F>
+                <F label="Cidade">
+                  <Inp value={r.cidade} onChange={e=>setR(x=>({...x,cidade:e.target.value}))} placeholder="Cidade" />
+                </F>
+                <F label="Estado">
+                  <Sel value={r.estado} onChange={e=>setR(x=>({...x,estado:e.target.value}))}>
+                    <option value="">Selecione a UF</option>
+                    {ESTADOS.map(uf=><option key={uf}>{uf}</option>)}
+                  </Sel>
+                </F>
+              </G2>
+            </>}
+
+            {/* ── Step 2: Causa ───────────────────────────────────── */}
+            {step === 2 && <>
+              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Detalhes da Causa</h2>
+              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Descreva o ocorrido e o que você busca</p>
+              <G1>
+                <F label="Valor da causa (R$)" req err={errs.valor}>
+                  <Inp value={c.valor} onChange={e=>setC(x=>({...x,valor:e.target.value}))} placeholder="Ex: 5.000,00" />
+                </F>
+                <F label="Fatos — o que aconteceu?" req err={errs.fatos}>
+                  <TA value={c.fatos} onChange={e=>setC(x=>({...x,fatos:e.target.value}))} rows={8}
+                    placeholder="Descreva detalhadamente os fatos que motivaram a ação. Quanto mais detalhes, melhor..." />
+                </F>
+                <F label="Pedido — o que você quer que o juiz decida?" req err={errs.pedido}>
+                  <TA value={c.pedido} onChange={e=>setC(x=>({...x,pedido:e.target.value}))} rows={5}
+                    placeholder="Ex: Que o réu seja condenado a pagar indenização de R$ X por danos morais..." />
+                </F>
+              </G1>
+            </>}
+
+            {/* ── Step 3: Documentos ──────────────────────────────── */}
+            {step === 3 && <>
+              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Documentos</h2>
+              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 16px" }}>Envie seus documentos e provas</p>
+              <div style={{ background:"rgba(254,224,1,0.06)", border:"1px solid rgba(254,224,1,0.18)", borderRadius:12, padding:"12px 16px", fontSize:13, color:"rgba(254,224,1,0.8)", lineHeight:1.6, marginBottom:20 }}>
+                <strong style={{ color:gold }}>Dica:</strong> Envie documentos nítidos em PDF, JPG ou PNG. Quanto mais provas, mais forte é o seu caso.
+              </div>
+              <G1>
+                <UploadField label="CNH, CPF ou RG (documento de identidade)" req bucket="case-documents" folder={email||"anon"} onDone={setDocId} />
+                <UploadField label="Comprovante de Residência" req bucket="case-documents" folder={email||"anon"} onDone={setDocRes} />
+                <UploadField label="Provas (fotos, prints, contratos, notas fiscais...)" bucket="case-provas" folder={email||"anon"} multi onDone={setProvas} />
+              </G1>
+            </>}
+
+            {/* ── Step 4: Revisão ─────────────────────────────────── */}
+            {step === 4 && <>
+              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Revisão e Confirmação</h2>
+              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 20px" }}>Confira os dados antes de enviar</p>
+              <Block title="Autor">
+                <RR label="Nome"       value={a.nome} />
+                <RR label="CPF/CNPJ"   value={a.cpf} />
+                <RR label="Telefone"   value={a.telefone} />
+                <RR label="E-mail"     value={a.email} />
+                <RR label="Endereço"   value={`${a.endereco}, ${a.numero}${a.complemento?` - ${a.complemento}`:""}, ${a.bairro}, ${a.cidade} - ${a.estado}`} />
+              </Block>
+              <Block title="Réu">
+                <RR label="Nome"       value={r.nome} />
+                <RR label="CPF/CNPJ"   value={r.cpf} />
+                <RR label="Telefone"   value={r.telefone} />
+                {r.email   && <RR label="E-mail"     value={r.email} />}
+                {r.cidade  && <RR label="Localização" value={`${r.cidade} - ${r.estado}`} />}
+              </Block>
+              <Block title="Causa">
+                <RR label="Valor"  value={`R$ ${c.valor}`} />
+                <RR label="Fatos"  value={<span style={{ whiteSpace:"pre-wrap" }}>{c.fatos}</span>} />
+                <RR label="Pedido" value={<span style={{ whiteSpace:"pre-wrap" }}>{c.pedido}</span>} />
+              </Block>
+              <Block title="Documentos">
+                <RR label="Identidade"  value={docId[0]?.name   || "—"} />
+                <RR label="Residência"  value={docRes[0]?.name  || "—"} />
+                <RR label="Provas"      value={provas.length > 0 ? `${provas.length} arquivo(s)` : "—"} />
+              </Block>
+              {submitErr && (
+                <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#fca5a5", marginBottom:12 }}>
+                  ⚠️ {submitErr}
                 </div>
-              </StepSection>
-            )}
+              )}
+              <p style={{ fontSize:11, color:"rgba(255,255,255,0.25)", textAlign:"center", lineHeight:1.6, marginTop:8 }}>
+                Ao confirmar, você declara que os dados são verdadeiros. Após o envio não é possível alterar.
+              </p>
+            </>}
 
-            {/* ─── Step 1: Réu ─────────────────────────────────────────── */}
-            {step === 1 && (
-              <StepSection title="Dados do Réu" subtitle="A parte contra quem você está processando">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="sm:col-span-2">
-                    <Field label="Nome / Razão Social" required error={fieldErrors["reu.nome"]}>
-                      <Inp value={reu.nome} onChange={e => setReu(r => ({...r, nome: e.target.value}))} placeholder="Nome da empresa ou pessoa" />
-                    </Field>
-                  </div>
-                  <Field label="CPF / CNPJ" required error={fieldErrors["reu.cpf"]}>
-                    <Inp value={reu.cpf} onChange={e => setReu(r => ({...r, cpf: e.target.value}))} placeholder="000.000.000-00 ou CNPJ" />
-                  </Field>
-                  <Field label="Telefone" required error={fieldErrors["reu.telefone"]}>
-                    <Inp value={reu.telefone} onChange={e => setReu(r => ({...r, telefone: e.target.value}))} placeholder="(11) 99999-9999" />
-                  </Field>
-                  <div className="sm:col-span-2">
-                    <Field label="E-mail">
-                      <Inp type="email" value={reu.email} onChange={e => setReu(r => ({...r, email: e.target.value}))} placeholder="email@exemplo.com (se souber)" />
-                    </Field>
-                  </div>
-                  <Field label="CEP">
-                    <Inp value={reu.cep} onChange={e => setReu(r => ({...r, cep: e.target.value}))} placeholder="00000-000" />
-                  </Field>
-                  <div className="sm:col-span-2">
-                    <Field label="Endereço">
-                      <Inp value={reu.endereco} onChange={e => setReu(r => ({...r, endereco: e.target.value}))} placeholder="Endereço completo" />
-                    </Field>
-                  </div>
-                  <Field label="Número">
-                    <Inp value={reu.numero} onChange={e => setReu(r => ({...r, numero: e.target.value}))} placeholder="N°" />
-                  </Field>
-                  <Field label="Bairro">
-                    <Inp value={reu.bairro} onChange={e => setReu(r => ({...r, bairro: e.target.value}))} placeholder="Bairro" />
-                  </Field>
-                  <Field label="Cidade">
-                    <Inp value={reu.cidade} onChange={e => setReu(r => ({...r, cidade: e.target.value}))} placeholder="Cidade" />
-                  </Field>
-                  <Field label="Estado">
-                    <Sel value={reu.estado} onChange={e => setReu(r => ({...r, estado: e.target.value}))}>
-                      <option value="">Selecione a UF</option>
-                      {ESTADOS.map(uf => <option key={uf}>{uf}</option>)}
-                    </Sel>
-                  </Field>
-                </div>
-              </StepSection>
-            )}
-
-            {/* ─── Step 2: Causa ───────────────────────────────────────── */}
-            {step === 2 && (
-              <StepSection title="Detalhes da Causa" subtitle="Descreva o ocorrido e o que você busca">
-                <div className="flex flex-col gap-5">
-                  <Field label="Valor da causa (R$)" required error={fieldErrors.valor}>
-                    <Inp
-                      value={causa.valor}
-                      onChange={e => setCausa(c => ({...c, valor: e.target.value}))}
-                      placeholder="Ex: 5.000,00"
-                    />
-                  </Field>
-                  <Field label="Fatos — o que aconteceu?" required error={fieldErrors.fatos}>
-                    <Textarea
-                      value={causa.fatos}
-                      onChange={e => setCausa(c => ({...c, fatos: e.target.value}))}
-                      rows={7}
-                      placeholder="Descreva detalhadamente os fatos que motivaram a ação. Quanto mais detalhes, melhor para o seu caso..."
-                    />
-                  </Field>
-                  <Field label="Pedido — o que você quer que o juiz decida?" required error={fieldErrors.pedido}>
-                    <Textarea
-                      value={causa.pedido}
-                      onChange={e => setCausa(c => ({...c, pedido: e.target.value}))}
-                      rows={4}
-                      placeholder="Ex: Que o réu seja condenado a pagar indenização de R$ X por danos morais e materiais..."
-                    />
-                  </Field>
-                </div>
-              </StepSection>
-            )}
-
-            {/* ─── Step 3: Documentos ──────────────────────────────────── */}
-            {step === 3 && (
-              <StepSection title="Documentos" subtitle="Envie seus documentos e provas">
-                <div className="flex flex-col gap-5">
-                  <div className="bg-yellow-400/8 border border-yellow-400/20 rounded-xl p-4 text-sm text-yellow-200/80 leading-relaxed">
-                    <strong className="text-yellow-400">Dica:</strong> Envie documentos nítidos em formato PDF, JPG ou PNG.
-                    Quanto mais provas, mais forte é o seu caso.
-                  </div>
-                  <UploadField
-                    label="CNH, CPF ou RG (documento de identidade)"
-                    required bucket="case-documents" path={clientEmail || "anon"}
-                    onDone={setDocIdentidade}
-                  />
-                  <UploadField
-                    label="Comprovante de Residência"
-                    required bucket="case-documents" path={clientEmail || "anon"}
-                    onDone={setDocResidencia}
-                  />
-                  <UploadField
-                    label="Provas (fotos, prints, contratos, notas fiscais...)"
-                    bucket="case-provas" path={clientEmail || "anon"}
-                    multi onDone={setProvas}
-                  />
-                </div>
-              </StepSection>
-            )}
-
-            {/* ─── Step 4: Revisão ─────────────────────────────────────── */}
-            {step === 4 && (
-              <StepSection title="Revisão e Confirmação" subtitle="Confira os dados antes de enviar">
-                <div className="space-y-5">
-                  <ReviewBlock title="Autor">
-                    <Row label="Nome"      value={autor.nome} />
-                    <Row label="CPF/CNPJ"  value={autor.cpf} />
-                    <Row label="Telefone"  value={autor.telefone} />
-                    <Row label="E-mail"    value={autor.email} />
-                    <Row label="Endereço"  value={`${autor.endereco}, ${autor.numero}${autor.complemento ? ` - ${autor.complemento}` : ""}, ${autor.bairro}, ${autor.cidade} - ${autor.estado}, ${autor.cep}`} />
-                  </ReviewBlock>
-                  <ReviewBlock title="Réu">
-                    <Row label="Nome"      value={reu.nome} />
-                    <Row label="CPF/CNPJ"  value={reu.cpf} />
-                    <Row label="Telefone"  value={reu.telefone} />
-                    {reu.email && <Row label="E-mail" value={reu.email} />}
-                    {reu.cidade && <Row label="Localização" value={`${reu.cidade} - ${reu.estado}`} />}
-                  </ReviewBlock>
-                  <ReviewBlock title="Causa">
-                    <Row label="Valor"  value={`R$ ${causa.valor}`} />
-                    <Row label="Fatos"  value={causa.fatos} wrap />
-                    <Row label="Pedido" value={causa.pedido} wrap />
-                  </ReviewBlock>
-                  <ReviewBlock title="Documentos">
-                    <Row label="Identidade"   value={docIdentidade[0]?.name  || "—"} />
-                    <Row label="Residência"   value={docResidencia[0]?.name  || "—"} />
-                    <Row label="Provas"       value={provas.length > 0 ? `${provas.length} arquivo(s)` : "—"} />
-                  </ReviewBlock>
-
-                  {submitError && (
-                    <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-300 text-sm">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" /> {submitError}
-                    </div>
-                  )}
-
-                  <p className="text-xs text-white/30 text-center leading-relaxed">
-                    Ao confirmar, você declara que os dados fornecidos são verdadeiros.
-                    Após o envio não será possível alterar as informações.
-                  </p>
-                </div>
-              </StepSection>
-            )}
-
-            {/* ─── Navigation ──────────────────────────────────────────── */}
-            <div className={`flex gap-3 mt-8 ${step === 0 ? "justify-end" : "justify-between"}`}>
+            {/* ── Navigation ──────────────────────────────────────── */}
+            <div style={{ display:"flex", justifyContent: step===0 ? "flex-end" : "space-between", gap:12, marginTop:28 }}>
               {step > 0 && (
-                <button type="button" onClick={back}
-                  className="flex items-center gap-2 px-5 py-3 rounded-xl border border-white/15 text-white/70 text-sm font-semibold hover:border-white/30 hover:text-white transition-all">
-                  <ChevronLeft className="w-4 h-4" /> Voltar
+                <button type="button" onClick={back} style={{
+                  display:"flex", alignItems:"center", gap:8, padding:"12px 20px",
+                  borderRadius:12, border:"1.5px solid rgba(255,255,255,0.14)", background:"transparent",
+                  color:"rgba(255,255,255,0.65)", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+                }}>
+                  ← Voltar
                 </button>
               )}
-              {step < 4 ? (
-                <button type="button" onClick={next}
-                  className="flex items-center gap-2 px-8 py-3 rounded-xl bg-yellow-400 text-[#001532] text-sm font-black shadow-[0_4px_0_0_#b8a000] hover:shadow-[0_2px_0_0_#b8a000] hover:translate-y-[2px] active:shadow-none active:translate-y-[4px] transition-all">
-                  Próximo <ChevronRight className="w-4 h-4" />
+              {step < STEPS.length-1 ? (
+                <button type="button" onClick={next} style={{
+                  display:"flex", alignItems:"center", gap:8, padding:"12px 28px",
+                  borderRadius:12, background:gold, color:dark,
+                  fontSize:13, fontWeight:900, cursor:"pointer", border:"none",
+                  boxShadow:`0 4px 0 0 #b8a000`, fontFamily:"inherit",
+                  transition:"all 0.15s",
+                }}>
+                  Próximo →
                 </button>
               ) : (
-                <button type="button" onClick={handleSubmit} disabled={submitting}
-                  className="flex items-center gap-2 px-8 py-3 rounded-xl bg-yellow-400 text-[#001532] text-sm font-black shadow-[0_4px_0_0_#b8a000] hover:shadow-[0_2px_0_0_#b8a000] hover:translate-y-[2px] active:shadow-none active:translate-y-[4px] transition-all disabled:opacity-60 disabled:pointer-events-none">
-                  {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</> : <><CheckCircle2 className="w-4 h-4" /> Confirmar Envio</>}
+                <button type="button" onClick={submit} disabled={submitting} style={{
+                  display:"flex", alignItems:"center", gap:8, padding:"12px 28px",
+                  borderRadius:12, background: submitting ? "rgba(254,224,1,0.5)" : gold,
+                  color:dark, fontSize:13, fontWeight:900, cursor: submitting ? "not-allowed" : "pointer",
+                  border:"none", boxShadow:`0 4px 0 0 #b8a000`, fontFamily:"inherit",
+                }}>
+                  {submitting ? "⏳ Enviando..." : "✓ Confirmar Envio"}
                 </button>
               )}
             </div>
@@ -499,44 +553,10 @@ export default function AreaClienteFormulario() {
           </div>
         </div>
 
-        <p className="text-center text-white/20 text-xs mt-6">
-          Etapa {step + 1} de {STEPS.length} · Pequenas Causas Processos
+        <p style={{ textAlign:"center", color:"rgba(255,255,255,0.18)", fontSize:11, marginTop:20 }}>
+          Etapa {step+1} de {STEPS.length} · Pequenas Causas Processos
         </p>
       </div>
-    </div>
-  );
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function StepSection({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-xl font-black text-white">{title}</h2>
-        <p className="text-blue-200/60 text-sm mt-0.5">{subtitle}</p>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function ReviewBlock({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-      <div className="px-4 py-2.5 bg-white/5 border-b border-white/8">
-        <p className="text-xs font-bold text-yellow-400 uppercase tracking-wider">{title}</p>
-      </div>
-      <div className="px-4 py-3 space-y-2">{children}</div>
-    </div>
-  );
-}
-
-function Row({ label, value, wrap }: { label: string; value: React.ReactNode; wrap?: boolean }) {
-  return (
-    <div className={`flex ${wrap ? "flex-col gap-1" : "items-start justify-between gap-4"}`}>
-      <span className="text-xs text-white/40 font-medium flex-shrink-0">{label}</span>
-      <span className={`text-sm text-white/80 font-medium ${wrap ? "" : "text-right"}`}>{value || "—"}</span>
     </div>
   );
 }
