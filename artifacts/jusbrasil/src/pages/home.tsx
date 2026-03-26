@@ -681,42 +681,46 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* HOW IT WORKS */}
+      {/* SOBRE NÓS */}
       <section className="py-32 bg-background" id="como-funciona">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-20">
-            <h2 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">Nossas <span className="gold-gradient-text">Especialidades</span></h2>
-            <p className="text-lg text-muted-foreground leading-[1.6]">Resolvemos conflitos do cidadão com a precisão de uma consultoria de elite, focados na reparação rápida do seu dano moral e material.</p>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12">
+            <span className="text-[#fee001] font-bold tracking-widest text-xs uppercase">Sobre nós</span>
+            <h2 className="text-3xl md:text-5xl font-black mt-3 mb-8 tracking-tight leading-tight">
+              Cansado de burocracia e dificuldade para encontrar um advogado para pequenas causas?{" "}
+              <span className="gold-gradient-text">Nós resolvemos isso pra você.</span>
+            </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            <div className="hidden md:block absolute top-14 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-[#fee001]/40 to-transparent z-0" />
-            
-            {[
-              { 
-                icon: <FileText className="w-7 h-7" />, 
-                title: "1. Envie seu caso", 
-                desc: "Descreva o ocorrido em minutos, anexe provas e envie de forma totalmente online e gratuita." 
-              },
-              { 
-                icon: <Users className="w-7 h-7" />, 
-                title: "2. Receba propostas", 
-                desc: "Advogados verificados analisam seu caso e enviam propostas, inclusive no modelo ad exitum (só paga se ganhar)." 
-              },
-              { 
-                icon: <Scale className="w-7 h-7" />, 
-                title: "3. Resolva online", 
-                desc: "Acompanhe tudo pela plataforma. Sem filas, sem burocracia e com total transparência." 
-              }
-            ].map((step, i) => (
-              <div key={i} className="relative z-10 bg-card p-8 rounded-xl shadow-ambient text-center hover-elevate">
-                <div className="w-16 h-16 mx-auto rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] mb-6">
-                  {step.icon}
+          <div className="space-y-8 text-lg text-muted-foreground leading-[1.8]">
+            <p>
+              Somos uma plataforma privada que conecta você, de forma rápida e direta, a advogados independentes prontos para assumir o seu caso. Em poucos minutos, você recebe propostas de diferentes profissionais — inclusive no modelo <strong className="text-foreground">ad exitum</strong>, onde você só paga se ganhar.
+            </p>
+
+            <div className="border-l-4 border-[#fee001] pl-6 py-1">
+              <p className="font-bold text-foreground text-xl">Sem complicação. Sem perda de tempo.</p>
+            </div>
+
+            <p>
+              Antes disso, nossa inteligência artificial faz uma <strong className="text-foreground">triagem imediata do seu caso</strong>, verificando se ele atende aos critérios para ser processado nos Juizados Especiais (JEC, JEFAZ e JEF). Você já começa sabendo se vale a pena seguir em frente.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { icon: <Scale className="w-6 h-6" />, text: "Mais agilidade" },
+                { icon: <FileText className="w-6 h-6" />, text: "Mais clareza" },
+                { icon: <ShieldCheck className="w-6 h-6" />, text: "Mais chance de resolver" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3 bg-[#fee001]/8 border border-[#fee001]/20 rounded-xl px-5 py-4">
+                  <span className="text-[#fee001]">{item.icon}</span>
+                  <span className="font-bold text-foreground">{item.text}</span>
                 </div>
-                <h3 className="text-xl font-bold mb-4 tracking-tight">{step.title}</h3>
-                <p className="text-muted-foreground leading-[1.6] text-sm">{step.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            <div className="bg-card border border-border rounded-xl p-6 text-sm text-muted-foreground leading-[1.7]">
+              <strong className="text-foreground">Importante:</strong> essa análise é apenas informativa e não substitui a avaliação completa de um advogado — mas já elimina dúvidas e acelera o seu caminho.
+            </div>
           </div>
         </div>
       </section>
