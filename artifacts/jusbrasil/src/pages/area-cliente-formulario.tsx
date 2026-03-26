@@ -271,9 +271,8 @@ export default function AreaClienteFormulario() {
       window.scrollTo({ top:0, behavior:"smooth" });
     } catch (err) {
       setErrors({ submit: "Erro ao enviar. Tente novamente." });
-    } finally {
-      setSubmitting(false);
     }
+    setSubmitting(false);
   };
 
   // ─── Success ──────────────────────────────────────────────────────────────────
