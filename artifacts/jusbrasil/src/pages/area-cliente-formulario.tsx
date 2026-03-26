@@ -270,8 +270,8 @@ export default function AreaClienteFormulario() {
       setProtocol(proto);
       setSubmitted(true);
       window.scrollTo({ top:0, behavior:"smooth" });
-    } catch (err: any) {
-      setSubErr(err.message || "Erro ao enviar");
+    } catch (err) {
+      setSubErr((err as Error).message || "Erro ao enviar");
     } finally {
       setSubmitting(false);
     }
