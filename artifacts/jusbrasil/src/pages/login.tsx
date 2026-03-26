@@ -82,9 +82,25 @@ export default function LoginPage() {
     });
     if (authError) {
       setError("E-mail ou senha incorretos. Verifique e tente novamente.");
-    } else {
-      navigate("/area-do-cliente");
+      setLoading(false);
+      return;
     }
+
+    const { data: paymentData } = await supabase
+      .from("pequenas_causas_submissions")
+      .select("pagamento_confirmado")
+      .eq("autor_email", email.toLowerCase().trim())
+      .eq("pagamento_confirmado", true)
+      .maybeSingle();
+
+    if (paymentData === null) {
+      await supabase.auth.signOut();
+      setError("Acesso não autorizado. Somente clientes que realizaram o pagamento podem acessar o portal.");
+      setLoading(false);
+      return;
+    }
+
+    navigate("/area-do-cliente");
     setLoading(false);
   }
 

@@ -86,13 +86,11 @@ export default function ObrigadoPage() {
         >
           <p
             style={{
-              fontWeight: 700,
-              color: "#0f172a",
+              fontWeight: 800,
+              color: "#fff",
               fontSize: 13,
               textTransform: "uppercase",
               letterSpacing: 0.5,
-              fontWeight: 800,
-              color: "#fff",
             }}
           >
             Próximos passos
