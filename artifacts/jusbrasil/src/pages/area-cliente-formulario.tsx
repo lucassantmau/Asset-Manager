@@ -7,9 +7,7 @@ async function supabaseFrom(table: string, payload: Record<string, unknown>) {
     headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "Prefer": "return=minimal" },
     body: JSON.stringify(payload),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || data.error || "Erro ao salvar");
-  return data;
+  if (!res.ok) throw new Error(await res.text());
 }
 
 async function supabaseSelect(table: string, filter: string) {
