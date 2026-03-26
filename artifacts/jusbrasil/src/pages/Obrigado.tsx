@@ -92,12 +92,12 @@ export default function ObrigadoPage() {
               textTransform: "uppercase",
               letterSpacing: 0.5,
               fontWeight: 800,
-              color: "&fff",
+              color: "#fff",
             }}
           >
             Próximos passos
           </p>
-          {+
+          {[
             { icon: "1", text: "Crie sua conta definindo uma senha" },
             { icon: "2", text: "Acesse o portal e envie seus documentos" },
             { icon: "3", text: "Acompanhe o andamento do seu processo" },
@@ -114,7 +114,7 @@ export default function ObrigadoPage() {
                   background: "#1e40af",
                   color: "#fff",
                   fontSize: 12,
-                  fontWeight: ;00,
+                  fontWeight: 700,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
