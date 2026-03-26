@@ -9,29 +9,13 @@ async function supabaseFrom(table: string, payload: Record<string, unknown>) {
   });
   if (!res.ok) throw new Error(await res.text());
 }
-
-async function supabaseSelect(table: string, filter: string) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}&limit=1`, {
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-  });
-  return res.json() as Promise<Record<string, unknown>[]>;
-}
-
 async function supabaseUpload(bucket: string, path: string, file: File): Promise<string> {
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
     method: "POST",
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      "Content-Type": file.type || "application/octet-stream",
-      "x-upsert": "true",
-    },
+    headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": file.type || "application/octet-stream", "x-upsert": "true" },
     body: file,
   });
-  if (!res.ok) { const e = await res.json(); throw new Error(e.message || "Erro no upload"); }
+  if (!res.ok) throw new Error(await res.text());
   return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
 }
 
@@ -46,14 +30,14 @@ interface Reu {
   nome: string; cpf: string; telefone: string; email: string;
   cep: string; endereco: string; numero: string; bairro: string; cidade: string; estado: string;
 }
-interface FileRef { url: string; name: string; }
+interface FileEntry { file: File; category: string; name: string; }
 
 const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS",
   "MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
 const STEPS = ["Autor","Réu","Causa","Documentos","Revisão"] as const;
 
-// ─── Tiny UI primitives ───────────────────────────────────────────────────────
+// ─── UI primitives ────────────────────────────────────────────────────────────
 
 const gold = "#fee001";
 const dark = "#001532";
@@ -73,61 +57,52 @@ function F({ label, req, err, children }: { label: string; req?: boolean; err?: 
 const inp: React.CSSProperties = {
   height:44, borderRadius:12, border:"1.5px solid rgba(255,255,255,0.1)",
   background:"rgba(255,255,255,0.06)", padding:"0 16px", fontSize:14,
-  color:"white", outline:"none", width:"100%", boxSizing:"border-box",
-  fontFamily:"inherit",
+  color:"white", outline:"none", width:"100%", boxSizing:"border-box", fontFamily:"inherit",
 };
 const Inp = (p: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input {...p} style={{ ...inp, ...p.style }}
-    onFocus={e => { e.currentTarget.style.borderColor = "rgba(254,224,1,0.5)"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
-    onBlur={e  => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+    onFocus={e => { e.currentTarget.style.borderColor="rgba(254,224,1,0.5)"; e.currentTarget.style.background="rgba(255,255,255,0.1)"; }}
+    onBlur={e  => { e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"; e.currentTarget.style.background="rgba(255,255,255,0.06)"; }}
   />
 );
 const Sel = ({ children, ...p }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) => (
-  <select {...p} style={{ ...inp, cursor:"pointer", appearance:"none" as any }}>{children}</select>
+  <select {...p} style={{ ...inp, cursor:"pointer" }}>{children}</select>
 );
 const TA = (p: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
   <textarea {...p} style={{ ...inp, height:"auto", minHeight:120, padding:"12px 16px", resize:"vertical", lineHeight:1.6, ...p.style }}
-    onFocus={e => { e.currentTarget.style.borderColor = "rgba(254,224,1,0.5)"; }}
-    onBlur={e  => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
+    onFocus={e => { e.currentTarget.style.borderColor="rgba(254,224,1,0.5)"; }}
+    onBlur={e  => { e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"; }}
   />
 );
 
 // ─── Upload field ─────────────────────────────────────────────────────────────
 
-function UploadField({ label, req, bucket, folder, multi, onDone }: {
-  label: string; req?: boolean; bucket: string; folder: string;
-  multi?: boolean; onDone: (files: FileRef[]) => void;
+function UploadField({ label, req, category, multi, onAdd }: {
+  label: string; req?: boolean; category: string; multi?: boolean;
+  onAdd: (entries: FileEntry[]) => void;
 }) {
   const ref = useRef<HTMLInputElement>(null);
+  const [names, setNames] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<FileRef[]>([]);
-  const [err, setErr] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
 
-  const upload = useCallback(async (files: File[]) => {
-    if (!files.length) return;
-    setBusy(true); setErr(null);
-    const results: FileRef[] = [];
-    for (const f of files) {
-      try {
-        const path = `${folder}/${Date.now()}_${f.name}`;
-        const url = await supabaseUpload(bucket, path, f);
-        results.push({ url, name: f.name });
-      } catch { setErr("Falha ao enviar " + f.name); }
-    }
-    const all = multi ? [...done, ...results] : results;
-    setDone(all); onDone(all); setBusy(false);
+  const handle = useCallback((fileList: File[]) => {
+    if (!fileList.length) return;
+    setBusy(true);
+    const entries: FileEntry[] = fileList.map(f => ({ file: f, category, name: f.name }));
+    const newNames = fileList.map(f => f.name);
+    setNames(prev => multi ? [...prev, ...newNames] : newNames);
+    onAdd(entries);
+    setBusy(false);
     if (ref.current) ref.current.value = "";
-  }, [done, multi, bucket, folder, onDone]);
+  }, [category, multi, onAdd]);
 
-  const onChange = (e: ChangeEvent<HTMLInputElement>) => upload(Array.from(e.target.files || []));
-  const onDrop   = (e: DragEvent) => { e.preventDefault(); setDrag(false); upload(Array.from(e.dataTransfer.files)); };
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => handle(Array.from(e.target.files || []));
+  const onDrop   = (e: DragEvent<HTMLDivElement>) => { e.preventDefault(); setDrag(false); handle(Array.from(e.dataTransfer.files)); };
+  const hasFiles = names.length > 0;
 
-  const remove = (i: number) => { const u = done.filter((_,idx)=>idx!==i); setDone(u); onDone(u); };
-
-  const active = done.length > 0 && !multi;
   return (
-    <F label={label} req={req} err={err ?? undefined}>
+    <F label={label} req={req}>
       <div
         onClick={() => ref.current?.click()}
         onDragOver={e => { e.preventDefault(); setDrag(true); }}
@@ -135,28 +110,22 @@ function UploadField({ label, req, bucket, folder, multi, onDone }: {
         onDrop={onDrop}
         style={{
           display:"flex", alignItems:"center", gap:10, padding:"12px 16px",
-          borderRadius:12, border:`2px dashed ${drag ? gold : active ? "rgba(254,224,1,0.4)" : "rgba(255,255,255,0.12)"}`,
-          background: drag ? "rgba(254,224,1,0.06)" : active ? "rgba(254,224,1,0.04)" : "rgba(255,255,255,0.03)",
-          cursor:"pointer", fontSize:13,
-          color: active ? gold : "rgba(255,255,255,0.4)",
-          transition:"all 0.2s",
+          borderRadius:12, border:`2px dashed ${drag ? gold : hasFiles ? "rgba(254,224,1,0.4)" : "rgba(255,255,255,0.12)"}`,
+          background: drag ? "rgba(254,224,1,0.06)" : hasFiles ? "rgba(254,224,1,0.04)" : "rgba(255,255,255,0.03)",
+          cursor:"pointer", fontSize:13, color: hasFiles ? gold : "rgba(255,255,255,0.4)", transition:"all 0.2s",
         }}
       >
-        {busy ? "⏳ Enviando..." : active ? `✓ ${done[0].name}` : `📎 ${multi ? "Selecionar arquivos" : "Selecionar arquivo"}`}
+        {busy ? "⏳ Processando..." : hasFiles && !multi ? `✓ ${names[0]}` : `📎 ${multi ? "Selecionar arquivos" : "Selecionar arquivo"}`}
       </div>
-      {err && <span style={{ fontSize:11, color:"#f87171" }}>{err}</span>}
-      {multi && done.map((f,i) => (
-        <div key={i} style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color:gold, background:"rgba(254,224,1,0.06)", padding:"6px 12px", borderRadius:8, marginTop:4 }}>
-          <span style={{ flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>✓ {f.name}</span>
-          <button type="button" onClick={() => remove(i)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.35)", lineHeight:1 }}>✕</button>
-        </div>
+      {multi && names.map((n, i) => (
+        <div key={i} style={{ fontSize:12, color:gold, background:"rgba(254,224,1,0.06)", padding:"5px 12px", borderRadius:8, marginTop:4 }}>✓ {n}</div>
       ))}
       <input ref={ref} type="file" multiple={multi} accept="image/*,.pdf,.doc,.docx" style={{ display:"none" }} onChange={onChange} />
     </F>
   );
 }
 
-// ─── Review row ───────────────────────────────────────────────────────────────
+// ─── Review helpers ───────────────────────────────────────────────────────────
 
 function RR({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -177,8 +146,6 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-// ─── Grid helpers ─────────────────────────────────────────────────────────────
-
 const G2 = ({ children }: { children: React.ReactNode }) => (
   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>{children}</div>
 );
@@ -194,34 +161,44 @@ const Full = ({ children }: { children: React.ReactNode }) => (
 import React from "react";
 
 export default function AreaClienteFormulario() {
-  const [step, setStep]         = useState(0);
-  const [errs, setErrs]         = useState<Record<string,string>>({});
-  const [submitting, setSub]    = useState(false);
-  const [submitErr, setSubErr]  = useState<string|null>(null);
-  const [done, setDone]         = useState(false);
-  const [email, setEmail]       = useState("");
+  const [step, setStep]        = useState(0);
+  const [errs, setErrs]        = useState<Record<string,string>>({});
+  const [submitting, setSub]   = useState(false);
+  const [submitErr, setSubErr] = useState<string|null>(null);
+  const [done, setDone]        = useState(false);
+  const [protocol, setProtocol]= useState("");
+  const [clientEmail, setClientEmail] = useState("");
 
-  // Step data
   const [a, setA] = useState<Autor>({ nome:"",cpf:"",rg:"",telefone:"",email:"",cep:"",endereco:"",numero:"",complemento:"",bairro:"",cidade:"",estado:"" });
   const [r, setR] = useState<Reu>({ nome:"",cpf:"",telefone:"",email:"",cep:"",endereco:"",numero:"",bairro:"",cidade:"",estado:"" });
   const [c, setC] = useState({ valor:"", fatos:"", pedido:"" });
-  const [docId,   setDocId]   = useState<FileRef[]>([]);
-  const [docRes,  setDocRes]  = useState<FileRef[]>([]);
-  const [provas,  setProvas]  = useState<FileRef[]>([]);
+  const [files, setFiles] = useState<FileEntry[]>([]);
 
   useEffect(() => {
     try {
       const s = localStorage.getItem("client_session") || localStorage.getItem("user") || "{}";
       const p = JSON.parse(s);
-      if (p.email) { setEmail(p.email); setA(x => ({...x, email: p.email})); }
+      if (p.email) { setClientEmail(p.email); setA(x => ({...x, email: p.email})); }
       if (p.name)  setA(x => ({...x, nome: p.name}));
     } catch {}
   }, []);
 
-  // Validate current step
-  const validate = (): boolean => {
+  const addFiles = useCallback((entries: FileEntry[]) => {
+    setFiles(prev => {
+      const cats = new Set(entries.map(e => e.category));
+      const filtered = prev.filter(e => !cats.has(e.category));
+      return [...filtered, ...entries];
+    });
+  }, []);
+
+  const addFilesMulti = useCallback((entries: FileEntry[]) => {
+    setFiles(prev => [...prev, ...entries]);
+  }, []);
+
+  // Validate per-step or all (stepNum=5)
+  const validate = (stepNum: number): boolean => {
     const e: Record<string,string> = {};
-    if (step === 0) {
+    if (stepNum === 0 || stepNum === 5) {
       if (!a.nome.trim())     e.nome     = "Obrigatório";
       if (!a.cpf.trim())      e.cpf      = "Obrigatório";
       if (!a.telefone.trim()) e.telefone = "Obrigatório";
@@ -233,12 +210,12 @@ export default function AreaClienteFormulario() {
       if (!a.cidade.trim())   e.cidade   = "Obrigatório";
       if (!a.estado)          e.estado   = "Obrigatório";
     }
-    if (step === 1) {
+    if (stepNum === 1 || stepNum === 5) {
       if (!r.nome.trim())     e["r.nome"]     = "Obrigatório";
       if (!r.cpf.trim())      e["r.cpf"]      = "Obrigatório";
       if (!r.telefone.trim()) e["r.telefone"] = "Obrigatório";
     }
-    if (step === 2) {
+    if (stepNum === 2 || stepNum === 5) {
       if (!c.valor.trim()) e.valor = "Obrigatório";
       if (!c.fatos.trim()) e.fatos = "Obrigatório";
       if (!c.pedido.trim()) e.pedido = "Obrigatório";
@@ -247,49 +224,70 @@ export default function AreaClienteFormulario() {
     return Object.keys(e).length === 0;
   };
 
-  const next = () => { if (validate()) { setStep(s => s+1); window.scrollTo({top:0,behavior:"smooth"}); } };
-  const back = () => { setErrs({}); setStep(s => s-1); window.scrollTo({top:0,behavior:"smooth"}); };
+  const next = () => {
+    if (validate(step)) {
+      setStep(s => s + 1);
+      window.scrollTo({ top:0, behavior:"smooth" });
+    }
+  };
+  const back = () => {
+    setErrs({});
+    setStep(s => s - 1);
+    window.scrollTo({ top:0, behavior:"smooth" });
+  };
 
-  const submit = async () => {
-    setSub(true); setSubErr(null);
+  const handleSubmit = async () => {
+    if (!validate(5)) return;
+    setSub(true);
     try {
+      const proto = "PCC-" + Date.now().toString(36).toUpperCase().slice(-8);
+      const uploadedFiles: { category: string; name: string; url: string }[] = [];
+      for (const f of files) {
+        const safeName = f.file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const url = await supabaseUpload("pequenas-causas-docs", `${proto}/${f.category}/${safeName}`, f.file);
+        uploadedFiles.push({ category: f.category, name: f.name, url });
+      }
       await supabaseFrom("case_submissions", {
-        client_email: email || a.email,
+        client_email: clientEmail || a.email,
+        protocolo: proto,
         autores: [a],
         reus: [r],
         testemunhas: [],
         detalhes_causa: c,
         provas_links: [],
-        documentos_autor: { identidade: docId[0] ?? null, residencia: docRes[0] ?? null },
-        provas_documentais: provas,
+        documentos: uploadedFiles,
         status: "pendente",
       });
+      setProtocol(proto);
       setDone(true);
-      window.scrollTo({top:0,behavior:"smooth"});
+      window.scrollTo({ top:0, behavior:"smooth" });
     } catch (err: any) {
       setSubErr(err.message || "Erro ao enviar");
-    } finally { setSub(false); }
+    } finally {
+      setSub(false);
+    }
   };
 
-  // ─── Success screen ─────────────────────────────────────────────────────────
+  // ─── Success ──────────────────────────────────────────────────────────────────
   if (done) return (
     <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,#032956,${dark})`, display:"flex", alignItems:"center", justifyContent:"center", padding:"32px 16px" }}>
-      <div style={{ maxWidth:420, width:"100%", textAlign:"center" }}>
+      <div style={{ maxWidth:440, width:"100%", textAlign:"center" }}>
         <div style={{ width:80, height:80, borderRadius:"50%", background:"rgba(254,224,1,0.12)", border:`2px solid rgba(254,224,1,0.4)`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", fontSize:36 }}>✓</div>
-        <h1 style={{ color:"white", fontSize:28, fontWeight:900, margin:"0 0 12px" }}>Caso enviado!</h1>
+        <h1 style={{ color:"white", fontSize:28, fontWeight:900, margin:"0 0 8px" }}>Caso enviado!</h1>
         <p style={{ color:"rgba(180,210,255,0.7)", fontSize:14, lineHeight:1.7, margin:"0 0 24px" }}>
           Nossa equipe irá analisar e entrar em contato pelo e-mail cadastrado em até 2 dias úteis.
         </p>
         <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"16px 20px", textAlign:"left" }}>
-          <RR label="Status"  value={<span style={{ color:gold, fontWeight:700 }}>Aguardando análise</span>} />
-          <RR label="E-mail"  value={email || a.email} />
-          <RR label="Autor"   value={a.nome} />
+          <RR label="Protocolo" value={<span style={{ color:gold, fontWeight:800, letterSpacing:"0.05em" }}>{protocol}</span>} />
+          <RR label="Status"    value={<span style={{ color:"#4ade80" }}>Aguardando análise</span>} />
+          <RR label="E-mail"    value={clientEmail || a.email} />
+          <RR label="Autor"     value={a.nome} />
         </div>
       </div>
     </div>
   );
 
-  // ─── Progress bar ───────────────────────────────────────────────────────────
+  // ─── Form ─────────────────────────────────────────────────────────────────────
   const pct = ((step+1)/STEPS.length)*100;
 
   return (
@@ -303,11 +301,10 @@ export default function AreaClienteFormulario() {
           <p style={{ color:"rgba(180,210,255,0.6)", fontSize:13, margin:0 }}>Preencha os dados para iniciar seu processo</p>
         </div>
 
-        {/* Step indicators */}
+        {/* Steps */}
         <div style={{ display:"flex", alignItems:"center", marginBottom:28 }}>
           {STEPS.map((label, i) => {
-            const isDone   = i < step;
-            const isActive = i === step;
+            const isDone = i < step, isActive = i === step;
             return (
               <React.Fragment key={i}>
                 <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
@@ -317,8 +314,7 @@ export default function AreaClienteFormulario() {
                     background: isDone ? gold : isActive ? "rgba(254,224,1,0.12)" : "rgba(255,255,255,0.04)",
                     color: isDone ? dark : isActive ? gold : "rgba(255,255,255,0.25)",
                     display:"flex", alignItems:"center", justifyContent:"center",
-                    fontSize:isDone?18:13, fontWeight:800,
-                    transition:"all 0.3s",
+                    fontSize: isDone ? 18 : 13, fontWeight:800, transition:"all 0.3s",
                   }}>
                     {isDone ? "✓" : i+1}
                   </div>
@@ -334,12 +330,10 @@ export default function AreaClienteFormulario() {
 
         {/* Card */}
         <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:24, overflow:"hidden", backdropFilter:"blur(12px)" }}>
-          {/* Gold progress bar */}
           <div style={{ height:3, background:`linear-gradient(90deg,${gold},#fbbf24)`, width:`${pct}%`, transition:"width 0.4s ease" }} />
-
           <div style={{ padding:"28px 28px 32px" }}>
 
-            {/* ── Step 0: Autor ───────────────────────────────────── */}
+            {/* ── Step 0: Autor ─────────────────────────────────── */}
             {step === 0 && <>
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Dados do Autor</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Quem está entrando com o processo</p>
@@ -391,7 +385,7 @@ export default function AreaClienteFormulario() {
               </G2>
             </>}
 
-            {/* ── Step 1: Réu ─────────────────────────────────────── */}
+            {/* ── Step 1: Réu ───────────────────────────────────── */}
             {step === 1 && <>
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Dados do Réu</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>A parte contra quem você está processando</p>
@@ -439,7 +433,7 @@ export default function AreaClienteFormulario() {
               </G2>
             </>}
 
-            {/* ── Step 2: Causa ───────────────────────────────────── */}
+            {/* ── Step 2: Causa ─────────────────────────────────── */}
             {step === 2 && <>
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Detalhes da Causa</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Descreva o ocorrido e o que você busca</p>
@@ -449,16 +443,16 @@ export default function AreaClienteFormulario() {
                 </F>
                 <F label="Fatos — o que aconteceu?" req err={errs.fatos}>
                   <TA value={c.fatos} onChange={e=>setC(x=>({...x,fatos:e.target.value}))} rows={8}
-                    placeholder="Descreva detalhadamente os fatos que motivaram a ação. Quanto mais detalhes, melhor..." />
+                    placeholder="Descreva detalhadamente os fatos que motivaram a ação..." />
                 </F>
                 <F label="Pedido — o que você quer que o juiz decida?" req err={errs.pedido}>
                   <TA value={c.pedido} onChange={e=>setC(x=>({...x,pedido:e.target.value}))} rows={5}
-                    placeholder="Ex: Que o réu seja condenado a pagar indenização de R$ X por danos morais..." />
+                    placeholder="Ex: Que o réu seja condenado a pagar indenização de R$ X..." />
                 </F>
               </G1>
             </>}
 
-            {/* ── Step 3: Documentos ──────────────────────────────── */}
+            {/* ── Step 3: Documentos ────────────────────────────── */}
             {step === 3 && <>
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Documentos</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 16px" }}>Envie seus documentos e provas</p>
@@ -466,29 +460,29 @@ export default function AreaClienteFormulario() {
                 <strong style={{ color:gold }}>Dica:</strong> Envie documentos nítidos em PDF, JPG ou PNG. Quanto mais provas, mais forte é o seu caso.
               </div>
               <G1>
-                <UploadField label="CNH, CPF ou RG (documento de identidade)" req bucket="case-documents" folder={email||"anon"} onDone={setDocId} />
-                <UploadField label="Comprovante de Residência" req bucket="case-documents" folder={email||"anon"} onDone={setDocRes} />
-                <UploadField label="Provas (fotos, prints, contratos, notas fiscais...)" bucket="case-provas" folder={email||"anon"} multi onDone={setProvas} />
+                <UploadField label="CNH, CPF ou RG (identidade)" req category="identidade" onAdd={addFiles} />
+                <UploadField label="Comprovante de Residência" req category="residencia" onAdd={addFiles} />
+                <UploadField label="Provas (fotos, prints, contratos, notas fiscais...)" category="prova" multi onAdd={addFilesMulti} />
               </G1>
             </>}
 
-            {/* ── Step 4: Revisão ─────────────────────────────────── */}
+            {/* ── Step 4: Revisão ───────────────────────────────── */}
             {step === 4 && <>
               <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Revisão e Confirmação</h2>
               <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 20px" }}>Confira os dados antes de enviar</p>
               <Block title="Autor">
-                <RR label="Nome"       value={a.nome} />
-                <RR label="CPF/CNPJ"   value={a.cpf} />
-                <RR label="Telefone"   value={a.telefone} />
-                <RR label="E-mail"     value={a.email} />
-                <RR label="Endereço"   value={`${a.endereco}, ${a.numero}${a.complemento?` - ${a.complemento}`:""}, ${a.bairro}, ${a.cidade} - ${a.estado}`} />
+                <RR label="Nome"     value={a.nome} />
+                <RR label="CPF/CNPJ" value={a.cpf} />
+                <RR label="Telefone" value={a.telefone} />
+                <RR label="E-mail"   value={a.email} />
+                <RR label="Endereço" value={`${a.endereco}, ${a.numero}${a.complemento?` - ${a.complemento}`:""}, ${a.bairro}, ${a.cidade} - ${a.estado}`} />
               </Block>
               <Block title="Réu">
-                <RR label="Nome"       value={r.nome} />
-                <RR label="CPF/CNPJ"   value={r.cpf} />
-                <RR label="Telefone"   value={r.telefone} />
-                {r.email   && <RR label="E-mail"     value={r.email} />}
-                {r.cidade  && <RR label="Localização" value={`${r.cidade} - ${r.estado}`} />}
+                <RR label="Nome"     value={r.nome} />
+                <RR label="CPF/CNPJ" value={r.cpf} />
+                <RR label="Telefone" value={r.telefone} />
+                {r.email  && <RR label="E-mail"     value={r.email} />}
+                {r.cidade && <RR label="Localização" value={`${r.cidade} - ${r.estado}`} />}
               </Block>
               <Block title="Causa">
                 <RR label="Valor"  value={`R$ ${c.valor}`} />
@@ -496,9 +490,10 @@ export default function AreaClienteFormulario() {
                 <RR label="Pedido" value={<span style={{ whiteSpace:"pre-wrap" }}>{c.pedido}</span>} />
               </Block>
               <Block title="Documentos">
-                <RR label="Identidade"  value={docId[0]?.name   || "—"} />
-                <RR label="Residência"  value={docRes[0]?.name  || "—"} />
-                <RR label="Provas"      value={provas.length > 0 ? `${provas.length} arquivo(s)` : "—"} />
+                {files.length === 0
+                  ? <RR label="Arquivos" value="Nenhum arquivo selecionado" />
+                  : files.map((f,i) => <RR key={i} label={f.category} value={f.name} />)
+                }
               </Block>
               {submitErr && (
                 <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#fca5a5", marginBottom:12 }}>
@@ -510,7 +505,7 @@ export default function AreaClienteFormulario() {
               </p>
             </>}
 
-            {/* ── Navigation ──────────────────────────────────────── */}
+            {/* Navigation */}
             <div style={{ display:"flex", justifyContent: step===0 ? "flex-end" : "space-between", gap:12, marginTop:28 }}>
               {step > 0 && (
                 <button type="button" onClick={back} style={{
@@ -523,19 +518,18 @@ export default function AreaClienteFormulario() {
               )}
               {step < STEPS.length-1 ? (
                 <button type="button" onClick={next} style={{
-                  display:"flex", alignItems:"center", gap:8, padding:"12px 28px",
-                  borderRadius:12, background:gold, color:dark,
+                  padding:"12px 28px", borderRadius:12, background:gold, color:dark,
                   fontSize:13, fontWeight:900, cursor:"pointer", border:"none",
                   boxShadow:`0 4px 0 0 #b8a000`, fontFamily:"inherit",
-                  transition:"all 0.15s",
                 }}>
                   Próximo →
                 </button>
               ) : (
-                <button type="button" onClick={submit} disabled={submitting} style={{
+                <button type="button" onClick={handleSubmit} disabled={submitting} style={{
                   display:"flex", alignItems:"center", gap:8, padding:"12px 28px",
                   borderRadius:12, background: submitting ? "rgba(254,224,1,0.5)" : gold,
-                  color:dark, fontSize:13, fontWeight:900, cursor: submitting ? "not-allowed" : "pointer",
+                  color:dark, fontSize:13, fontWeight:900,
+                  cursor: submitting ? "not-allowed" : "pointer",
                   border:"none", boxShadow:`0 4px 0 0 #b8a000`, fontFamily:"inherit",
                 }}>
                   {submitting ? "⏳ Enviando..." : "✓ Confirmar Envio"}
