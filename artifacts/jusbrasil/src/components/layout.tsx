@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, ShieldCheck, ArrowRight, MessageCircle, Lock } from "lucide-react";
+import { Menu, X, ShieldCheck, ArrowRight, MessageCircle, Lock, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -149,6 +149,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
               >
                 <MessageCircle className="w-5 h-5 text-[#25D366]" />
                 Suporte WhatsApp
+              </a>
+              <a
+                href="mailto:contato@pequenascausasprocessos.com.br"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium text-white/70 mt-3"
+              >
+                <Mail className="w-5 h-5 text-[#fee001]" />
+                contato@pequenascausasprocessos.com.br
               </a>
               <p className="text-xs text-white/30 mt-4">
                 Segunda a Sexta, das 09h às 18h.
