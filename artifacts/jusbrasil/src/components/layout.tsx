@@ -38,7 +38,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <a href="/#como-funciona" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Como Funciona</a>
               <a href="/#depoimentos" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Depoimentos</a>
               <Link href="/advogado/signin" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Área do Advogado</Link>
-              <Link href="/area-do-cliente" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">FAQ</Link>
+              <a href="/#perguntas-frequentes" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">FAQ</a>
+              <Link href="/termos" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Termos de Uso</Link>
             </nav>
 
             {/* Desktop Actions */}
@@ -83,6 +84,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <a href="/#como-funciona" className="text-xl font-bold text-foreground py-4 border-b border-muted" onClick={() => setMobileMenuOpen(false)}>Como Funciona</a>
               <a href="/#depoimentos" className="text-xl font-bold text-foreground py-4 border-b border-muted" onClick={() => setMobileMenuOpen(false)}>Depoimentos</a>
               <Link href="/advogado/signin" className="text-lg text-foreground/60 py-4 border-b border-muted">Área do Advogado</Link>
+              <a
+                href="/#perguntas-frequentes"
+                className="text-lg text-foreground/60 py-4 border-b border-muted"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                FAQ
+              </a>
+              <Link href="/termos" className="text-lg text-foreground/60 py-4 border-b border-muted" onClick={() => setMobileMenuOpen(false)}>
+                Termos de Uso
+              </Link>
               <Link href="/area-do-cliente" className="text-lg text-foreground/60 py-4 border-b border-muted">Área do Cliente</Link>
               <a
                 href="/#avaliar"

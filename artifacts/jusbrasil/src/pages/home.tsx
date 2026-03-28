@@ -770,8 +770,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* FAQ */}
-      <section className="py-24 bg-background">
+      {/* FAQ — âncora para link "FAQ" no header (Perguntas Frequentes / Fui lesado, e agora?) */}
+      <section id="perguntas-frequentes" className="py-24 bg-background scroll-mt-24">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">Perguntas Frequentes</span>

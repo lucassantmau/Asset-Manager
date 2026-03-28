@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Home from "@/pages/home";
 import LawyerSignup from "@/pages/lawyer/signup";
 import LawyerSignin from "@/pages/lawyer/signin";
+import LawyerArea from "@/pages/lawyer/area";
+import TermsAdvogado from "@/pages/lawyer/terms-advogado";
 import BlogList from "@/pages/blog/index";
 import BlogPost from "@/pages/blog/post";
 import ClientArea from "@/pages/client-area";
@@ -38,6 +40,8 @@ function Router() {
       <Route path="/formulario" component={AreaClienteFormulario} />
       <Route path="/advogado/signup" component={LawyerSignup} />
       <Route path="/advogado/signin" component={LawyerSignin} />
+      <Route path="/advogado/area" component={LawyerArea} />
+      <Route path="/advogado/termos" component={TermsAdvogado} />
       <Route path="/blog" component={BlogList} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/area-do-cliente" component={ClientArea} />
