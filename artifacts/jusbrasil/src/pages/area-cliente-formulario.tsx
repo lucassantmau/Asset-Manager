@@ -471,7 +471,7 @@ export default function AreaClienteFormulario() {
       }
 
       setExistingSubmissionId(String(row.id));
-      const prot = row.protocolo ?? row.protocol;
+      const prot = row.protocolo ?? row.protocol ?? row.pedido_ref;
       setSavedProtocol(prot != null && String(prot).trim() ? String(prot) : null);
       const mapped = rowToFormState(row);
       setForm((prev) => ({ ...prev, ...mapped, autorEmail: email }));
@@ -601,7 +601,8 @@ export default function AreaClienteFormulario() {
       linksDoc.length === 0 ? null : linksAsJsonStrings ? JSON.stringify(linksDoc) : linksDoc;
 
     const base: Record<string, unknown> = {
-      protocolo: proto,
+      // Coluna criada na migration do portal; muitas bases não têm "protocolo" (PGRST204).
+      pedido_ref: proto,
       status: "aguardando_analise",
       autor_nome: form.autorNome,
       autor_cpf: autorIsCnpj ? null : maskCPF(form.autorDocumento),
