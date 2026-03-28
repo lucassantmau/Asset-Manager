@@ -121,7 +121,7 @@ export default function CriarConta() {
       // Se já tem sessão ativa, redireciona direto
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData.session) {
-        navigate("/area-do-cliente");
+        navigate("/formulario");
         return;
       }
 
@@ -133,14 +133,11 @@ export default function CriarConta() {
         return;
       }
 
-      const { data, error: queryError } = await supabase
-        .from("pequenas_causas_submissions")
-        .select("pagamento_confirmado")
-        .eq("autor_email", targetEmail)
-        .eq("pagamento_confirmado", true)
-        .maybeSingle();
+      const { data: paid, error: rpcError } = await supabase.rpc("check_pequenas_causas_payment", {
+        p_email: targetEmail.trim().toLowerCase(),
+      });
 
-      if (queryError || data === null) {
+      if (rpcError || paid !== true) {
         setPaymentValid(false);
       } else {
         setPaymentValid(true);
@@ -186,7 +183,7 @@ export default function CriarConta() {
           if (loginError) {
             setError("Este e-mail já possui conta. Verifique sua senha ou vá para o login.");
           } else {
-            navigate("/area-do-cliente");
+            navigate("/formulario");
           }
         } else {
           setError(signUpError.message);
@@ -197,7 +194,7 @@ export default function CriarConta() {
 
       if (data.session) {
         // Sessão criada imediatamente (confirmação de email desabilitada)
-        navigate("/area-do-cliente");
+        navigate("/formulario");
       } else {
         // Supabase enviou email de confirmação
         setSuccess(true);

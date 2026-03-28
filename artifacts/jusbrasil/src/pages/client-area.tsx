@@ -3,86 +3,106 @@ import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
 import {
   LogOut,
-  CheckCircle2,
-  Circle,
   Upload,
   FileText,
-  AlertCircle,
+  FolderOpen,
   User,
-  Phone,
-  Mail,
-  Scale,
-  DollarSign,
-  UserX,
+  ChevronDown,
+  Plus,
+  Pencil,
   Loader2,
-  X,
 } from "lucide-react";
 
+const OAB_CONSULTA_URL =
+  "https://www.oab.org.br/institucional/servicos/consulta-de-inscricoes";
 
-const PIPELINE_STEPS = [
-  { key: "aguardando_analise", label: "Aguardando Análise" },
-  { key: "em_analise", label: "Em Análise" },
-  { key: "advogado_designado", label: "Advogado Designado" },
-  { key: "processo_aberto", label: "Processo Aberto" },
-  { key: "concluido", label: "Concluído" },
-];
-
-const STATUS_INDEX: Record<string, number> = {
-  aguardando_analise: 0,
-  em_analise: 1,
-  advogado_designado: 2,
-  processo_aberto: 3,
-  concluido: 4,
-};
-
-const CATEGORIES = [
-  { value: "geral", label: "Geral" },
-  { value: "identidade", label: "Identidade" },
-  { value: "residencia", label: "Residência" },
-  { value: "prova", label: "Prova" },
-  { value: "contrato", label: "Contrato" },
-  { value: "nota_fiscal", label: "Nota Fiscal" },
-  { value: "outro", label: "Outro" },
-];
-
-type CaseData = {
+type CaseRow = {
   id: string;
-  autor_nome: string;
-  autor_cpf: string;
-  autor_email: string;
-  autor_telefone: string;
-  tipo_causa: string;
-  valor_estimado: string;
-  reu_nome: string;
-  status: string;
-  protocolo: string;
+  autor_nome: string | null;
+  autor_email: string | null;
+  autor_telefone: string | null;
+  tipo_causa: string | null;
+  valor_estimado: string | null;
+  reu_nome: string | null;
+  status: string | null;
+  protocolo: string | null;
   created_at: string;
-  arquivos_urls: Array<{ category: string; name: string; url: string; uploaded_at: string }>;
+  descricao_fatos?: string | null;
+  pagamento_confirmado?: boolean | null;
+  pedido_ref?: string | null;
+  arquivos_urls?: Array<{ category: string; name: string; url: string; uploaded_at?: string }>;
 };
 
-type UploadingFile = {
-  id: string;
-  name: string;
-  progress: "uploading" | "done" | "error";
-  error?: string;
-};
+function normalizeEmail(e: string) {
+  return e.trim().toLowerCase();
+}
+
+function formatCaseId(id: string) {
+  const hex = id.replace(/-/g, "");
+  if (hex.length >= 24) return hex.slice(0, 24);
+  return hex;
+}
+
+function formatDisplayId(id: string) {
+  const raw = formatCaseId(id);
+  return raw.length >= 6 ? `#${raw.slice(-6).toUpperCase()}` : `#${raw.toUpperCase()}`;
+}
+
+function statusLabel(status: string | null | undefined) {
+  const s = (status || "aguardando_analise").toLowerCase();
+  const map: Record<string, string> = {
+    aguardando_analise: "Aguardando análise",
+    em_analise: "Em análise",
+    advogado_designado: "Advogado designado",
+    processo_aberto: "Processo aberto",
+    concluido: "Concluído",
+  };
+  return map[s] || status || "—";
+}
+
+function formatDateBR(iso: string) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch {
+    return "—";
+  }
+}
 
 export default function ClientArea() {
   const [, navigate] = useLocation();
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [caseData, setCaseData] = useState<CaseData | null>(null);
+  const [userIdShort, setUserIdShort] = useState<string>("");
+  const [rows, setRows] = useState<CaseRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [caseLoading, setCaseLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const [selectedCategory, setSelectedCategory] = useState("geral");
-  const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<CaseData["arquivos_urls"]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const primaryRow = rows[0] ?? null;
+
+  const isIntakeComplete = (r: CaseRow) =>
+    Boolean(String(r.autor_nome ?? "").trim() && String(r.descricao_fatos ?? "").trim());
+
+  const historico = rows.filter(isIntakeComplete);
+  const pendentes = rows.filter((r) => !isIntakeComplete(r));
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("click", onDoc);
+    return () => document.removeEventListener("click", onDoc);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
-
-    const init = async () => {
+    (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/login");
@@ -91,37 +111,31 @@ export default function ClientArea() {
       if (!mounted) return;
       const email = session.user.email ?? null;
       setUserEmail(email);
-      if (email) await loadCase(email);
+      const uid = session.user.id || "";
+      setUserIdShort(uid ? `#${uid.replace(/-/g, "").slice(0, 6).toUpperCase()}` : "");
+      if (email) await loadRows(email);
       setLoading(false);
-    };
-
-    init();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    })();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       if (!session) navigate("/login");
     });
-
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
-  const loadCase = async (email: string) => {
-    setCaseLoading(true);
+  const loadRows = async (email: string) => {
+    setListLoading(true);
+    const em = normalizeEmail(email);
     const { data, error } = await supabase
       .from("pequenas_causas_submissions")
       .select("*")
-      .eq("autor_email", email)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .eq("autor_email", em)
+      .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      setCaseData(data as CaseData);
-      setUploadedFiles(data.arquivos_urls ?? []);
-    }
-    setCaseLoading(false);
+    if (!error && data) setRows(data as CaseRow[]);
+    setListLoading(false);
   };
 
   const handleSignOut = async () => {
@@ -129,289 +143,287 @@ export default function ClientArea() {
     navigate("/login");
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (!files.length || !userEmail || !caseData) return;
+  const handleExtraUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userEmail || !primaryRow) return;
     setUploadError(null);
-
+    setUploading(true);
     const emailKey = userEmail.replace("@", "_at_");
-
-    for (const file of files) {
-      const uid = crypto.randomUUID();
-      const timestamp = Date.now();
-      const safeName = file.name.replace(/\s+/g, "_");
-      const path = `${emailKey}/${selectedCategory}/${timestamp}_${safeName}`;
-
-      setUploadingFiles((prev) => [
-        ...prev,
-        { id: uid, name: file.name, progress: "uploading" },
-      ]);
-
-      const { error: uploadErr } = await supabase.storage
-        .from("case-documents")
-        .upload(path, file, { upsert: false });
-
-      if (uploadErr) {
-        setUploadingFiles((prev) =>
-          prev.map((f) =>
-            f.id === uid ? { ...f, progress: "error", error: uploadErr.message } : f
-          )
-        );
-        continue;
-      }
-
-      const { data: publicData } = supabase.storage
-        .from("case-documents")
-        .getPublicUrl(path);
-
-      const newEntry = {
-        category: selectedCategory,
-        name: file.name,
-        url: publicData.publicUrl,
-        uploaded_at: new Date().toISOString(),
-      };
-
-      const updatedFiles = [...uploadedFiles, newEntry];
-      setUploadedFiles(updatedFiles);
-
-      await supabase
-        .from("pequenas_causas_submissions")
-        .update({ arquivos_urls: updatedFiles })
-        .eq("id", caseData.id);
-
-      setUploadingFiles((prev) =>
-        prev.map((f) => (f.id === uid ? { ...f, progress: "done" } : f))
-      );
+    const safeName = file.name.replace(/\s+/g, "_");
+    const path = `${emailKey}/${selectedCategory}/${Date.now()}_${safeName}`;
+    const { error: uploadErr } = await supabase.storage.from("case-documents").upload(path, file, { upsert: false });
+    if (uploadErr) {
+      setUploadError("Erro ao enviar arquivo.");
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
     }
-
+    const { data: publicData } = supabase.storage.from("case-documents").getPublicUrl(path);
+    const prev = Array.isArray(primaryRow.arquivos_urls) ? primaryRow.arquivos_urls : [];
+    const newEntry = {
+      category: selectedCategory,
+      name: file.name,
+      url: publicData.publicUrl,
+      uploaded_at: new Date().toISOString(),
+    };
+    const updated = [...prev, newEntry];
+    await supabase.from("pequenas_causas_submissions").update({ arquivos_urls: updated }).eq("id", primaryRow.id);
+    await loadRows(userEmail);
+    setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const statusIndex = STATUS_INDEX[caseData?.status ?? "aguardando_analise"] ?? 0;
-
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#032956,#001532)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Loader2 className="w-8 h-8 text-[#fee001] animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-9 h-9 text-[#1e3a8a] animate-spin" />
       </div>
     );
   }
 
+  const cardClass =
+    "bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden";
+
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#032956 0%,#001532 100%)", fontFamily: "Inter,sans-serif" }}>
-      {/* NAVBAR */}
-      <nav style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.08)", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, background: "#fee001", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Scale style={{ width: 18, height: 18, color: "#716300" }} />
-            </div>
-            <span style={{ fontWeight: 800, fontSize: 15, color: "#fff", letterSpacing: "-0.02em" }}>
-              Pequenas Causas Processos
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>{userEmail}</span>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-16">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Meus Casos</h1>
+
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={handleSignOut}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 pl-2 pr-3 py-2 hover:bg-slate-100 transition-colors"
             >
-              <LogOut style={{ width: 14, height: 14 }} />
-              Sair
+              <div className="w-10 h-10 rounded-full bg-[#1e3a8a] flex items-center justify-center text-white">
+                <User className="w-5 h-5" />
+              </div>
+              <div className="text-left hidden sm:block min-w-0">
+                <p className="text-sm font-semibold text-slate-800 truncate max-w-[200px]">{userEmail}</p>
+                <p className="text-xs text-slate-500">ID: {userIdShort}</p>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
             </button>
+            {menuOpen && (
+              <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg py-1 z-50">
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sair
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      </nav>
+      </header>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px 80px" }}>
-        {/* HEADER */}
-        <div style={{ marginBottom: 36 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em", marginBottom: 6 }}>
-            Área do Cliente
-          </h1>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>
-            Acompanhe o status do seu caso e envie documentos adicionais.
-          </p>
-        </div>
-
-        {caseLoading ? (
-          <div style={{ textAlign: "center", padding: "80px 0" }}>
-            <Loader2 className="w-8 h-8 text-[#fee001] animate-spin mx-auto" />
-          </div>
-        ) : !caseData ? (
-          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: 40, textAlign: "center" }}>
-            <AlertCircle style={{ width: 40, height: 40, color: "#fee001", margin: "0 auto 16px" }} />
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 15 }}>
-              Nenhum caso encontrado para este e-mail.
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+        {/* Golpe / OAB */}
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 flex gap-3 items-start">
+          <span className="text-amber-600 text-lg leading-none mt-0.5">⚠️</span>
+          <div className="text-sm text-amber-950 leading-relaxed">
+            <p className="font-semibold text-amber-900">Atenção: Cuidado com golpes!</p>
+            <p className="text-amber-900/90 mt-1">
+              Nunca realize pagamentos a pessoas que se identifiquem como advogados sem{" "}
+              <a href={OAB_CONSULTA_URL} target="_blank" rel="noopener noreferrer" className="text-blue-700 font-semibold underline underline-offset-2">
+                confirmar a identidade na OAB
+              </a>
+              .
             </p>
           </div>
-        ) : (
-          <>
-            {/* PIPELINE */}
-            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "32px 28px", marginBottom: 24 }}>
-              <h2 style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 28 }}>
-                Status do Processo
-              </h2>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 0, overflowX: "auto" }}>
-                {PIPELINE_STEPS.map((step, i) => {
-                  const completed = i <= statusIndex;
-                  const active = i === statusIndex;
-                  return (
-                    <React.Fragment key={step.key}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 100, flex: 1 }}>
-                        <div style={{
-                          width: 40, height: 40, borderRadius: "50%",
-                          background: completed ? "#fee001" : "rgba(255,255,255,0.06)",
-                          border: active ? "2px solid #fee001" : completed ? "none" : "1px solid rgba(255,255,255,0.15)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          boxShadow: active ? "0 0 16px rgba(254,224,1,0.4)" : "none",
-                          transition: "all 0.3s",
-                        }}>
-                          {completed
-                            ? <CheckCircle2 style={{ width: 20, height: 20, color: "#716300" }} />
-                            : <Circle style={{ width: 20, height: 20, color: "rgba(255,255,255,0.2)" }} />}
-                        </div>
-                        <p style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: completed ? "#fee001" : "rgba(255,255,255,0.35)", textAlign: "center", marginTop: 10, lineHeight: 1.3 }}>
-                          {step.label}
-                        </p>
+        </div>
+
+        {/* Histórico */}
+        <section className={cardClass}>
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-slate-900">Histórico de Processos</h2>
+            <button
+              type="button"
+              onClick={() => navigate("/formulario")}
+              className="inline-flex items-center gap-2 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold px-4 py-2.5 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Enviar novo caso
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-[11px] uppercase tracking-wide text-slate-500 border-b border-slate-100">
+                  <th className="text-left font-semibold px-5 py-3">Protocolo</th>
+                  <th className="text-left font-semibold px-3 py-3">Status</th>
+                  <th className="text-left font-semibold px-3 py-3">Data</th>
+                  <th className="text-left font-semibold px-3 py-3">Valor</th>
+                  <th className="text-right font-semibold px-5 py-3">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {listLoading ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-16 text-center text-slate-500">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-700" />
+                    </td>
+                  </tr>
+                ) : historico.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-16 text-center">
+                      <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                      <p className="text-slate-500 font-medium">Nenhum pedido encontrado</p>
+                    </td>
+                  </tr>
+                ) : (
+                  historico.map((r) => (
+                    <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50/80">
+                      <td className="px-5 py-3 font-mono text-xs text-slate-800">{r.protocolo || "—"}</td>
+                      <td className="px-3 py-3 text-slate-700">{statusLabel(r.status)}</td>
+                      <td className="px-3 py-3 text-slate-600">{formatDateBR(r.created_at)}</td>
+                      <td className="px-3 py-3 text-slate-700">
+                        {r.valor_estimado ? `R$ ${r.valor_estimado}` : "—"}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => navigate("/formulario")}
+                          className="text-blue-700 font-semibold text-xs hover:underline"
+                        >
+                          Ver / Editar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Pendentes */}
+        <section className={cardClass}>
+          <div className="px-5 py-4 border-b border-slate-100">
+            <h2 className="text-lg font-bold text-slate-900">Formulários Pendentes</h2>
+            <p className="text-sm text-slate-500 mt-1">Preencha o(s) formulário(s)</p>
+          </div>
+          <div className="p-4 sm:p-5 space-y-3">
+            {!listLoading && rows.length === 0 && (
+              <div className="rounded-lg border border-amber-100 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
+                Nenhum registro encontrado para este e-mail. Confirme se o pagamento foi vinculado ao mesmo e-mail da conta.
+                <button
+                  type="button"
+                  className="block mt-2 text-blue-800 font-semibold underline"
+                  onClick={() => navigate("/formulario")}
+                >
+                  Tentar abrir o formulário
+                </button>
+              </div>
+            )}
+            {pendentes.length === 0 && rows.length > 0 ? (
+              <p className="text-sm text-slate-500 text-center py-8">Nenhum formulário pendente.</p>
+            ) : pendentes.length === 0 ? null : (
+              pendentes.map((r, idx) => {
+                const ref = r.pedido_ref || formatCaseId(r.id);
+                const payHash = ref.length >= 6 ? ref.slice(-6).toLowerCase() : ref;
+                return (
+                  <div
+                    key={r.id}
+                    className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 relative overflow-hidden"
+                  >
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-700 rounded-l-xl" />
+                    <div className="flex items-start gap-3 pl-3">
+                      <div className="w-9 h-9 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center text-sm font-bold shrink-0">
+                        {idx + 1}
                       </div>
-                      {i < PIPELINE_STEPS.length - 1 && (
-                        <div style={{ flex: 1, height: 2, background: i < statusIndex ? "#fee001" : "rgba(255,255,255,0.08)", marginTop: 19, transition: "background 0.3s" }} />
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* CASE INFO GRID */}
-            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "28px", marginBottom: 24 }}>
-              <h2 style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 24 }}>
-                Dados do Caso
-              </h2>
-              {caseData.protocolo && (
-                <div style={{ background: "rgba(254,224,1,0.07)", border: "1px solid rgba(254,224,1,0.2)", borderRadius: 10, padding: "10px 16px", marginBottom: 20, display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 12, color: "#fee001", fontWeight: 700 }}>Protocolo:</span>
-                  <span style={{ fontSize: 13, color: "#fee001", fontWeight: 800, fontFamily: "monospace" }}>{caseData.protocolo}</span>
-                </div>
-              )}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 16 }}>
-                {[
-                  { icon: <User style={{ width: 14, height: 14 }} />, label: "Nome do Autor", value: caseData.autor_nome },
-                  { icon: <FileText style={{ width: 14, height: 14 }} />, label: "CPF", value: caseData.autor_cpf },
-                  { icon: <Mail style={{ width: 14, height: 14 }} />, label: "E-mail", value: caseData.autor_email },
-                  { icon: <Phone style={{ width: 14, height: 14 }} />, label: "Telefone", value: caseData.autor_telefone },
-                  { icon: <Scale style={{ width: 14, height: 14 }} />, label: "Tipo de Causa", value: caseData.tipo_causa },
-                  { icon: <DollarSign style={{ width: 14, height: 14 }} />, label: "Valor Estimado", value: caseData.valor_estimado },
-                  { icon: <UserX style={{ width: 14, height: 14 }} />, label: "Nome do Réu", value: caseData.reu_nome },
-                ].map((item, i) => (
-                  <div key={i} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: "14px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, color: "rgba(255,255,255,0.4)" }}>
-                      {item.icon}
-                      <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{item.label}</span>
+                      <div>
+                        <p className="font-semibold text-slate-900">Pagamento #{payHash}</p>
+                        <p className="text-xs text-slate-500 font-mono mt-0.5">ID: {ref}</p>
+                      </div>
                     </div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: item.value ? "#fff" : "rgba(255,255,255,0.25)" }}>
-                      {item.value || "—"}
-                    </p>
+                    <div className="sm:ml-auto pl-3 sm:pl-0">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/formulario")}
+                        className="inline-flex items-center gap-2 rounded-full bg-[#1e3a8a] hover:bg-[#172554] text-white text-sm font-semibold px-5 py-2.5 w-full sm:w-auto justify-center transition-colors"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Completar Formulário
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })
+            )}
+          </div>
+        </section>
+
+        {/* Upload complementar */}
+        {primaryRow && isIntakeComplete(primaryRow) && (
+          <section className={cardClass}>
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-blue-700" />
+              <h2 className="text-lg font-bold text-slate-900">Enviar documentos complementares</h2>
             </div>
-
-            {/* FILE UPLOAD */}
-            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "28px" }}>
-              <h2 style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
-                Enviar Documentos
-              </h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>
-                Adicione arquivos complementares ao seu processo.
-              </p>
-
-              {uploadError && (
-                <div style={{ background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.25)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#f87171" }}>
-                  {uploadError}
-                </div>
-              )}
-
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-slate-600">Inclua arquivos adicionais em PDF ou imagem.</p>
+              {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
+              <div className="flex flex-wrap gap-3 items-end">
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.45)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                    Categoria
-                  </label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Categoria</label>
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: 14, cursor: "pointer", outline: "none" }}
+                    className="mt-1 block rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                   >
-                    {CATEGORIES.map((c) => (
-                      <option key={c.value} value={c.value} style={{ background: "#032956" }}>
-                        {c.label}
+                    {[
+                      ["geral", "Geral"],
+                      ["identidade", "Identidade"],
+                      ["residencia", "Residência"],
+                      ["prova", "Prova"],
+                      ["contrato", "Contrato"],
+                      ["nota_fiscal", "Nota Fiscal"],
+                      ["outro", "Outro"],
+                    ].map(([v, l]) => (
+                      <option key={v} value={v}>
+                        {l}
                       </option>
                     ))}
                   </select>
                 </div>
-
-                <div style={{ display: "flex", alignItems: "flex-end" }}>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                    id="file-upload"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", background: "#fee001", color: "#716300", borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer" }}
-                  >
-                    <Upload style={{ width: 16, height: 16 }} />
-                    Selecionar Arquivos
-                  </label>
-                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="hidden"
+                  onChange={handleExtraUpload}
+                />
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-700 text-white text-sm font-semibold px-4 py-2 disabled:opacity-50"
+                >
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  Selecionar arquivo
+                </button>
               </div>
-
-              {/* Uploading status */}
-              {uploadingFiles.length > 0 && (
-                <div style={{ marginBottom: 20, display: "flex", flexDirection: "column", gap: 8 }}>
-                  {uploadingFiles.map((f) => (
-                    <div key={f.id} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 14px" }}>
-                      {f.progress === "uploading" && <Loader2 style={{ width: 14, height: 14, color: "#fee001" }} className="animate-spin" />}
-                      {f.progress === "done" && <CheckCircle2 style={{ width: 14, height: 14, color: "#4ade80" }} />}
-                      {f.progress === "error" && <X style={{ width: 14, height: 14, color: "#f87171" }} />}
-                      <span style={{ fontSize: 13, color: f.progress === "error" ? "#f87171" : f.progress === "done" ? "#4ade80" : "rgba(255,255,255,0.7)" }}>
-                        {f.name} {f.progress === "uploading" ? "— enviando…" : f.progress === "done" ? "— enviado!" : `— erro: ${f.error}`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Uploaded files list */}
-              {uploadedFiles.length > 0 && (
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>
-                    Arquivos Enviados ({uploadedFiles.length})
-                  </p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {uploadedFiles.map((f, i) => (
-                      <a
-                        key={i}
-                        href={f.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 14px", textDecoration: "none" }}
-                      >
-                        <FileText style={{ width: 14, height: 14, color: "#fee001", flexShrink: 0 }} />
-                        <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</span>
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "2px 8px", flexShrink: 0 }}>{f.category}</span>
+              {primaryRow.arquivos_urls && primaryRow.arquivos_urls.length > 0 && (
+                <ul className="divide-y divide-slate-100 border border-slate-100 rounded-lg max-h-48 overflow-y-auto">
+                  {primaryRow.arquivos_urls.map((f, i) => (
+                    <li key={i} className="flex items-center gap-2 px-3 py-2 text-sm">
+                      <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                      <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-blue-700 truncate hover:underline">
+                        {f.name}
                       </a>
-                    ))}
-                  </div>
-                </div>
+                      <span className="text-xs text-slate-400 ml-auto shrink-0">{f.category}</span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
-          </>
+          </section>
         )}
       </div>
     </div>

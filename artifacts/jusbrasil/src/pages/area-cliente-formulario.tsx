@@ -1,25 +1,26 @@
-import { useState, useCallback, useRef, useEffect, ChangeEvent, DragEvent } from "react";
-const SUPABASE_URL = "https://ollfczufqavxzgvktvkb.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sbGZjenVmcWF2eHpndmt0dmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA2ODUsImV4cCI6MjA4OTkzNjY4NX0.wVEYoQv8epExO-WSCihojxt3Ti3pQkBjmvdCiV_fiKo";
-async function supabaseFrom(table: string, payload: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "Prefer": "return=minimal" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error(await res.text());
-}
-async function supabaseUpload(bucket: string, path: string, file: File): Promise<string> {
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
-    method: "POST",
-    headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": file.type || "application/octet-stream", "x-upsert": "true" },
-    body: file,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
-}
-
-// ─── Masks ────────────────────────────────────────────────────────────────────
+import React, { useState, useCallback, useRef, useEffect, ChangeEvent, DragEvent } from "react";
+import { useLocation } from "wouter";
+import { supabase } from "@/lib/supabase";
+import {
+  Check,
+  ChevronLeft,
+  FileText,
+  Headphones,
+  Home,
+  Loader2,
+  MapPin,
+  User,
+  Building2,
+  CreditCard,
+  Mail,
+  Phone,
+  Heart,
+  Briefcase,
+  Video,
+  FileStack,
+  Car,
+  CloudUpload,
+} from "lucide-react";
 
 function maskCPF(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 11);
@@ -36,6 +37,11 @@ function maskCNPJ(v: string) {
     .replace(/(\d{2})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3/$4")
     .replace(/(\d{4})(\d)/, "$1-$2");
 }
+function maskCpfCnpj(raw: string) {
+  const d = raw.replace(/\D/g, "");
+  if (d.length <= 11) return maskCPF(raw);
+  return maskCNPJ(raw);
+}
 function maskPhone(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 11);
   if (d.length <= 10) return d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
@@ -50,8 +56,12 @@ function maskCurrency(v: string) {
   const num = parseInt(d, 10) / 100;
   return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-function validCPF(v: string) { return v.replace(/\D/g, "").length === 11; }
-function validCNPJ(v: string) { return v.replace(/\D/g, "").length === 14; }
+function digitsLen(v: string) {
+  return v.replace(/\D/g, "").length;
+}
+function normalizeEmail(e: string) {
+  return e.trim().toLowerCase();
+}
 
 async function fetchViaCEP(cep: string) {
   const c = cep.replace(/\D/g, "");
@@ -61,764 +71,1245 @@ async function fetchViaCEP(cep: string) {
     const d = await res.json();
     if (d.erro) return null;
     return d as { logradouro: string; bairro: string; localidade: string; uf: string };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+type DbSubmission = Record<string, unknown>;
 
 interface FormState {
-  autorNome: string; autorCPF: string; autorRG: string;
-  autorNascimento: string; autorEstadoCivil: string; autorProfissao: string;
-  autorEmail: string; autorTelefone: string; autorWhatsApp: string;
-  autorCEP: string; autorRua: string; autorNumero: string;
-  autorComplemento: string; autorBairro: string; autorCidade: string; autorEstado: string;
-  reuTipo: "PF" | "PJ";
-  reuNome: string; reuCPF: string; reuCNPJ: string;
-  reuCEP: string; reuRua: string; reuNumero: string;
-  reuComplemento: string; reuBairro: string; reuCidade: string; reuEstado: string;
-  reuTelefone: string; reuEmail: string;
-  tipoCausa: string; tipoCausaOutro: string;
-  valorEstimado: string; descricaoFatos: string; pretensao: string;
-  tentouResolver: string; descricaoTentativa: string; registrouProcon: string;
+  autorNome: string;
+  autorDocumento: string;
+  autorRG: string;
+  autorEmail: string;
+  autorTelefone: string;
+  autorEstadoCivil: string;
+  autorProfissao: string;
+  autorCEP: string;
+  autorRua: string;
+  autorNumero: string;
+  autorComplemento: string;
+  autorBairro: string;
+  autorCidade: string;
+  autorEstado: string;
+  reuNome: string;
+  reuDocumento: string;
+  reuRG: string;
+  reuTelefone: string;
+  reuTelefone2: string;
+  reuEmail: string;
+  reuCEP: string;
+  reuRua: string;
+  reuNumero: string;
+  reuComplemento: string;
+  reuBairro: string;
+  reuCidade: string;
+  reuEstado: string;
+  valorEstimado: string;
+  descricaoFatos: string;
+  pretensao: string;
+  incluirTestemunhas: boolean;
+  envolveVeiculo: boolean;
 }
 
 const FORM0: FormState = {
-  autorNome: "", autorCPF: "", autorRG: "",
-  autorNascimento: "", autorEstadoCivil: "", autorProfissao: "",
-  autorEmail: "", autorTelefone: "", autorWhatsApp: "",
-  autorCEP: "", autorRua: "", autorNumero: "",
-  autorComplemento: "", autorBairro: "", autorCidade: "", autorEstado: "",
-  reuTipo: "PJ",
-  reuNome: "", reuCPF: "", reuCNPJ: "",
-  reuCEP: "", reuRua: "", reuNumero: "",
-  reuComplemento: "", reuBairro: "", reuCidade: "", reuEstado: "",
-  reuTelefone: "", reuEmail: "",
-  tipoCausa: "", tipoCausaOutro: "",
-  valorEstimado: "", descricaoFatos: "", pretensao: "",
-  tentouResolver: "", descricaoTentativa: "", registrouProcon: "",
+  autorNome: "",
+  autorDocumento: "",
+  autorRG: "",
+  autorEmail: "",
+  autorTelefone: "",
+  autorEstadoCivil: "",
+  autorProfissao: "",
+  autorCEP: "",
+  autorRua: "",
+  autorNumero: "",
+  autorComplemento: "",
+  autorBairro: "",
+  autorCidade: "",
+  autorEstado: "",
+  reuNome: "",
+  reuDocumento: "",
+  reuRG: "",
+  reuTelefone: "",
+  reuTelefone2: "",
+  reuEmail: "",
+  reuCEP: "",
+  reuRua: "",
+  reuNumero: "",
+  reuComplemento: "",
+  reuBairro: "",
+  reuCidade: "",
+  reuEstado: "",
+  valorEstimado: "",
+  descricaoFatos: "",
+  pretensao: "",
+  incluirTestemunhas: false,
+  envolveVeiculo: false,
 };
 
-interface FileEntry { file: File; category: string; name: string; }
+function parseStoredLinks(v: unknown): string[] {
+  if (v == null) return [""];
+  if (Array.isArray(v)) {
+    const a = v.map(String).filter(Boolean);
+    return a.length ? [...a, ""] : [""];
+  }
+  const s = String(v).trim();
+  if (!s) return [""];
+  try {
+    const j = JSON.parse(s);
+    if (Array.isArray(j)) {
+      const a = j.map(String).filter(Boolean);
+      return a.length ? [...a, ""] : [""];
+    }
+  } catch {
+    /* ignore */
+  }
+  const lines = s.split(/\n/).map((x) => x.trim()).filter(Boolean);
+  return lines.length ? [...lines, ""] : [""];
+}
 
-const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS",
-  "MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+function rowToFormState(row: DbSubmission): FormState {
+  const reuCpf = String(row.reu_cpf ?? "").trim();
+  const reuCnpj = String(row.reu_cnpj ?? "").trim();
+  const reuDocumento = reuCnpj || reuCpf;
+  const autorCpf = String(row.autor_cpf ?? "").trim();
+  const autorCnpj = String(row.autor_cnpj ?? "").trim();
+  const autorDocumento = autorCnpj || autorCpf;
 
-const ESTADO_CIVIL = ["Solteiro(a)","Casado(a)","Divorciado(a)","Viúvo(a)","União Estável","Separado(a)"];
+  return {
+    autorNome: String(row.autor_nome ?? ""),
+    autorDocumento,
+    autorRG: String(row.autor_rg ?? ""),
+    autorEmail: String(row.autor_email ?? ""),
+    autorTelefone: String(row.autor_telefone ?? ""),
+    autorEstadoCivil: String(row.autor_estado_civil ?? ""),
+    autorProfissao: String(row.autor_profissao ?? ""),
+    autorCEP: String(row.autor_cep ?? ""),
+    autorRua: String(row.autor_rua ?? ""),
+    autorNumero: String(row.autor_numero ?? ""),
+    autorComplemento: String(row.autor_complemento ?? ""),
+    autorBairro: String(row.autor_bairro ?? ""),
+    autorCidade: String(row.autor_cidade ?? ""),
+    autorEstado: String(row.autor_estado_uf ?? ""),
+    reuNome: String(row.reu_nome ?? ""),
+    reuDocumento,
+    reuRG: String(row.reu_rg ?? ""),
+    reuTelefone: String(row.reu_telefone ?? ""),
+    reuTelefone2: String(row.reu_telefone_2 ?? ""),
+    reuEmail: String(row.reu_email ?? ""),
+    reuCEP: String(row.reu_cep ?? ""),
+    reuRua: String(row.reu_rua ?? ""),
+    reuNumero: String(row.reu_numero ?? ""),
+    reuComplemento: String(row.reu_complemento ?? ""),
+    reuBairro: String(row.reu_bairro ?? ""),
+    reuCidade: String(row.reu_cidade ?? ""),
+    reuEstado: String(row.reu_estado_uf ?? ""),
+    valorEstimado: String(row.valor_estimado ?? ""),
+    descricaoFatos: String(row.descricao_fatos ?? ""),
+    pretensao: String(row.pretensao ?? ""),
+    incluirTestemunhas: Boolean(row.incluir_testemunhas) || String(row.incluir_testemunhas) === "sim",
+    envolveVeiculo:
+      Boolean(row.envolve_veiculo) ||
+      String(row.envolve_veiculo) === "sim" ||
+      (Array.isArray(row.arquivos_urls) &&
+        (row.arquivos_urls as { category?: string }[]).some((a) => a.category === "documento_veiculo")),
+  };
+}
 
-const TIPOS_CAUSA = [
-  "Consumidor (compra/serviço)", "Cobrança indevida", "Banco / financeira",
-  "Plano de saúde", "Seguro", "Negativa de crédito", "Telefonia / internet",
-  "Energia elétrica / água", "Locação de imóvel", "Condomínio",
-  "Acidente de trânsito", "Danos materiais", "Danos morais",
-  "Relação de trabalho (informal)", "Outros serviços", "Outro",
+function readLinkFields(row: DbSubmission): { video: string[]; doc: string[] } {
+  return {
+    video: parseStoredLinks(row.links_midia ?? row.links_video_audio ?? row.prova_midia_links),
+    doc: parseStoredLinks(row.links_documentais ?? row.links_documentais_proc ?? row.prova_doc_links),
+  };
+}
+
+interface FileEntry {
+  file: File;
+  category: string;
+  name: string;
+}
+
+const ESTADOS = [
+  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
+  "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
 ];
 
-const STEPS = ["Autor","Réu","Causa","Documentos","Revisão"] as const;
+const ESTADO_CIVIL = ["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viúvo(a)", "União Estável", "Separado(a)"];
 
-// ─── UI primitives ────────────────────────────────────────────────────────────
+const MULTI_FILE_CATEGORIES = new Set(["provas_documentais", "contrato_nota", "prints", "fotos", "outros"]);
 
-const gold = "#fee001";
-const dark = "#001532";
+type StoredAttachment = { category: string; name: string; url: string; uploaded_at?: string };
 
-function F({ label, req, err, hint, children }: { label: string; req?: boolean; err?: string; hint?: string; children: React.ReactNode }) {
+function mergeAttachments(
+  existing: StoredAttachment[],
+  uploaded: { category: string; name: string; url: string }[],
+): StoredAttachment[] {
+  let out = [...existing];
+  const now = new Date().toISOString();
+  for (const u of uploaded) {
+    if (MULTI_FILE_CATEGORIES.has(u.category)) {
+      out.push({ ...u, uploaded_at: now });
+    } else {
+      out = out.filter((x) => x.category !== u.category);
+      out.push({ ...u, uploaded_at: now });
+    }
+  }
+  return out;
+}
+
+const MAX_FILE_MB = 5;
+
+function LightField({
+  label,
+  req,
+  err,
+  hint,
+  icon,
+  children,
+}: {
+  label: string;
+  req?: boolean;
+  err?: string;
+  hint?: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-      <label style={{ fontSize:11, fontWeight:700, color:"rgba(200,220,255,0.75)", textTransform:"uppercase", letterSpacing:"0.05em" }}>
-        {label}{req && <span style={{ color:"#f87171", marginLeft:2 }}>*</span>}
+    <div className="space-y-1.5" data-field-error={err ? "true" : undefined}>
+      <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
+        {icon && <span className="text-rose-800/80 shrink-0">{icon}</span>}
+        <span>
+          {label}
+          {req && <span className="text-red-600"> *</span>}
+        </span>
       </label>
       {children}
-      {hint && !err && <span style={{ fontSize:11, color:"rgba(255,255,255,0.3)" }}>{hint}</span>}
-      {err && <span style={{ fontSize:11, color:"#f87171" }}>{err}</span>}
+      {hint && !err && <p className="text-xs text-slate-500">{hint}</p>}
+      {err && <p className="text-xs text-red-600">{err}</p>}
     </div>
   );
 }
 
-const inp: React.CSSProperties = {
-  height:44, borderRadius:12, border:"1.5px solid rgba(255,255,255,0.1)",
-  background:"rgba(255,255,255,0.06)", padding:"0 16px", fontSize:14,
-  color:"white", outline:"none", width:"100%", boxSizing:"border-box", fontFamily:"inherit",
-};
-const Inp = (p: React.InputHTMLAttributes<HTMLInputElement>) => (
-  <input {...p} style={{ ...inp, ...p.style }}
-    onFocus={e => { e.currentTarget.style.borderColor="rgba(254,224,1,0.5)"; e.currentTarget.style.background="rgba(255,255,255,0.1)"; }}
-    onBlur={e  => { e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"; e.currentTarget.style.background="rgba(255,255,255,0.06)"; if (p.onBlur) p.onBlur(e); }}
-  />
-);
-const Sel = ({ children, ...p }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) => (
-  <select {...p} style={{ ...inp, cursor:"pointer" }}>{children}</select>
-);
-const TA = (p: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-  <textarea {...p} style={{ ...inp, height:"auto", minHeight:120, padding:"12px 16px", resize:"vertical", lineHeight:1.6, ...p.style }}
-    onFocus={e => { e.currentTarget.style.borderColor="rgba(254,224,1,0.5)"; }}
-    onBlur={e  => { e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"; }}
-  />
-);
-
-function Toggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <div style={{ display:"flex", gap:8 }}>
-      {["sim","não"].map(opt => (
-        <button key={opt} type="button" onClick={() => onChange(opt)} style={{
-          flex:1, height:44, borderRadius:12, border:`1.5px solid ${value===opt ? gold : "rgba(255,255,255,0.1)"}`,
-          background: value===opt ? "rgba(254,224,1,0.12)" : "rgba(255,255,255,0.04)",
-          color: value===opt ? gold : "rgba(255,255,255,0.4)", fontSize:14, fontWeight:700,
-          cursor:"pointer", fontFamily:"inherit", textTransform:"capitalize", transition:"all 0.2s",
-        }}>{opt.charAt(0).toUpperCase()+opt.slice(1)}</button>
-      ))}
-    </div>
-  );
-}
-
-// ─── Upload field ─────────────────────────────────────────────────────────────
-
-function UploadField({ label, req, category, multi, onAdd }: {
-  label: string; req?: boolean; category: string; multi?: boolean;
+function LightDropzone({
+  label,
+  req,
+  err,
+  hint,
+  sub,
+  icon,
+  category,
+  multi,
+  onAdd,
+  compactIcon,
+}: {
+  label: string;
+  req?: boolean;
+  err?: string;
+  hint: string;
+  sub?: string;
+  icon?: React.ReactNode;
+  category: string;
+  multi?: boolean;
   onAdd: (entries: FileEntry[]) => void;
+  compactIcon?: React.ReactNode;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [names, setNames] = useState<string[]>([]);
   const [drag, setDrag] = useState(false);
 
-  const handle = useCallback((fileList: File[]) => {
-    if (!fileList.length) return;
-    const MAX = 10 * 1024 * 1024;
-    const valid = fileList.filter(f => {
-      if (f.size > MAX) { alert(`"${f.name}" excede 10 MB e foi ignorado.`); return false; }
-      return true;
-    });
-    if (!valid.length) return;
-    const entries: FileEntry[] = valid.map(f => ({ file: f, category, name: f.name }));
-    setNames(prev => multi ? [...prev, ...valid.map(f => f.name)] : valid.map(f => f.name));
-    onAdd(entries);
-    if (ref.current) ref.current.value = "";
-  }, [category, multi, onAdd]);
-
-  const onChange = (e: ChangeEvent<HTMLInputElement>) => handle(Array.from(e.target.files || []));
-  const onDrop   = (e: DragEvent<HTMLDivElement>) => { e.preventDefault(); setDrag(false); handle(Array.from(e.dataTransfer.files)); };
-  const hasFiles = names.length > 0;
+  const handle = useCallback(
+    (fileList: File[]) => {
+      if (!fileList.length) return;
+      const maxB = MAX_FILE_MB * 1024 * 1024;
+      const valid = fileList.filter((f) => {
+        if (f.size > maxB) {
+          alert(`"${f.name}" excede ${MAX_FILE_MB} MB.`);
+          return false;
+        }
+        return true;
+      });
+      if (!valid.length) return;
+      const entries: FileEntry[] = valid.map((f) => ({ file: f, category, name: f.name }));
+      setNames((prev) => (multi ? [...prev, ...valid.map((f) => f.name)] : valid.map((f) => f.name)));
+      onAdd(entries);
+      if (ref.current) ref.current.value = "";
+    },
+    [category, multi, onAdd],
+  );
 
   return (
-    <F label={label} req={req}>
+    <div className="space-y-1.5">
+      <label className="flex items-start gap-2 text-sm font-medium text-slate-800">
+        {compactIcon && <span className="text-blue-700 shrink-0 mt-0.5">{compactIcon}</span>}
+        <span>
+          {label}
+          {req && <span className="text-red-600"> *</span>}
+        </span>
+      </label>
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => ref.current?.click()}
-        onDragOver={e => { e.preventDefault(); setDrag(true); }}
-        onDragLeave={() => setDrag(false)}
-        onDrop={onDrop}
-        style={{
-          display:"flex", alignItems:"center", gap:10, padding:"12px 16px",
-          borderRadius:12, border:`2px dashed ${drag ? gold : hasFiles ? "rgba(254,224,1,0.4)" : "rgba(255,255,255,0.12)"}`,
-          background: drag ? "rgba(254,224,1,0.06)" : hasFiles ? "rgba(254,224,1,0.04)" : "rgba(255,255,255,0.03)",
-          cursor:"pointer", fontSize:13, color: hasFiles ? gold : "rgba(255,255,255,0.4)", transition:"all 0.2s",
+        onKeyDown={(e) => e.key === "Enter" && ref.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDrag(true);
         }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e: DragEvent<HTMLDivElement>) => {
+          e.preventDefault();
+          setDrag(false);
+          handle(Array.from(e.dataTransfer.files));
+        }}
+        className={`rounded-xl border-2 border-dashed px-6 py-10 text-center cursor-pointer transition-colors ${
+          drag ? "border-emerald-500 bg-emerald-50/50" : "border-slate-300 bg-slate-50/80 hover:border-slate-400"
+        }`}
       >
-        {hasFiles && !multi ? `✓ ${names[0]}` : `📎 ${multi ? "Selecionar arquivos" : "Selecionar arquivo"}`}
+        <div className="flex justify-center mb-3 text-emerald-600">{icon || <CloudUpload className="w-10 h-10" />}</div>
+        <p className="text-slate-700 font-medium">{hint}</p>
+        {sub && <p className="text-xs text-slate-500 mt-2">{sub}</p>}
       </div>
-      {multi && names.map((n, i) => (
-        <div key={i} style={{ fontSize:12, color:gold, background:"rgba(254,224,1,0.06)", padding:"5px 12px", borderRadius:8, marginTop:4 }}>✓ {n}</div>
-      ))}
-      <input ref={ref} type="file" multiple={multi} accept="image/*,.pdf,.webp" style={{ display:"none" }} onChange={onChange} />
-    </F>
-  );
-}
-
-// ─── Review helpers ───────────────────────────────────────────────────────────
-
-function RR({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div style={{ display:"flex", gap:12, padding:"6px 0", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-      <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)", fontWeight:600, minWidth:100, flexShrink:0, paddingTop:2 }}>{label}</span>
-      <span style={{ fontSize:13, color:"rgba(255,255,255,0.8)", lineHeight:1.5 }}>{value || "—"}</span>
+      {multi &&
+        names.map((n, i) => (
+          <div key={i} className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-1.5 flex items-center gap-2">
+            <Check className="w-3.5 h-3.5" /> {n}
+          </div>
+        ))}
+      {!multi && names.length === 1 && (
+        <p className="text-xs text-emerald-700 flex items-center gap-1">
+          <Check className="w-3.5 h-3.5" /> {names[0]}
+        </p>
+      )}
+      <input
+        ref={ref}
+        type="file"
+        multiple={multi}
+        accept=".pdf,.jpg,.jpeg,.png,image/*"
+        className="hidden"
+        onChange={(e: ChangeEvent<HTMLInputElement>) => handle(Array.from(e.target.files || []))}
+      />
+      {err && <p className="text-xs text-red-600">{err}</p>}
     </div>
   );
 }
-function Block({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, overflow:"hidden", marginBottom:12 }}>
-      <div style={{ background:"rgba(254,224,1,0.07)", borderBottom:"1px solid rgba(255,255,255,0.06)", padding:"8px 16px" }}>
-        <span style={{ fontSize:10, fontWeight:800, color:gold, textTransform:"uppercase", letterSpacing:"0.08em" }}>{title}</span>
-      </div>
-      <div style={{ padding:"4px 16px 12px" }}>{children}</div>
-    </div>
-  );
-}
-
-const G2 = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>{children}</div>
-);
-const G1 = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:16 }}>{children}</div>
-);
-const Full = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ gridColumn:"1 / -1" }}>{children}</div>
-);
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
-
-import React from "react";
 
 export default function AreaClienteFormulario() {
-  const [step, setStep]             = useState(0);
-  const [errors, setErrors]         = useState<Record<string,string>>({});
+  const [, navigate] = useLocation();
+  const [authChecking, setAuthChecking] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted]   = useState(false);
-  const [protocol, setProtocol]     = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [protocol, setProtocol] = useState("");
   const [clientEmail, setClientEmail] = useState("");
-  const [form, setForm]             = useState<FormState>(FORM0);
-  const [files, setFiles]           = useState<FileEntry[]>([]);
-  const [aceiteTermos, setAceiteTermos]   = useState(false);
-  const [aceiteDados, setAceiteDados]     = useState(false);
+  const [form, setForm] = useState<FormState>(FORM0);
+  const [files, setFiles] = useState<FileEntry[]>([]);
+  const [existingSubmissionId, setExistingSubmissionId] = useState<string | null>(null);
+  const [existingArquivos, setExistingArquivos] = useState<StoredAttachment[]>([]);
+  const [savedProtocol, setSavedProtocol] = useState<string | null>(null);
+  const [videoLinks, setVideoLinks] = useState<string[]>([""]);
+  const [docProvasLinks, setDocProvasLinks] = useState<string[]>([""]);
+  const [aceiteTermos, setAceiteTermos] = useState(false);
+  const [aceiteDados, setAceiteDados] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const sf = (field: keyof FormState) => (value: string) =>
-    setForm(x => ({ ...x, [field]: value }));
+  const sf = (field: keyof FormState) => (value: string | boolean) =>
+    setForm((x) => ({ ...x, [field]: value as never }));
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem("client_session") || localStorage.getItem("user") || "{}";
-      const p = JSON.parse(s);
-      if (p.email) { setClientEmail(p.email); setForm(x => ({ ...x, autorEmail: p.email })); }
-      if (p.name)  setForm(x => ({ ...x, autorNome: p.name }));
-    } catch {}
-  }, []);
+    let cancelled = false;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.email) {
+        navigate("/login");
+        return;
+      }
+      const email = normalizeEmail(session.user.email);
+      setClientEmail(email);
+
+      const { data: row, error } = await supabase
+        .from("pequenas_causas_submissions")
+        .select("*")
+        .eq("autor_email", email)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (error || !row) {
+        setAuthChecking(false);
+        navigate("/login");
+        return;
+      }
+
+      setExistingSubmissionId(String(row.id));
+      const prot = row.protocolo ?? row.protocol;
+      setSavedProtocol(prot != null && String(prot).trim() ? String(prot) : null);
+      const mapped = rowToFormState(row);
+      setForm((prev) => ({ ...prev, ...mapped, autorEmail: email }));
+      const urls = row.arquivos_urls;
+      setExistingArquivos(Array.isArray(urls) ? (urls as StoredAttachment[]) : []);
+      const { video, doc } = readLinkFields(row as DbSubmission);
+      setVideoLinks(video);
+      setDocProvasLinks(doc);
+      setAuthChecking(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const addFiles = useCallback((entries: FileEntry[]) => {
-    setFiles(prev => {
-      const cats = new Set(entries.map(e => e.category));
-      return [...prev.filter(e => !cats.has(e.category)), ...entries];
+    setFiles((prev) => {
+      const cats = new Set(entries.map((e) => e.category));
+      return [...prev.filter((e) => !cats.has(e.category)), ...entries];
     });
   }, []);
 
   const addFilesMulti = useCallback((entries: FileEntry[]) => {
-    setFiles(prev => [...prev, ...entries]);
+    setFiles((prev) => [...prev, ...entries]);
   }, []);
-
-  // ─── ViaCEP ─────────────────────────────────────────────────────────────────
 
   const handleAutorCEPBlur = async () => {
     const data = await fetchViaCEP(form.autorCEP);
-    if (data) setForm(x => ({ ...x, autorRua: data.logradouro, autorBairro: data.bairro, autorCidade: data.localidade, autorEstado: data.uf }));
+    if (data)
+      setForm((x) => ({
+        ...x,
+        autorRua: data.logradouro,
+        autorBairro: data.bairro,
+        autorCidade: data.localidade,
+        autorEstado: data.uf,
+      }));
   };
+
   const handleReuCEPBlur = async () => {
     const data = await fetchViaCEP(form.reuCEP);
-    if (data) setForm(x => ({ ...x, reuRua: data.logradouro, reuBairro: data.bairro, reuCidade: data.localidade, reuEstado: data.uf }));
+    if (data)
+      setForm((x) => ({
+        ...x,
+        reuRua: data.logradouro,
+        reuBairro: data.bairro,
+        reuCidade: data.localidade,
+        reuEstado: data.uf,
+      }));
   };
 
-  // ─── Validate ────────────────────────────────────────────────────────────────
+  const validateForm = (): boolean => {
+    const e: Record<string, string> = {};
+    if (!form.autorNome.trim()) e.autorNome = "Obrigatório";
+    const ad = digitsLen(form.autorDocumento);
+    if (!form.autorDocumento.trim()) e.autorDocumento = "Obrigatório";
+    else if (ad !== 11 && ad !== 14) e.autorDocumento = "Informe CPF (11 dígitos) ou CNPJ (14 dígitos)";
+    if (!form.autorRG.trim()) e.autorRG = "Obrigatório";
+    if (!form.autorEmail.trim()) e.autorEmail = "Obrigatório";
+    if (!form.autorTelefone.trim()) e.autorTelefone = "Obrigatório";
+    if (!form.autorEstadoCivil) e.autorEstadoCivil = "Selecione";
+    if (!form.autorProfissao.trim()) e.autorProfissao = "Obrigatório";
+    if (!form.autorCEP.trim()) e.autorCEP = "Obrigatório";
+    if (!form.autorRua.trim()) e.autorRua = "Obrigatório";
+    if (!form.autorNumero.trim()) e.autorNumero = "Obrigatório";
+    if (!form.autorBairro.trim()) e.autorBairro = "Obrigatório";
+    if (!form.autorCidade.trim()) e.autorCidade = "Obrigatório";
+    if (!form.autorEstado) e.autorEstado = "Obrigatório";
 
-  const validate = (stepNum: number): boolean => {
-    const e: Record<string,string> = {};
-    if (stepNum === 0 || stepNum === 5) {
-      if (!form.autorNome.trim())     e.autorNome     = "Obrigatório";
-      if (!form.autorCPF.trim())      e.autorCPF      = "Obrigatório";
-      else if (!validCPF(form.autorCPF)) e.autorCPF  = "CPF inválido";
-      if (!form.autorEmail.trim())    e.autorEmail    = "Obrigatório";
-      if (!form.autorTelefone.trim()) e.autorTelefone = "Obrigatório";
-      if (!form.autorCEP.trim())      e.autorCEP      = "Obrigatório";
-      if (!form.autorRua.trim())      e.autorRua      = "Obrigatório";
-      if (!form.autorNumero.trim())   e.autorNumero   = "Obrigatório";
-      if (!form.autorBairro.trim())   e.autorBairro   = "Obrigatório";
-      if (!form.autorCidade.trim())   e.autorCidade   = "Obrigatório";
-      if (!form.autorEstado)          e.autorEstado   = "Obrigatório";
+    if (!form.reuNome.trim()) e.reuNome = "Obrigatório";
+    const rd = digitsLen(form.reuDocumento);
+    if (!form.reuDocumento.trim()) e.reuDocumento = "Obrigatório";
+    else if (rd !== 11 && rd !== 14) e.reuDocumento = "CPF ou CNPJ inválido";
+    if (!form.reuTelefone.trim()) e.reuTelefone = "Obrigatório";
+    if (!form.reuCEP.trim()) e.reuCEP = "Obrigatório";
+
+    if (!form.valorEstimado.trim()) e.valorEstimado = "Obrigatório";
+    if (!form.descricaoFatos.trim()) e.descricaoFatos = "Obrigatório";
+    else if (form.descricaoFatos.trim().length < 50) e.descricaoFatos = "Descreva os fatos com mais detalhes (mín. 50 caracteres)";
+    if (!form.pretensao.trim()) e.pretensao = "Obrigatório";
+
+    const hasIdent =
+      files.some((f) => f.category === "identidade") || existingArquivos.some((a) => a.category === "identidade");
+    const hasRes =
+      files.some((f) => f.category === "residencia") || existingArquivos.some((a) => a.category === "residencia");
+    if (!hasIdent) e.identidade = "Envie o documento (CNH / CPF / RG)";
+    if (!hasRes) e.residencia = "Envie o comprovante de residência";
+
+    const hasDocLinks = docProvasLinks.some((s) => s.trim());
+    const hasGeral =
+      hasDocLinks ||
+      files.some((f) => f.category === "provas_documentais") ||
+      existingArquivos.some((a) => a.category === "provas_documentais");
+    if (!hasGeral) e.provas_documentais = "Envie arquivos ou informe ao menos um link em provas documentais";
+
+    if (form.envolveVeiculo) {
+      const hasV =
+        files.some((f) => f.category === "documento_veiculo") ||
+        existingArquivos.some((a) => a.category === "documento_veiculo");
+      if (!hasV) e.documento_veiculo = "Envie CRV, CRLV ou fotos do veículo";
     }
-    if (stepNum === 1 || stepNum === 5) {
-      if (!form.reuNome.trim()) e.reuNome = "Obrigatório";
-      if (form.reuTipo === "PF") {
-        if (!form.reuCPF.trim())      e.reuCPF  = "Obrigatório";
-        else if (!validCPF(form.reuCPF)) e.reuCPF = "CPF inválido";
-      } else {
-        if (!form.reuCNPJ.trim())     e.reuCNPJ = "Obrigatório";
-        else if (!validCNPJ(form.reuCNPJ)) e.reuCNPJ = "CNPJ inválido";
-      }
-    }
-    if (stepNum === 2 || stepNum === 5) {
-      if (!form.tipoCausa)             e.tipoCausa      = "Selecione o tipo de causa";
-      if (!form.valorEstimado.trim())  e.valorEstimado  = "Obrigatório";
-      if (!form.descricaoFatos.trim()) e.descricaoFatos = "Obrigatório";
-      else if (form.descricaoFatos.trim().length < 100) e.descricaoFatos = "Mínimo 100 caracteres";
-      if (!form.pretensao.trim())      e.pretensao      = "Obrigatório";
-      if (!form.tentouResolver)        e.tentouResolver = "Selecione uma opção";
-      if (!form.registrouProcon)       e.registrouProcon = "Selecione uma opção";
-    }
-    if (stepNum === 4 || stepNum === 5) {
-      if (!aceiteTermos) e.aceiteTermos = "Aceite os termos para continuar";
-      if (!aceiteDados)  e.aceiteDados  = "Confirme a veracidade dos dados";
-    }
+
+    if (!aceiteTermos) e.aceiteTermos = "Aceite os termos";
+    if (!aceiteDados) e.aceiteDados = "Confirme a veracidade";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const next = () => {
-    if (validate(step)) {
-      setStep(s => s + 1);
-      window.scrollTo({ top:0, behavior:"smooth" });
-    }
-  };
-  const back = () => {
-    setErrors({});
-    setStep(s => s - 1);
-    window.scrollTo({ top:0, behavior:"smooth" });
+  const buildPayload = (
+    arquivos_urls: StoredAttachment[],
+    proto: string,
+    linksMidia: string[],
+    linksDoc: string[],
+  ) => {
+    const ad = form.autorDocumento.replace(/\D/g, "");
+    const autorIsCnpj = ad.length > 11;
+    const rd = form.reuDocumento.replace(/\D/g, "");
+    const reuIsPj = rd.length > 11;
+
+    const base: Record<string, unknown> = {
+      protocolo: proto,
+      status: "aguardando_analise",
+      autor_nome: form.autorNome,
+      autor_cpf: autorIsCnpj ? null : maskCPF(form.autorDocumento),
+      autor_cnpj: autorIsCnpj ? maskCNPJ(form.autorDocumento) : null,
+      autor_rg: form.autorRG,
+      autor_nascimento: null,
+      autor_estado_civil: form.autorEstadoCivil || null,
+      autor_profissao: form.autorProfissao || null,
+      autor_email: normalizeEmail(form.autorEmail),
+      autor_telefone: form.autorTelefone,
+      autor_whatsapp: null,
+      autor_cep: form.autorCEP,
+      autor_rua: form.autorRua,
+      autor_numero: form.autorNumero,
+      autor_complemento: form.autorComplemento || null,
+      autor_bairro: form.autorBairro,
+      autor_cidade: form.autorCidade,
+      autor_estado_uf: form.autorEstado,
+      reu_tipo: reuIsPj ? "PJ" : "PF",
+      reu_nome: form.reuNome,
+      reu_cpf: reuIsPj ? null : maskCPF(form.reuDocumento),
+      reu_cnpj: reuIsPj ? maskCNPJ(form.reuDocumento) : null,
+      reu_rg: form.reuRG || null,
+      reu_cep: form.reuCEP,
+      reu_rua: form.reuRua || null,
+      reu_numero: form.reuNumero || null,
+      reu_complemento: form.reuComplemento || null,
+      reu_bairro: form.reuBairro || null,
+      reu_cidade: form.reuCidade || null,
+      reu_estado_uf: form.reuEstado || null,
+      reu_telefone: form.reuTelefone,
+      reu_telefone_2: form.reuTelefone2 || null,
+      reu_email: form.reuEmail || null,
+      tipo_causa: "Outros serviços",
+      tipo_causa_outro: null,
+      valor_estimado: form.valorEstimado,
+      descricao_fatos: form.descricaoFatos,
+      pretensao: form.pretensao,
+      tentou_resolver: "não",
+      descricao_tentativa: null,
+      registrou_procon: "não",
+      arquivos_urls,
+      incluir_testemunhas: form.incluirTestemunhas,
+      envolve_veiculo: form.envolveVeiculo,
+      links_midia: linksMidia.length ? JSON.stringify(linksMidia) : null,
+      links_documentais: linksDoc.length ? JSON.stringify(linksDoc) : null,
+    };
+    return base;
   };
 
-  const handleSubmit = async () => {
-    if (!validate(5)) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      const el = document.querySelector<HTMLElement>("[data-field-error='true']");
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (!existingSubmissionId) {
+      setErrors({ submit: "Sessão inválida." });
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const proto = "PCC-" + Date.now().toString(36).toUpperCase().slice(-8);
-      const uploadedFiles: { category: string; name: string; url: string }[] = [];
+      const proto =
+        (savedProtocol && savedProtocol.trim()) || "PCC-" + Date.now().toString(36).toUpperCase().slice(-8);
+
+      const newPieces: { category: string; name: string; url: string }[] = [];
       for (const f of files) {
         const safeName = f.file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const url = await supabaseUpload("pequenas-causas-docs", `${proto}/${f.category}/${safeName}`, f.file);
-        uploadedFiles.push({ category: f.category, name: f.file.name, url });
+        const path = `${proto}/${f.category}/${Date.now()}_${safeName}`;
+        const { error: upErr } = await supabase.storage
+          .from("pequenas-causas-docs")
+          .upload(path, f.file, { upsert: true, contentType: f.file.type || undefined });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("pequenas-causas-docs").getPublicUrl(path);
+        newPieces.push({ category: f.category, name: f.file.name, url: pub.publicUrl });
       }
-      await supabaseFrom("pequenas_causas_submissions", {
-        protocol: proto, status: "aguardando_analise",
-        autor_nome: form.autorNome, autor_cpf: form.autorCPF, autor_rg: form.autorRG,
-        autor_nascimento: form.autorNascimento, autor_estado_civil: form.autorEstadoCivil,
-        autor_profissao: form.autorProfissao, autor_email: form.autorEmail,
-        autor_telefone: form.autorTelefone, autor_whatsapp: form.autorWhatsApp,
-        autor_cep: form.autorCEP, autor_rua: form.autorRua, autor_numero: form.autorNumero,
-        autor_complemento: form.autorComplemento, autor_bairro: form.autorBairro,
-        autor_cidade: form.autorCidade, autor_estado_uf: form.autorEstado,
-        reu_tipo: form.reuTipo, reu_nome: form.reuNome, reu_cpf: form.reuCPF, reu_cnpj: form.reuCNPJ,
-        reu_cep: form.reuCEP, reu_rua: form.reuRua, reu_numero: form.reuNumero,
-        reu_complemento: form.reuComplemento, reu_bairro: form.reuBairro,
-        reu_cidade: form.reuCidade, reu_estado_uf: form.reuEstado,
-        reu_telefone: form.reuTelefone, reu_email: form.reuEmail,
-        tipo_causa: form.tipoCausa, tipo_causa_outro: form.tipoCausaOutro,
-        valor_estimado: form.valorEstimado, descricao_fatos: form.descricaoFatos,
-        pretensao: form.pretensao, tentou_resolver: form.tentouResolver,
-        descricao_tentativa: form.descricaoTentativa, registrou_procon: form.registrouProcon,
-        arquivos_urls: uploadedFiles,
-      });
+
+      const arquivos_urls = mergeAttachments(existingArquivos, newPieces);
+      const linksMidia = videoLinks.map((s) => s.trim()).filter(Boolean);
+      const linksDoc = docProvasLinks.map((s) => s.trim()).filter(Boolean);
+
+      let payload = buildPayload(arquivos_urls, proto, linksMidia, linksDoc);
+
+      const tryUpdate = async (p: Record<string, unknown>) => {
+        return supabase.from("pequenas_causas_submissions").update(p).eq("id", existingSubmissionId);
+      };
+
+      let { error: upRowErr } = await tryUpdate(payload);
+      if (upRowErr) {
+        const strip = { ...payload };
+        delete strip.links_midia;
+        delete strip.links_documentais;
+        delete strip.incluir_testemunhas;
+        delete strip.envolve_veiculo;
+        delete strip.reu_rg;
+        delete strip.reu_telefone_2;
+        delete strip.autor_cnpj;
+        if (digitsLen(form.autorDocumento) > 11) {
+          strip.autor_cpf = maskCNPJ(form.autorDocumento);
+        }
+        const retry = await tryUpdate(strip);
+        upRowErr = retry.error;
+        if (!upRowErr) payload = strip;
+      }
+
+      if (upRowErr) throw upRowErr;
+
+      setExistingArquivos(arquivos_urls);
+      setSavedProtocol(proto);
+      setFiles([]);
       setProtocol(proto);
       setSubmitted(true);
-    } catch (err) {
-      setErrors({ submit: "Erro ao enviar. Tente novamente." });
+    } catch {
+      setErrors({ submit: "Erro ao enviar. Verifique os dados e tente novamente." });
     }
     setSubmitting(false);
   };
 
-  // ─── Success ──────────────────────────────────────────────────────────────────
-  if (submitted) return (
-    <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,#032956,${dark})`, display:"flex", alignItems:"center", justifyContent:"center", padding:"32px 16px" }}>
-      <div style={{ maxWidth:440, width:"100%", textAlign:"center" }}>
-        <div style={{ width:80, height:80, borderRadius:"50%", background:"rgba(254,224,1,0.12)", border:`2px solid rgba(254,224,1,0.4)`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", fontSize:36 }}>✓</div>
-        <h1 style={{ color:"white", fontSize:28, fontWeight:900, margin:"0 0 8px" }}>Caso enviado!</h1>
-        <p style={{ color:"rgba(180,210,255,0.7)", fontSize:14, lineHeight:1.7, margin:"0 0 24px" }}>
-          Nossa equipe irá analisar e entrar em contato pelo e-mail cadastrado em até 2 dias úteis.
-        </p>
-        <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"16px 20px", textAlign:"left" }}>
-          <RR label="Protocolo" value={<span style={{ color:gold, fontWeight:800, letterSpacing:"0.05em" }}>{protocol}</span>} />
-          <RR label="Status"    value={<span style={{ color:"#4ade80" }}>Aguardando análise</span>} />
-          <RR label="E-mail"    value={clientEmail || form.autorEmail} />
-          <RR label="Autor"     value={form.autorNome} />
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-800 animate-spin" />
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-3xl mb-4">
+            ✓
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Caso enviado!</h1>
+          <p className="text-slate-600 text-sm leading-relaxed mb-6">
+            Nossa equipe irá analisar e entrar em contato pelo e-mail cadastrado em até 2 dias úteis.
+          </p>
+          <div className="text-left text-sm space-y-2 border border-slate-100 rounded-xl p-4 mb-6 bg-slate-50">
+            <p>
+              <span className="text-slate-500">Protocolo:</span>{" "}
+              <span className="font-mono font-bold text-blue-900">{protocol}</span>
+            </p>
+            <p>
+              <span className="text-slate-500">E-mail:</span> {clientEmail}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/area-do-cliente")}
+            className="w-full rounded-xl bg-[#1e3a8a] hover:bg-[#172554] text-white font-semibold py-3.5"
+          >
+            Voltar para Meus Casos
+          </button>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  const sectionTitle = (text: string) => (
+    <h2 className="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 mb-6">{text}</h2>
   );
 
-  // ─── Form ─────────────────────────────────────────────────────────────────────
-  const pct = ((step+1)/STEPS.length)*100;
-
   return (
-    <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,#032956,${dark})`, padding:"32px 16px", fontFamily:"'Inter',system-ui,sans-serif" }}>
-      <div style={{ maxWidth:680, margin:"0 auto" }}>
-
-        {/* Header */}
-        <div style={{ textAlign:"center", marginBottom:32 }}>
-          <p style={{ color:gold, fontSize:11, fontWeight:800, letterSpacing:"0.12em", textTransform:"uppercase", margin:"0 0 6px" }}>Pequenas Causas Processos</p>
-          <h1 style={{ color:"white", fontSize:26, fontWeight:900, margin:"0 0 4px" }}>Submissão de Caso</h1>
-          <p style={{ color:"rgba(180,210,255,0.6)", fontSize:13, margin:0 }}>Preencha os dados para iniciar seu processo</p>
-        </div>
-
-        {/* Steps */}
-        <div style={{ display:"flex", alignItems:"center", marginBottom:28 }}>
-          {STEPS.map((label, i) => {
-            const isDone = i < step, isActive = i === step;
-            return (
-              <React.Fragment key={i}>
-                <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-                  <div style={{
-                    width:40, height:40, borderRadius:"50%",
-                    border:`2px solid ${isDone||isActive ? gold : "rgba(255,255,255,0.12)"}`,
-                    background: isDone ? gold : isActive ? "rgba(254,224,1,0.12)" : "rgba(255,255,255,0.04)",
-                    color: isDone ? dark : isActive ? gold : "rgba(255,255,255,0.25)",
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    fontSize: isDone ? 18 : 13, fontWeight:800, transition:"all 0.3s",
-                  }}>
-                    {isDone ? "✓" : i+1}
-                  </div>
-                  <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color: isActive ? gold : isDone ? "rgba(254,224,1,0.6)" : "rgba(255,255,255,0.2)" }}>
-                    {label}
-                  </span>
-                </div>
-                {i < STEPS.length-1 && <div style={{ height:1, flex:1, maxWidth:32, marginBottom:20, background: i<step ? "rgba(254,224,1,0.5)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }} />}
-              </React.Fragment>
-            );
-          })}
-        </div>
-
-        {/* Card */}
-        <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:24, overflow:"hidden", backdropFilter:"blur(12px)" }}>
-          <div style={{ height:3, background:`linear-gradient(90deg,${gold},#fbbf24)`, width:`${pct}%`, transition:"width 0.4s ease" }} />
-          <div style={{ padding:"28px 28px 32px" }}>
-
-            {/* ── Step 0: Autor ─────────────────────────────────── */}
-            {step === 0 && <>
-              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Dados do Autor</h2>
-              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Quem está entrando com o processo</p>
-              <G1>
-                <F label="Nome completo" req err={errors.autorNome}>
-                  <Inp value={form.autorNome} onChange={e => sf("autorNome")(e.target.value)} placeholder="Seu nome completo" />
-                </F>
-              </G1>
-              <div style={{ height:16 }} />
-              <G2>
-                <F label="CPF" req err={errors.autorCPF}>
-                  <Inp value={form.autorCPF} onChange={e => sf("autorCPF")(maskCPF(e.target.value))} placeholder="000.000.000-00" maxLength={14} />
-                </F>
-                <F label="RG">
-                  <Inp value={form.autorRG} onChange={e => sf("autorRG")(e.target.value)} placeholder="RG" />
-                </F>
-                <F label="Data de nascimento">
-                  <Inp type="date" value={form.autorNascimento} onChange={e => sf("autorNascimento")(e.target.value)} style={{ colorScheme:"dark" }} />
-                </F>
-                <F label="Estado civil">
-                  <Sel value={form.autorEstadoCivil} onChange={e => sf("autorEstadoCivil")(e.target.value)}>
-                    <option value="">Selecione</option>
-                    {ESTADO_CIVIL.map(ec => <option key={ec}>{ec}</option>)}
-                  </Sel>
-                </F>
-                <Full>
-                  <F label="Profissão">
-                    <Inp value={form.autorProfissao} onChange={e => sf("autorProfissao")(e.target.value)} placeholder="Ex: Advogado, Engenheiro..." />
-                  </F>
-                </Full>
-                <F label="E-mail" req err={errors.autorEmail}>
-                  <Inp type="email" value={form.autorEmail} onChange={e => sf("autorEmail")(e.target.value)} placeholder="email@exemplo.com" />
-                </F>
-                <F label="Telefone" req err={errors.autorTelefone}>
-                  <Inp value={form.autorTelefone} onChange={e => sf("autorTelefone")(maskPhone(e.target.value))} placeholder="(11) 99999-9999" maxLength={15} />
-                </F>
-                <Full>
-                  <F label="WhatsApp">
-                    <Inp value={form.autorWhatsApp} onChange={e => sf("autorWhatsApp")(maskPhone(e.target.value))} placeholder="(11) 99999-9999 (se diferente do telefone)" maxLength={15} />
-                  </F>
-                </Full>
-                <F label="CEP" req err={errors.autorCEP} hint="Preenchimento automático">
-                  <Inp
-                    value={form.autorCEP}
-                    onChange={e => sf("autorCEP")(maskCEP(e.target.value))}
-                    onBlur={handleAutorCEPBlur}
-                    placeholder="00000-000" maxLength={9}
-                  />
-                </F>
-                <Full>
-                  <F label="Rua / Logradouro" req err={errors.autorRua}>
-                    <Inp value={form.autorRua} onChange={e => sf("autorRua")(e.target.value)} placeholder="Rua, Avenida..." />
-                  </F>
-                </Full>
-                <F label="Número" req err={errors.autorNumero}>
-                  <Inp value={form.autorNumero} onChange={e => sf("autorNumero")(e.target.value)} placeholder="N°" />
-                </F>
-                <F label="Complemento">
-                  <Inp value={form.autorComplemento} onChange={e => sf("autorComplemento")(e.target.value)} placeholder="Apto, bloco..." />
-                </F>
-                <F label="Bairro" req err={errors.autorBairro}>
-                  <Inp value={form.autorBairro} onChange={e => sf("autorBairro")(e.target.value)} placeholder="Bairro" />
-                </F>
-                <F label="Cidade" req err={errors.autorCidade}>
-                  <Inp value={form.autorCidade} onChange={e => sf("autorCidade")(e.target.value)} placeholder="Cidade" />
-                </F>
-                <F label="Estado (UF)" req err={errors.autorEstado}>
-                  <Sel value={form.autorEstado} onChange={e => sf("autorEstado")(e.target.value)}>
-                    <option value="">Selecione</option>
-                    {ESTADOS.map(uf => <option key={uf}>{uf}</option>)}
-                  </Sel>
-                </F>
-              </G2>
-            </>}
-
-            {/* ── Step 1: Réu ───────────────────────────────────── */}
-            {step === 1 && <>
-              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Dados do Réu</h2>
-              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 20px" }}>A parte contra quem você está processando</p>
-
-              {/* PF / PJ toggle */}
-              <div style={{ marginBottom:20 }}>
-                <label style={{ fontSize:11, fontWeight:700, color:"rgba(200,220,255,0.75)", textTransform:"uppercase", letterSpacing:"0.05em", display:"block", marginBottom:8 }}>
-                  Tipo de pessoa
-                </label>
-                <div style={{ display:"flex", gap:8 }}>
-                  {(["PF","PJ"] as const).map(t => (
-                    <button key={t} type="button" onClick={() => setForm(x => ({ ...x, reuTipo: t, reuCPF:"", reuCNPJ:"" }))} style={{
-                      flex:1, height:44, borderRadius:12, border:`1.5px solid ${form.reuTipo===t ? gold : "rgba(255,255,255,0.1)"}`,
-                      background: form.reuTipo===t ? "rgba(254,224,1,0.12)" : "rgba(255,255,255,0.04)",
-                      color: form.reuTipo===t ? gold : "rgba(255,255,255,0.4)", fontSize:14, fontWeight:700,
-                      cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s",
-                    }}>
-                      {t === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <G1>
-                <F label={form.reuTipo === "PJ" ? "Razão Social / Nome da Empresa" : "Nome completo"} req err={errors.reuNome}>
-                  <Inp value={form.reuNome} onChange={e => sf("reuNome")(e.target.value)} placeholder={form.reuTipo === "PJ" ? "Ex: Empresa LTDA" : "Nome da pessoa"} />
-                </F>
-              </G1>
-              <div style={{ height:16 }} />
-              <G2>
-                {form.reuTipo === "PF" ? (
-                  <F label="CPF" req err={errors.reuCPF}>
-                    <Inp value={form.reuCPF} onChange={e => sf("reuCPF")(maskCPF(e.target.value))} placeholder="000.000.000-00" maxLength={14} />
-                  </F>
-                ) : (
-                  <F label="CNPJ" req err={errors.reuCNPJ}>
-                    <Inp value={form.reuCNPJ} onChange={e => sf("reuCNPJ")(maskCNPJ(e.target.value))} placeholder="00.000.000/0001-00" maxLength={18} />
-                  </F>
-                )}
-                <F label="Telefone">
-                  <Inp value={form.reuTelefone} onChange={e => sf("reuTelefone")(maskPhone(e.target.value))} placeholder="(11) 99999-9999" maxLength={15} />
-                </F>
-                <Full>
-                  <F label="E-mail">
-                    <Inp type="email" value={form.reuEmail} onChange={e => sf("reuEmail")(e.target.value)} placeholder="email@exemplo.com (se souber)" />
-                  </F>
-                </Full>
-                <Full>
-                  <p style={{ fontSize:12, color:"rgba(255,255,255,0.3)", margin:"4px 0 8px", lineHeight:1.5 }}>
-                    Endereço do réu (opcional — preencha o CEP para autocompletar)
-                  </p>
-                </Full>
-                <F label="CEP" hint="Opcional">
-                  <Inp
-                    value={form.reuCEP}
-                    onChange={e => sf("reuCEP")(maskCEP(e.target.value))}
-                    onBlur={handleReuCEPBlur}
-                    placeholder="00000-000" maxLength={9}
-                  />
-                </F>
-                <Full>
-                  <F label="Rua / Logradouro">
-                    <Inp value={form.reuRua} onChange={e => sf("reuRua")(e.target.value)} placeholder="Rua, Avenida..." />
-                  </F>
-                </Full>
-                <F label="Número">
-                  <Inp value={form.reuNumero} onChange={e => sf("reuNumero")(e.target.value)} placeholder="N°" />
-                </F>
-                <F label="Complemento">
-                  <Inp value={form.reuComplemento} onChange={e => sf("reuComplemento")(e.target.value)} placeholder="Apto, sala..." />
-                </F>
-                <F label="Bairro">
-                  <Inp value={form.reuBairro} onChange={e => sf("reuBairro")(e.target.value)} placeholder="Bairro" />
-                </F>
-                <F label="Cidade">
-                  <Inp value={form.reuCidade} onChange={e => sf("reuCidade")(e.target.value)} placeholder="Cidade" />
-                </F>
-                <F label="Estado (UF)">
-                  <Sel value={form.reuEstado} onChange={e => sf("reuEstado")(e.target.value)}>
-                    <option value="">Selecione</option>
-                    {ESTADOS.map(uf => <option key={uf}>{uf}</option>)}
-                  </Sel>
-                </F>
-              </G2>
-            </>}
-
-            {/* ── Step 2: Causa ─────────────────────────────────── */}
-            {step === 2 && <>
-              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Detalhes da Causa</h2>
-              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 24px" }}>Descreva o ocorrido e o que você busca</p>
-              <G1>
-                <F label="Tipo de causa" req err={errors.tipoCausa}>
-                  <Sel value={form.tipoCausa} onChange={e => sf("tipoCausa")(e.target.value)}>
-                    <option value="">Selecione o tipo</option>
-                    {TIPOS_CAUSA.map(t => <option key={t}>{t}</option>)}
-                  </Sel>
-                </F>
-                {form.tipoCausa === "Outro" && (
-                  <F label="Especifique o tipo de causa" req>
-                    <Inp value={form.tipoCausaOutro} onChange={e => sf("tipoCausaOutro")(e.target.value)} placeholder="Descreva o tipo de causa" />
-                  </F>
-                )}
-                <F label="Valor estimado da causa" req err={errors.valorEstimado} hint="Ex: 5.000,00">
-                  <div style={{ position:"relative" }}>
-                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", fontSize:14, color:"rgba(255,255,255,0.5)", pointerEvents:"none" }}>R$</span>
-                    <Inp
-                      value={form.valorEstimado}
-                      onChange={e => sf("valorEstimado")(maskCurrency(e.target.value))}
-                      placeholder="0,00" style={{ paddingLeft:36 }}
-                    />
-                  </div>
-                </F>
-                <F label="Descrição dos fatos — o que aconteceu?" req err={errors.descricaoFatos}
-                  hint={`${form.descricaoFatos.trim().length}/100 caracteres mínimos`}>
-                  <TA
-                    value={form.descricaoFatos}
-                    onChange={e => sf("descricaoFatos")(e.target.value)}
-                    rows={8}
-                    placeholder="Descreva detalhadamente os fatos que motivaram a ação. Inclua datas, valores e o que aconteceu..."
-                  />
-                </F>
-                <F label="Pretensão — o que você quer que o juiz decida?" req err={errors.pretensao}>
-                  <TA
-                    value={form.pretensao}
-                    onChange={e => sf("pretensao")(e.target.value)}
-                    rows={4}
-                    placeholder="Ex: Que o réu seja condenado a pagar indenização de R$ X por danos morais..."
-                  />
-                </F>
-                <F label="Tentou resolver antes de processar?" req err={errors.tentouResolver}>
-                  <Toggle value={form.tentouResolver} onChange={sf("tentouResolver")} />
-                </F>
-                {form.tentouResolver === "sim" && (
-                  <F label="Como tentou resolver?">
-                    <TA
-                      value={form.descricaoTentativa}
-                      onChange={e => sf("descricaoTentativa")(e.target.value)}
-                      rows={3}
-                      placeholder="Ex: Entrei em contato pelo SAC, fui à loja..."
-                    />
-                  </F>
-                )}
-                <F label="Registrou reclamação no PROCON?" req err={errors.registrouProcon}>
-                  <Toggle value={form.registrouProcon} onChange={sf("registrouProcon")} />
-                </F>
-              </G1>
-            </>}
-
-            {/* ── Step 3: Documentos ────────────────────────────── */}
-            {step === 3 && <>
-              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Documentos</h2>
-              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 16px" }}>Envie seus documentos e provas</p>
-              <div style={{ background:"rgba(254,224,1,0.06)", border:"1px solid rgba(254,224,1,0.18)", borderRadius:12, padding:"12px 16px", fontSize:13, color:"rgba(254,224,1,0.8)", lineHeight:1.6, marginBottom:20 }}>
-                <strong style={{ color:gold }}>Dica:</strong> Envie documentos nítidos em PDF, JPG, PNG ou WEBP (máx. 10 MB cada). Quanto mais provas, mais forte é o seu caso.
-              </div>
-              <p style={{ fontSize:11, fontWeight:700, color:"rgba(200,220,255,0.75)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>Obrigatórios</p>
-              <G1>
-                <UploadField label="RG ou CNH (documento de identidade)" req category="identidade" onAdd={addFiles} />
-                <UploadField label="Comprovante de Residência" req category="residencia" onAdd={addFiles} />
-              </G1>
-              <p style={{ fontSize:11, fontWeight:700, color:"rgba(200,220,255,0.75)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"20px 0 12px" }}>Opcionais — provas e documentos adicionais</p>
-              <G1>
-                <UploadField label="Contrato / Nota Fiscal" category="contrato_nota" multi onAdd={addFilesMulti} />
-                <UploadField label="Prints de conversas / telas" category="prints" multi onAdd={addFilesMulti} />
-                <UploadField label="Fotos" category="fotos" multi onAdd={addFilesMulti} />
-                <UploadField label="Boletim de Ocorrência" category="boletim" onAdd={addFiles} />
-                <UploadField label="Outros documentos" category="outros" multi onAdd={addFilesMulti} />
-              </G1>
-            </>}
-
-            {/* ── Step 4: Revisão ───────────────────────────────── */}
-            {step === 4 && <>
-              <h2 style={{ color:"white", fontSize:20, fontWeight:900, margin:"0 0 4px" }}>Revisão e Confirmação</h2>
-              <p style={{ color:"rgba(180,210,255,0.5)", fontSize:13, margin:"0 0 20px" }}>Confira os dados antes de enviar</p>
-              <Block title="Autor">
-                <RR label="Nome"          value={form.autorNome} />
-                <RR label="CPF"           value={form.autorCPF} />
-                {form.autorRG && <RR label="RG" value={form.autorRG} />}
-                {form.autorNascimento && <RR label="Nascimento" value={form.autorNascimento} />}
-                {form.autorEstadoCivil && <RR label="Estado civil" value={form.autorEstadoCivil} />}
-                <RR label="E-mail"        value={form.autorEmail} />
-                <RR label="Telefone"      value={form.autorTelefone} />
-                {form.autorWhatsApp && <RR label="WhatsApp" value={form.autorWhatsApp} />}
-                <RR label="Endereço"      value={`${form.autorRua}, ${form.autorNumero}${form.autorComplemento?` - ${form.autorComplemento}`:""}, ${form.autorBairro}, ${form.autorCidade} - ${form.autorEstado}`} />
-              </Block>
-              <Block title="Réu">
-                <RR label="Tipo"          value={form.reuTipo === "PF" ? "Pessoa Física" : "Pessoa Jurídica"} />
-                <RR label="Nome"          value={form.reuNome} />
-                {form.reuTipo === "PF"
-                  ? <RR label="CPF"  value={form.reuCPF} />
-                  : <RR label="CNPJ" value={form.reuCNPJ} />
-                }
-                {form.reuTelefone && <RR label="Telefone" value={form.reuTelefone} />}
-                {form.reuEmail    && <RR label="E-mail"   value={form.reuEmail} />}
-                {form.reuCidade   && <RR label="Localização" value={`${form.reuCidade} - ${form.reuEstado}`} />}
-              </Block>
-              <Block title="Causa">
-                <RR label="Tipo"          value={form.tipoCausa === "Outro" ? form.tipoCausaOutro : form.tipoCausa} />
-                <RR label="Valor"         value={`R$ ${form.valorEstimado}`} />
-                <RR label="Fatos"         value={<span style={{ whiteSpace:"pre-wrap" }}>{form.descricaoFatos}</span>} />
-                <RR label="Pretensão"     value={<span style={{ whiteSpace:"pre-wrap" }}>{form.pretensao}</span>} />
-                <RR label="Tentou resolver" value={form.tentouResolver} />
-                {form.tentouResolver === "sim" && form.descricaoTentativa && <RR label="Como tentou" value={form.descricaoTentativa} />}
-                <RR label="PROCON"        value={form.registrouProcon} />
-              </Block>
-              <Block title="Documentos">
-                {files.length === 0
-                  ? <RR label="Arquivos" value="Nenhum arquivo selecionado" />
-                  : files.map((f,i) => <RR key={i} label={f.category} value={f.name} />)
-                }
-              </Block>
-              {/* Checkboxes de aceite */}
-              <div style={{ display:"flex", flexDirection:"column", gap:10, margin:"16px 0 4px" }}>
-                <label style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer" }}>
-                  <input
-                    type="checkbox" checked={aceiteTermos} onChange={e => setAceiteTermos(e.target.checked)}
-                    style={{ width:18, height:18, marginTop:1, accentColor:gold, cursor:"pointer", flexShrink:0 }}
-                  />
-                  <span style={{ fontSize:13, color:"rgba(255,255,255,0.7)", lineHeight:1.5 }}>
-                    Li e aceito os <span style={{ color:gold }}>Termos de Uso</span> e a <span style={{ color:gold }}>Política de Privacidade</span>.
-                  </span>
-                </label>
-                {errors.aceiteTermos && <span style={{ fontSize:11, color:"#f87171", marginLeft:28 }}>{errors.aceiteTermos}</span>}
-                <label style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer" }}>
-                  <input
-                    type="checkbox" checked={aceiteDados} onChange={e => setAceiteDados(e.target.checked)}
-                    style={{ width:18, height:18, marginTop:1, accentColor:gold, cursor:"pointer", flexShrink:0 }}
-                  />
-                  <span style={{ fontSize:13, color:"rgba(255,255,255,0.7)", lineHeight:1.5 }}>
-                    Declaro que todas as informações fornecidas são verdadeiras e de minha responsabilidade.
-                  </span>
-                </label>
-                {errors.aceiteDados && <span style={{ fontSize:11, color:"#f87171", marginLeft:28 }}>{errors.aceiteDados}</span>}
-              </div>
-              {errors.submit && (
-                <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#fca5a5", marginBottom:12 }}>
-                  ⚠️ {errors.submit}
-                </div>
-              )}
-            </>}
-
-            {/* Navigation */}
-            <div style={{ display:"flex", justifyContent: step===0 ? "flex-end" : "space-between", gap:12, marginTop:28 }}>
-              {step > 0 && (
-                <button type="button" onClick={back} style={{
-                  display:"flex", alignItems:"center", gap:8, padding:"12px 20px",
-                  borderRadius:12, border:"1.5px solid rgba(255,255,255,0.14)", background:"transparent",
-                  color:"rgba(255,255,255,0.65)", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
-                }}>
-                  ← Voltar
-                </button>
-              )}
-              {step < STEPS.length-1 ? (
-                <button type="button" onClick={next} style={{
-                  padding:"12px 28px", borderRadius:12, background:gold, color:dark,
-                  fontSize:13, fontWeight:900, cursor:"pointer", border:"none",
-                  boxShadow:`0 4px 0 0 #b8a000`, fontFamily:"inherit",
-                }}>
-                  Próximo →
-                </button>
-              ) : (
-                <button type="button" onClick={handleSubmit} disabled={submitting} style={{
-                  display:"flex", alignItems:"center", gap:8, padding:"12px 28px",
-                  borderRadius:12, background: submitting ? "rgba(254,224,1,0.5)" : gold,
-                  color:dark, fontSize:13, fontWeight:900,
-                  cursor: submitting ? "not-allowed" : "pointer",
-                  border:"none", boxShadow:`0 4px 0 0 #b8a000`, fontFamily:"inherit",
-                }}>
-                  {submitting ? "⏳ Enviando..." : "Enviar Caso"}
-                </button>
-              )}
-            </div>
-
+    <div className="min-h-screen bg-[#f6f7f9] text-slate-900 pb-24">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate("/area-do-cliente")}
+            className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"
+            aria-label="Voltar"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <p className="text-xs font-semibold text-blue-900 uppercase tracking-wide">Pequenas causas</p>
+            <h1 className="text-lg font-bold text-slate-900">Completar formulário</h1>
           </div>
         </div>
+      </header>
 
-        <p style={{ textAlign:"center", color:"rgba(255,255,255,0.18)", fontSize:11, marginTop:20 }}>
-          Etapa {step+1} de {STEPS.length} · Pequenas Causas Processos
-        </p>
-      </div>
+      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto px-4 pt-8 space-y-10">
+        {/* Orientações */}
+        <section className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+          <h2 className="text-base font-bold text-indigo-950">Orientações importantes</h2>
+          <div className="flex gap-3 text-sm">
+            <Check className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div>
+              <p className="font-semibold text-slate-800">Preencha com tranquilidade!</p>
+              <p className="text-slate-600 mt-1 text-xs sm:text-sm">
+                Seu progresso pode ser salvo ao enviar o formulário ao final. Você pode iniciar agora e revisar antes de concluir.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 text-sm">
+            <Headphones className="w-5 h-5 text-violet-600 shrink-0" />
+            <div>
+              <p className="font-semibold text-slate-800">Suporte durante o preenchimento</p>
+              <p className="text-slate-600 text-xs sm:text-sm">Em caso de dúvidas, fale conosco pelo WhatsApp do site.</p>
+            </div>
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-semibold flex gap-2 items-center">
+              <span>⚠️</span> Sua atenção é fundamental
+            </p>
+            <ul className="list-disc ml-5 mt-2 space-y-1 text-amber-900/90 text-xs sm:text-sm">
+              <li>Verifique cuidadosamente todas as informações</li>
+              <li>Calcule e anexe todos os documentos necessários</li>
+            </ul>
+          </div>
+          <p className="text-xs text-red-600 font-medium">* Campos obrigatórios</p>
+        </section>
+
+        {/* Autor 1 */}
+        <section className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+          {sectionTitle("Autor 1")}
+          <div className="grid sm:grid-cols-2 gap-5">
+            <LightField label="Nome completo" req err={errors.autorNome} icon={<User className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.autorNome}
+                onChange={(e) => sf("autorNome")(e.target.value)}
+                placeholder="Nome completo"
+              />
+            </LightField>
+            <LightField label="CPF / CNPJ" req err={errors.autorDocumento} icon={<CreditCard className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.autorDocumento}
+                onChange={(e) => sf("autorDocumento")(maskCpfCnpj(e.target.value))}
+                placeholder="Digite o CPF ou CNPJ"
+              />
+            </LightField>
+            <LightField label="RG" req err={errors.autorRG} icon={<CreditCard className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.autorRG}
+                onChange={(e) => sf("autorRG")(e.target.value)}
+                placeholder="Informe o RG"
+              />
+            </LightField>
+            <LightField label="E-mail" req err={errors.autorEmail} icon={<Mail className="w-4 h-4" />}>
+              <input
+                type="email"
+                readOnly
+                className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-700"
+                value={form.autorEmail}
+              />
+            </LightField>
+            <LightField label="Telefone" req err={errors.autorTelefone} icon={<Phone className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.autorTelefone}
+                onChange={(e) => sf("autorTelefone")(maskPhone(e.target.value))}
+                placeholder="(00) 00000-0000"
+              />
+            </LightField>
+            <LightField label="Estado civil" req err={errors.autorEstadoCivil} icon={<Heart className="w-4 h-4" />}>
+              <select
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+                value={form.autorEstadoCivil}
+                onChange={(e) => sf("autorEstadoCivil")(e.target.value)}
+              >
+                <option value="">Selecione</option>
+                {ESTADO_CIVIL.map((ec) => (
+                  <option key={ec} value={ec}>
+                    {ec}
+                  </option>
+                ))}
+              </select>
+            </LightField>
+            <div className="sm:col-span-2">
+              <LightField label="Profissão" req err={errors.autorProfissao} icon={<Briefcase className="w-4 h-4" />}>
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.autorProfissao}
+                  onChange={(e) => sf("autorProfissao")(e.target.value)}
+                  placeholder="Informe sua profissão"
+                />
+              </LightField>
+            </div>
+          </div>
+        </section>
+
+        {/* Endereço */}
+        <section className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+          {sectionTitle("Seu endereço")}
+          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,140px)_1fr] gap-5">
+            <LightField label="CEP" req err={errors.autorCEP} icon={<MapPin className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.autorCEP}
+                onChange={(e) => sf("autorCEP")(maskCEP(e.target.value))}
+                onBlur={handleAutorCEPBlur}
+                placeholder="00000-000"
+              />
+            </LightField>
+            <div className="sm:col-span-1 space-y-5 sm:col-start-2">
+              <LightField label="Estado (UF)" req err={errors.autorEstado} icon={<MapPin className="w-4 h-4" />}>
+                <select
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+                  value={form.autorEstado}
+                  onChange={(e) => sf("autorEstado")(e.target.value)}
+                >
+                  <option value="">Selecione</option>
+                  {ESTADOS.map((uf) => (
+                    <option key={uf} value={uf}>
+                      {uf}
+                    </option>
+                  ))}
+                </select>
+              </LightField>
+              <LightField label="Cidade" req err={errors.autorCidade} icon={<MapPin className="w-4 h-4" />}>
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.autorCidade}
+                  onChange={(e) => sf("autorCidade")(e.target.value)}
+                  placeholder="Cidade"
+                />
+              </LightField>
+              <LightField label="Bairro" req err={errors.autorBairro} icon={<Building2 className="w-4 h-4" />}>
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.autorBairro}
+                  onChange={(e) => sf("autorBairro")(e.target.value)}
+                  placeholder="Bairro"
+                />
+              </LightField>
+              <LightField label="Endereço" req err={errors.autorRua} icon={<MapPin className="w-4 h-4" />}>
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.autorRua}
+                  onChange={(e) => sf("autorRua")(e.target.value)}
+                  placeholder="Rua, Avenida"
+                />
+              </LightField>
+              <div className="grid sm:grid-cols-2 gap-5">
+                <LightField label="Número" req err={errors.autorNumero} icon={<span className="text-slate-500">#</span>}>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                    value={form.autorNumero}
+                    onChange={(e) => sf("autorNumero")(e.target.value)}
+                    placeholder="Número"
+                  />
+                </LightField>
+                <LightField label="Complemento" icon={<span className="text-slate-400 text-xs">—</span>}>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                    value={form.autorComplemento}
+                    onChange={(e) => sf("autorComplemento")(e.target.value)}
+                    placeholder="Bloco, apartamento, referência..."
+                  />
+                </LightField>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-lg border border-sky-100 bg-sky-50 px-4 py-2.5 text-xs text-sky-900 flex items-start gap-2">
+            <span className="font-bold">i</span>
+            <span>Tamanho máximo por arquivo: {MAX_FILE_MB}MB (PDF, JPG, PNG)</span>
+          </div>
+
+          <div className="mt-6 grid gap-8">
+            <LightDropzone
+              label="Documento (CNH / CPF / RG)"
+              req
+              err={errors.identidade}
+              category="identidade"
+              hint="Clique ou arraste para enviar seu documento"
+              sub="(Formatos aceitos: PDF, JPG, PNG)"
+              icon={<CreditCard className="w-10 h-10" />}
+              compactIcon={<CreditCard className="w-4 h-4" />}
+              onAdd={addFiles}
+            />
+            <LightDropzone
+              label="Comprovante de residência (água, luz ou telefone — até 60 dias)"
+              req
+              err={errors.residencia}
+              category="residencia"
+              hint="Tire uma foto ou envie o comprovante"
+              sub="(Formatos aceitos: PDF, JPG, PNG)"
+              icon={
+                <span className="flex gap-1 justify-center">
+                  <FileText className="w-8 h-8" />
+                  <Home className="w-8 h-8" />
+                </span>
+              }
+              compactIcon={<Home className="w-4 h-4" />}
+              onAdd={addFiles}
+            />
+          </div>
+
+          <button
+            type="button"
+            className="mt-6 text-sm font-semibold text-violet-700 hover:underline"
+            onClick={() => alert("Múltiplos autores: em breve ou informe na descrição dos fatos.")}
+          >
+            + Adicionar outro Autor
+          </button>
+
+          <div className="mt-8 pt-6 border-t border-slate-100">
+            <p className="text-base font-bold text-slate-900 mb-3">Testemunhas</p>
+            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.incluirTestemunhas}
+                onChange={(e) => sf("incluirTestemunhas")(e.target.checked)}
+                className="rounded border-slate-300"
+              />
+              Deseja incluir dados de testemunhas?
+            </label>
+            {form.incluirTestemunhas && (
+              <p className="text-xs text-slate-500 mt-2">
+                Descreva nome e contato das testemunhas no campo FATOS, abaixo, ou envie documento em “provas documentais”.
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Réu */}
+        <section className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-6">
+          {sectionTitle("Réu 1")}
+          <div className="grid sm:grid-cols-2 gap-5">
+            <LightField label="Réu(s) / Reclamado(s)" req err={errors.reuNome} icon={<User className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.reuNome}
+                onChange={(e) => sf("reuNome")(e.target.value)}
+                placeholder="Nome completo do réu/reclamado"
+              />
+            </LightField>
+            <LightField label="CPF / CNPJ" req err={errors.reuDocumento} icon={<CreditCard className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.reuDocumento}
+                onChange={(e) => sf("reuDocumento")(maskCpfCnpj(e.target.value))}
+                placeholder="Digite o CPF ou CNPJ"
+              />
+            </LightField>
+            <LightField label="RG (caso pessoa física)" icon={<CreditCard className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.reuRG}
+                onChange={(e) => sf("reuRG")(e.target.value)}
+                placeholder="Informe o RG"
+              />
+            </LightField>
+            <LightField label="Telefone 1" req err={errors.reuTelefone} icon={<Phone className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.reuTelefone}
+                onChange={(e) => sf("reuTelefone")(maskPhone(e.target.value))}
+                placeholder="(00) 00000-0000"
+              />
+            </LightField>
+            <LightField label="Telefone 2" icon={<Phone className="w-4 h-4" />}>
+              <input
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.reuTelefone2}
+                onChange={(e) => sf("reuTelefone2")(maskPhone(e.target.value))}
+                placeholder="(00) 00000-0000"
+              />
+            </LightField>
+            <LightField label="E-mail" icon={<Mail className="w-4 h-4" />}>
+              <input
+                type="email"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.reuEmail}
+                onChange={(e) => sf("reuEmail")(e.target.value)}
+                placeholder="exemplo@email.com"
+              />
+            </LightField>
+          </div>
+
+          <div>
+            <h3 className="text-base font-bold text-slate-900 mb-4">Endereço do Réu / Reclamado</h3>
+            <div className="grid sm:grid-cols-2 gap-5 max-w-xl">
+              <LightField label="CEP" req err={errors.reuCEP} icon={<MapPin className="w-4 h-4" />}>
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.reuCEP}
+                  onChange={(e) => sf("reuCEP")(maskCEP(e.target.value))}
+                  onBlur={handleReuCEPBlur}
+                  placeholder="Digite o CEP"
+                />
+              </LightField>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5 mt-5">
+              <LightField label="Endereço">
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.reuRua}
+                  onChange={(e) => sf("reuRua")(e.target.value)}
+                  placeholder="Logradouro"
+                />
+              </LightField>
+              <LightField label="Número">
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.reuNumero}
+                  onChange={(e) => sf("reuNumero")(e.target.value)}
+                  placeholder="Nº"
+                />
+              </LightField>
+              <LightField label="Bairro">
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.reuBairro}
+                  onChange={(e) => sf("reuBairro")(e.target.value)}
+                />
+              </LightField>
+              <LightField label="Cidade">
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.reuCidade}
+                  onChange={(e) => sf("reuCidade")(e.target.value)}
+                />
+              </LightField>
+              <LightField label="UF">
+                <select
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+                  value={form.reuEstado}
+                  onChange={(e) => sf("reuEstado")(e.target.value)}
+                >
+                  <option value="">Selecione</option>
+                  {ESTADOS.map((uf) => (
+                    <option key={uf} value={uf}>
+                      {uf}
+                    </option>
+                  ))}
+                </select>
+              </LightField>
+              <LightField label="Complemento">
+                <input
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                  value={form.reuComplemento}
+                  onChange={(e) => sf("reuComplemento")(e.target.value)}
+                />
+              </LightField>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="text-sm font-semibold text-amber-900 bg-amber-100 border border-amber-200 rounded-lg px-4 py-2 hover:bg-amber-200/50"
+            onClick={() => alert("Múltiplos réus: descreva no campo FATOS ou entre em contato com o suporte.")}
+          >
+            + Adicionar outro Réu
+          </button>
+        </section>
+
+        {/* Detalhes da causa */}
+        <section className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
+          {sectionTitle("Detalhes da causa")}
+          <LightField
+            label="Qual o valor que você pretende receber na justiça (R$)?"
+            req
+            err={errors.valorEstimado}
+          >
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R$</span>
+              <input
+                className="w-full rounded-lg border border-slate-200 pl-10 pr-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                value={form.valorEstimado}
+                onChange={(e) => sf("valorEstimado")(maskCurrency(e.target.value))}
+                placeholder="0,00"
+              />
+            </div>
+          </LightField>
+          <LightField
+            label="FATOS: Descreva em detalhes, de forma exaustiva, tudo o que aconteceu. Informe datas, nomes e valores (se houver). O sucesso da sua causa depende muito do que você escreve aqui."
+            req
+            err={errors.descricaoFatos}
+          >
+            <textarea
+              className="w-full min-h-[160px] rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+              value={form.descricaoFatos}
+              onChange={(e) => sf("descricaoFatos")(e.target.value)}
+              placeholder="Exemplo: No dia 15/01/2024, comprei um produto da loja X no valor de R$ 500,00..."
+            />
+          </LightField>
+          <LightField label="Pedido (o que você deseja conseguir na justiça?)" req err={errors.pretensao}>
+            <textarea
+              className="w-full min-h-[100px] rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+              value={form.pretensao}
+              onChange={(e) => sf("pretensao")(e.target.value)}
+              placeholder="Exemplo: Solicito o reembolso do valor pago, acrescido de danos morais..."
+            />
+          </LightField>
+        </section>
+
+        {/* Vídeo / áudio */}
+        <section className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 text-violet-800">
+            <Video className="w-5 h-5" />
+            <h2 className="text-lg font-bold">Provas em vídeos e áudios</h2>
+          </div>
+          <p className="text-sm text-slate-600">
+            Cole links do Google Drive, OneDrive, etc. (Formato: MP3, MP4, WAV, AVI).
+          </p>
+          <p className="text-sm font-bold text-red-800">Não serão aceitos outros formatos!</p>
+          {videoLinks.map((link, i) => (
+            <div key={i}>
+              <label className="text-xs font-medium text-slate-500">Link {String(i + 1).padStart(2, "0")}</label>
+              <input
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-200"
+                value={link}
+                onChange={(e) => {
+                  const next = [...videoLinks];
+                  next[i] = e.target.value;
+                  setVideoLinks(next);
+                }}
+                placeholder="Ex: https://drive.google.com/..."
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            className="text-sm font-semibold text-violet-700 hover:underline"
+            onClick={() => setVideoLinks([...videoLinks, ""])}
+          >
+            + Adicionar outro link
+          </button>
+        </section>
+
+        {/* Provas documentais */}
+        <section className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-6">
+          <div className="flex items-center gap-2 text-emerald-800">
+            <FileStack className="w-5 h-5" />
+            <h2 className="text-lg font-bold text-slate-900">Provas documentais</h2>
+          </div>
+
+          <button
+            type="button"
+            className="text-sm font-semibold text-violet-700 hover:underline"
+            onClick={() => setDocProvasLinks([...docProvasLinks, ""])}
+          >
+            + Adicionar outro link
+          </button>
+          <div className="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3 text-xs text-amber-950 flex gap-2">
+            <span>⚠️</span>
+            <span>
+              Você é responsável pelos links: devem estar acessíveis sem senha, não corrompidos e com permissão de
+              visualização.
+            </span>
+          </div>
+
+          {docProvasLinks.map((link, i) => (
+            <div key={i}>
+              <label className="text-xs font-medium text-slate-500">Link documental {i + 1}</label>
+              <input
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+                value={link}
+                onChange={(e) => {
+                  const next = [...docProvasLinks];
+                  next[i] = e.target.value;
+                  setDocProvasLinks(next);
+                }}
+                placeholder="https://..."
+              />
+            </div>
+          ))}
+
+          <LightDropzone
+            label="1. Fotos, prints, contratos, notas fiscais e/ou outros documentos"
+            req
+            err={errors.provas_documentais}
+            category="provas_documentais"
+            multi
+            hint="Arraste arquivos ou clique para selecionar"
+            sub="(Formatos aceitos: PDF, JPG, PNG)"
+            icon={<CloudUpload className="w-10 h-10" />}
+            onAdd={addFilesMulti}
+          />
+
+          <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.envolveVeiculo}
+              onChange={(e) => sf("envolveVeiculo")(e.target.checked)}
+              className="rounded border-slate-300"
+            />
+            Caso envolve trânsito ou compra/venda de veículo (exige documento do veículo)
+          </label>
+
+          <LightDropzone
+            label="2. Documento do veículo (CRV, CRLV, fotos do veículo)"
+            req={form.envolveVeiculo}
+            err={errors.documento_veiculo}
+            category="documento_veiculo"
+            hint="CRV, CRLV, fotos do veículo"
+            sub="(Apenas para casos de trânsito / veículo)"
+            icon={<Car className="w-10 h-10" />}
+            onAdd={addFiles}
+          />
+
+          <div className="rounded-lg border border-sky-100 bg-sky-50 px-4 py-2.5 text-xs text-sky-900 flex items-start gap-2">
+            <span className="font-bold">i</span>
+            <span>Tamanho máximo por arquivo: {MAX_FILE_MB}MB</span>
+          </div>
+        </section>
+
+        {/* Aceite */}
+        <section className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-3">
+          <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={aceiteTermos}
+              onChange={(e) => setAceiteTermos(e.target.checked)}
+              className="mt-1 rounded border-slate-300"
+            />
+            <span>
+              Li e aceito os <span className="text-blue-800 font-semibold">Termos de Uso</span> e a{" "}
+              <span className="text-blue-800 font-semibold">Política de Privacidade</span>.
+            </span>
+          </label>
+          {errors.aceiteTermos && <p className="text-xs text-red-600">{errors.aceiteTermos}</p>}
+          <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={aceiteDados}
+              onChange={(e) => setAceiteDados(e.target.checked)}
+              className="mt-1 rounded border-slate-300"
+            />
+            <span>Declaro que as informações são verdadeiras e de minha responsabilidade.</span>
+          </label>
+          {errors.aceiteDados && <p className="text-xs text-red-600">{errors.aceiteDados}</p>}
+        </section>
+
+        {errors.submit && (
+          <div className="rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm px-4 py-3">{errors.submit}</div>
+        )}
+
+        <div className="flex justify-end pb-8">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="rounded-xl bg-[#1e3a8a] hover:bg-[#172554] disabled:opacity-60 text-white font-bold px-10 py-3.5 shadow-sm"
+          >
+            {submitting ? "Enviando…" : "Enviar formulário"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
