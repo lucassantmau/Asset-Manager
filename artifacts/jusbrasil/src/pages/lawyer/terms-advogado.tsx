@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from "react";
 import { Layout } from "@/components/layout";
 import { Scale, ArrowLeft } from "lucide-react";
@@ -110,6 +111,71 @@ export default function TermsAdvogadoPage() {
               </p>
             </section>
           </article>
+=======
+import { Layout } from "@/components/layout";
+
+export default function TermsAdvogado() {
+  return (
+    <Layout>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <h1 className="text-3xl font-black mb-8 tracking-tight">
+          Termos de Uso — Advogados
+        </h1>
+
+        <div className="space-y-6 text-muted-foreground leading-[1.8] text-sm">
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-2">1. Aceitação dos Termos</h2>
+            <p>
+              Ao se cadastrar na plataforma Pequenas Causas Processos como advogado, você concorda com estes Termos de Uso. O cadastro implica aceitação integral das condições aqui descritas.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-2">2. Requisitos de Habilitação</h2>
+            <p>
+              Para atuar na plataforma, o advogado deve possuir inscrição ativa na Ordem dos Advogados do Brasil (OAB). A verificação é realizada diretamente nos sistemas da OAB. O cadastro está sujeito à validação e pode ser revogado a qualquer momento em caso de irregularidade.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-2">3. Responsabilidades do Advogado</h2>
+            <p>
+              O advogado é integralmente responsável pelos serviços prestados ao cliente, incluindo a qualidade do atendimento, os prazos processuais e o cumprimento das normas da OAB. A plataforma atua apenas como intermediária na conexão entre advogado e cliente.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-2">4. Modelo de Honorários</h2>
+            <p>
+              O advogado pode oferecer propostas no modelo ad exitum (êxito) ou com honorários fixos. Os valores e condições são de responsabilidade do próprio profissional, respeitando os limites estabelecidos pela OAB.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-2">5. Uso da Plataforma</h2>
+            <p>
+              É vedado o uso da plataforma para fins ilícitos, captação irregular de clientela ou qualquer conduta contrária ao Código de Ética e Disciplina da OAB. Violações podem resultar no cancelamento imediato do cadastro.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-2">6. Privacidade e Dados</h2>
+            <p>
+              Os dados dos clientes acessados através da plataforma são de uso exclusivo para a prestação do serviço contratado, em conformidade com a Lei Geral de Proteção de Dados (LGPD).
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-2">7. Alterações nos Termos</h2>
+            <p>
+              A Pequenas Causas Processos reserva-se o direito de atualizar estes termos a qualquer momento. O uso continuado da plataforma após as alterações implica aceitação das novas condições.
+            </p>
+          </section>
+
+          <p className="text-xs text-muted-foreground pt-4 border-t border-border">
+            Última atualização: março de 2026. Dúvidas: contato@pequenascausasprocessos.com.br
+          </p>
+>>>>>>> 76bd180 (Add terms of use page for lawyers to the application)
         </div>
       </div>
     </Layout>
