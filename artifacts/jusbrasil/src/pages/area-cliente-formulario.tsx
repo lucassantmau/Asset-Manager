@@ -63,6 +63,32 @@ function normalizeEmail(e: string) {
   return e.trim().toLowerCase();
 }
 
+/** Evita caracteres em protocolo que quebram o path do Storage ou geram chaves inválidas. */
+function sanitizeStorageKeySegment(s: string) {
+  const t = s.trim().replace(/[^a-zA-Z0-9._-]/g, "_");
+  return t.slice(0, 200) || "protocolo";
+}
+
+function supabaseErrorMessage(err: unknown): string {
+  if (err == null) return "Erro desconhecido.";
+  if (typeof err === "object") {
+    const o = err as {
+      message?: string;
+      statusCode?: string;
+      code?: string;
+      error?: string;
+      details?: string;
+      hint?: string;
+    };
+    const parts = [o.message, o.details, o.hint, o.code, o.statusCode, o.error].filter(
+      (x): x is string => typeof x === "string" && x.length > 0,
+    );
+    if (parts.length) return parts.join(" — ");
+  }
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
 async function fetchViaCEP(cep: string) {
   const c = cep.replace(/\D/g, "");
   if (c.length !== 8) return null;
@@ -557,6 +583,8 @@ export default function AreaClienteFormulario() {
     proto: string,
     linksMidia: string[],
     linksDoc: string[],
+    /** Sempre o e-mail da sessão — necessário para satisfazer RLS (UPDATE só na linha do JWT). */
+    sessionEmail: string,
   ) => {
     const ad = form.autorDocumento.replace(/\D/g, "");
     const autorIsCnpj = ad.length > 11;
@@ -573,7 +601,7 @@ export default function AreaClienteFormulario() {
       autor_nascimento: null,
       autor_estado_civil: form.autorEstadoCivil || null,
       autor_profissao: form.autorProfissao || null,
-      autor_email: normalizeEmail(form.autorEmail),
+      autor_email: normalizeEmail(sessionEmail),
       autor_telefone: form.autorTelefone,
       autor_whatsapp: null,
       autor_cep: form.autorCEP,
@@ -626,20 +654,28 @@ export default function AreaClienteFormulario() {
       setErrors({ submit: "Sessão inválida." });
       return;
     }
+    if (!clientEmail.trim()) {
+      setErrors({ submit: "Sessão inválida (e-mail não encontrado)." });
+      return;
+    }
 
     setSubmitting(true);
     try {
       const proto =
         (savedProtocol && savedProtocol.trim()) || "PCC-" + Date.now().toString(36).toUpperCase().slice(-8);
+      const pathPrefix = sanitizeStorageKeySegment(proto);
 
       const newPieces: { category: string; name: string; url: string }[] = [];
       for (const f of files) {
         const safeName = f.file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const path = `${proto}/${f.category}/${Date.now()}_${safeName}`;
-        const { error: upErr } = await supabase.storage
-          .from("pequenas-causas-docs")
-          .upload(path, f.file, { upsert: true, contentType: f.file.type || undefined });
-        if (upErr) throw upErr;
+        const path = `${pathPrefix}/${f.category}/${Date.now()}_${safeName}`;
+        const { error: upErr } = await supabase.storage.from("pequenas-causas-docs").upload(path, f.file, {
+          upsert: true,
+          contentType: f.file.type || "application/octet-stream",
+        });
+        if (upErr) {
+          throw new Error(`${supabaseErrorMessage(upErr)} (arquivo: ${f.file.name})`);
+        }
         const { data: pub } = supabase.storage.from("pequenas-causas-docs").getPublicUrl(path);
         newPieces.push({ category: f.category, name: f.file.name, url: pub.publicUrl });
       }
@@ -648,7 +684,7 @@ export default function AreaClienteFormulario() {
       const linksMidia = videoLinks.map((s) => s.trim()).filter(Boolean);
       const linksDoc = docProvasLinks.map((s) => s.trim()).filter(Boolean);
 
-      let payload = buildPayload(arquivos_urls, proto, linksMidia, linksDoc);
+      let payload = buildPayload(arquivos_urls, proto, linksMidia, linksDoc, clientEmail);
 
       const tryUpdate = async (p: Record<string, unknown>) => {
         return supabase.from("pequenas_causas_submissions").update(p).eq("id", existingSubmissionId);
@@ -672,6 +708,29 @@ export default function AreaClienteFormulario() {
         if (!upRowErr) payload = strip;
       }
 
+      if (upRowErr) {
+        const minimal = { ...payload };
+        delete minimal.status;
+        delete minimal.tipo_causa;
+        delete minimal.tipo_causa_outro;
+        delete minimal.tentou_resolver;
+        delete minimal.descricao_tentativa;
+        delete minimal.registrou_procon;
+        delete minimal.links_midia;
+        delete minimal.links_documentais;
+        delete minimal.incluir_testemunhas;
+        delete minimal.envolve_veiculo;
+        delete minimal.reu_rg;
+        delete minimal.reu_telefone_2;
+        delete minimal.autor_cnpj;
+        if (digitsLen(form.autorDocumento) > 11) {
+          minimal.autor_cpf = maskCNPJ(form.autorDocumento);
+        }
+        const third = await tryUpdate(minimal);
+        upRowErr = third.error;
+        if (!upRowErr) payload = minimal;
+      }
+
       if (upRowErr) throw upRowErr;
 
       setExistingArquivos(arquivos_urls);
@@ -679,8 +738,11 @@ export default function AreaClienteFormulario() {
       setFiles([]);
       setProtocol(proto);
       setSubmitted(true);
-    } catch {
-      setErrors({ submit: "Erro ao enviar. Verifique os dados e tente novamente." });
+    } catch (err) {
+      console.error("area-cliente-formulario submit:", err);
+      setErrors({
+        submit: `Erro ao enviar: ${supabaseErrorMessage(err)}`,
+      });
     }
     setSubmitting(false);
   };
