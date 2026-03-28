@@ -452,10 +452,11 @@ export default function AreaClienteFormulario() {
       const email = normalizeEmail(session.user.email);
       setClientEmail(email);
 
+      // ilike = igual ao e-mail ignorando maiúsculas (evita falha se a linha foi gravada com casing diferente)
       const { data: row, error } = await supabase
         .from("pequenas_causas_submissions")
         .select("*")
-        .eq("autor_email", email)
+        .ilike("autor_email", email)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -463,6 +464,7 @@ export default function AreaClienteFormulario() {
       if (cancelled) return;
 
       if (error || !row) {
+        console.warn("pequenas_causas_submissions load:", error?.message ?? "sem linha");
         setAuthChecking(false);
         navigate("/login");
         return;
@@ -585,11 +587,18 @@ export default function AreaClienteFormulario() {
     linksDoc: string[],
     /** Sempre o e-mail da sessão — necessário para satisfazer RLS (UPDATE só na linha do JWT). */
     sessionEmail: string,
+    /** Colunas json/jsonb aceitam array; se a tabela for `text`, use true para gravar string JSON. */
+    linksAsJsonStrings: boolean,
   ) => {
     const ad = form.autorDocumento.replace(/\D/g, "");
     const autorIsCnpj = ad.length > 11;
     const rd = form.reuDocumento.replace(/\D/g, "");
     const reuIsPj = rd.length > 11;
+
+    const linksMidiaVal =
+      linksMidia.length === 0 ? null : linksAsJsonStrings ? JSON.stringify(linksMidia) : linksMidia;
+    const linksDocVal =
+      linksDoc.length === 0 ? null : linksAsJsonStrings ? JSON.stringify(linksDoc) : linksDoc;
 
     const base: Record<string, unknown> = {
       protocolo: proto,
@@ -637,8 +646,8 @@ export default function AreaClienteFormulario() {
       arquivos_urls,
       incluir_testemunhas: form.incluirTestemunhas,
       envolve_veiculo: form.envolveVeiculo,
-      links_midia: linksMidia.length ? JSON.stringify(linksMidia) : null,
-      links_documentais: linksDoc.length ? JSON.stringify(linksDoc) : null,
+      links_midia: linksMidiaVal,
+      links_documentais: linksDocVal,
     };
     return base;
   };
@@ -661,6 +670,13 @@ export default function AreaClienteFormulario() {
 
     setSubmitting(true);
     try {
+      const { data: refreshData, error: refreshErr } = await supabase.auth.refreshSession();
+      if (refreshErr || !refreshData.session?.user?.email) {
+        throw new Error(refreshErr?.message ?? "Sessão expirada. Faça login novamente.");
+      }
+      const sessionEmail = normalizeEmail(refreshData.session.user.email);
+      setClientEmail(sessionEmail);
+
       const proto =
         (savedProtocol && savedProtocol.trim()) || "PCC-" + Date.now().toString(36).toUpperCase().slice(-8);
       const pathPrefix = sanitizeStorageKeySegment(proto);
@@ -684,10 +700,14 @@ export default function AreaClienteFormulario() {
       const linksMidia = videoLinks.map((s) => s.trim()).filter(Boolean);
       const linksDoc = docProvasLinks.map((s) => s.trim()).filter(Boolean);
 
-      let payload = buildPayload(arquivos_urls, proto, linksMidia, linksDoc, clientEmail);
+      let payload = buildPayload(arquivos_urls, proto, linksMidia, linksDoc, sessionEmail, false);
 
       const tryUpdate = async (p: Record<string, unknown>) => {
-        return supabase.from("pequenas_causas_submissions").update(p).eq("id", existingSubmissionId);
+        return supabase
+          .from("pequenas_causas_submissions")
+          .update(p)
+          .eq("id", existingSubmissionId)
+          .ilike("autor_email", sessionEmail);
       };
 
       let { error: upRowErr } = await tryUpdate(payload);
@@ -729,6 +749,24 @@ export default function AreaClienteFormulario() {
         const third = await tryUpdate(minimal);
         upRowErr = third.error;
         if (!upRowErr) payload = minimal;
+      }
+
+      if (upRowErr) {
+        const minimalJsonLinks = buildPayload(arquivos_urls, proto, linksMidia, linksDoc, sessionEmail, true);
+        const m = { ...minimalJsonLinks };
+        delete m.status;
+        delete m.tipo_causa;
+        delete m.tipo_causa_outro;
+        delete m.tentou_resolver;
+        delete m.descricao_tentativa;
+        delete m.registrou_procon;
+        if (digitsLen(form.autorDocumento) > 11) {
+          m.autor_cpf = maskCNPJ(form.autorDocumento);
+          m.autor_cnpj = null;
+        }
+        const fourth = await tryUpdate(m);
+        upRowErr = fourth.error;
+        if (!upRowErr) payload = m;
       }
 
       if (upRowErr) throw upRowErr;
