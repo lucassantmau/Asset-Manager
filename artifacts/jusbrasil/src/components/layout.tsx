@@ -23,17 +23,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col relative bg-background text-foreground">
       <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-xl shadow-ambient" : "bg-white/80 backdrop-blur-md"} py-4`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-6">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5">
               <ShieldCheck className="w-7 h-7 text-[#001532]" />
               <span className="font-black text-lg tracking-tight text-[#001532] leading-none">
-                Pequenas Causas <span className="text-[#001532]/60 font-semibold border-t-[#fee004] border-r-[#fee004] border-b-[#fee004] border-l-[#fee004]">Processos</span>
+                Pequenas Causas <span className="text-[#001532]/60 font-semibold">Processos</span>
               </span>
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden lg:flex items-center gap-8">
+            <nav className="hidden lg:flex items-center justify-center gap-6">
               <Link href="/" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Início</Link>
               <a href="/#como-funciona" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Como Funciona</a>
               <a href="/#depoimentos" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Depoimentos</a>
@@ -43,7 +43,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </nav>
 
             {/* Desktop Actions */}
-            <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden lg:flex items-center justify-end gap-3">
               <Link href="/area-do-cliente" className="text-sm font-medium text-foreground/60 hover:text-foreground transition-colors px-3 py-2">
                 Área do Cliente
               </Link>
