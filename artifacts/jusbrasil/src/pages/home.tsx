@@ -27,6 +27,17 @@ import { useSubmitCase, useCreatePayment } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { supabase } from "@/lib/supabase";
 
+/** Link de checkout (Klivo). Altere aqui se o gateway mudar. */
+const PAGAMENTO_KLIVO_URL = "https://go.klivopay.com.br/t45jsqe1qe";
+
+function insertErrorMessage(err: unknown): string {
+  if (err && typeof err === "object" && "message" in err && typeof (err as { message: string }).message === "string") {
+    return (err as { message: string }).message;
+  }
+  if (err instanceof Error) return err.message;
+  return "Erro ao salvar o caso.";
+}
+
 // Form schemas
 const caseStep1Schema = z.object({
   description: z.string().min(20, "Mínimo de 20 caracteres necessários"),
@@ -75,6 +86,8 @@ export default function Home() {
   const [step, setStep] = useState(1);
   const [caseId, setCaseId] = useState<string | null>(null);
   const [pixCode, setPixCode] = useState<string | null>(null);
+  /** Se o insert em `cases` falhar, ainda mostramos o pagamento; guardamos o motivo para o utilizador. */
+  const [casePersistError, setCasePersistError] = useState<string | null>(null);
   
   const submitCaseMutation = useSubmitCase();
   const createPaymentMutation = useCreatePayment();
@@ -99,11 +112,12 @@ export default function Home() {
   };
 
   const onStep2Submit = async (data: z.infer<typeof caseStep2Schema>) => {
+    setCasePersistError(null);
     setStep(3); // Loading / Analyzing state
-    try {
-      const step1Data = form1.getValues();
-      const evidences = step1Data.evidences || [];
+    const step1Data = form1.getValues();
+    const evidences = step1Data.evidences || [];
 
+    try {
       const { error } = await supabase.from("cases").insert({
         case_description: step1Data.description,
         evidence_conversas: evidences.includes("Conversas (WhatsApp)"),
@@ -126,12 +140,14 @@ export default function Home() {
       });
 
       if (error) throw error;
-
-      setTimeout(() => setStep(7), 2000);
     } catch (error) {
-      console.error("Failed to submit case", error);
-      setStep(2);
+      console.error("Failed to submit case (continua para pagamento mesmo assim)", error);
+      setCasePersistError(insertErrorMessage(error));
     }
+
+    // Sempre leva ao passo do pagamento (link Klivo), para o cliente não ficar bloqueado
+    // se a tabela `cases` estiver indisponível no Supabase.
+    window.setTimeout(() => setStep(7), 2000);
   };
 
   const onCheckoutSubmit = async (data: z.infer<typeof checkoutSchema>) => {
@@ -629,13 +645,21 @@ export default function Home() {
                     <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-5 border-4 border-[#bbf7d0]">
                       <CheckCircle2 className="w-10 h-10" />
                     </div>
-                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-2">Parabéns! Caso enviado.</h3>
+                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-2">Parabéns! Próximo passo: pagamento</h3>
                     <p className="text-sm text-[#555] mb-6 max-w-xs mx-auto leading-relaxed">
-                      Recebemos seu caso. Para conectar você a um advogado, conclua o pagamento da taxa de acesso.
+                      Para conectar você a um advogado, conclua o pagamento da taxa de acesso abaixo. Depois você poderá criar seu login na área do cliente.
                     </p>
 
+                    {casePersistError && (
+                      <div className="max-w-md mx-auto mb-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs px-4 py-3 text-left">
+                        <strong>Aviso:</strong> não foi possível registrar seu relato no servidor automaticamente (
+                        {casePersistError}). Você ainda pode pagar; se o problema persistir, copie seus dados e fale
+                        conosco pelo WhatsApp do site com o mesmo e-mail informado no formulário.
+                      </div>
+                    )}
+
                     <a
-                      href="https://go.klivopay.com.br/t45jsqe1qe"
+                      href={PAGAMENTO_KLIVO_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-base shadow-[0_5px_0_0_#15803d] hover:shadow-[0_2px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all mb-4"
