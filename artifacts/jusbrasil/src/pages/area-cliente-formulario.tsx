@@ -649,6 +649,8 @@ export default function AreaClienteFormulario() {
       envolve_veiculo: form.envolveVeiculo,
       links_midia: linksMidiaVal,
       links_documentais: linksDocVal,
+      disponivel_para_advogados: true,
+      formulario_enviado_em: new Date().toISOString(),
     };
     return base;
   };
