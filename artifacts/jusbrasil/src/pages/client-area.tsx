@@ -108,6 +108,7 @@ export default function ClientArea() {
   const [acceptingProposalId, setAcceptingProposalId] = useState<string | null>(null);
 
   const primaryRow = rows[0] ?? null;
+  const openFormulario = (id: string) => navigate(`/formulario?id=${encodeURIComponent(id)}`);
 
   const isIntakeComplete = (r: CaseRow) =>
     Boolean(String(r.autor_nome ?? "").trim() && String(r.descricao_fatos ?? "").trim());
@@ -366,7 +367,7 @@ export default function ClientArea() {
                           </span>
                           <button
                             type="button"
-                            onClick={() => navigate("/formulario")}
+                            onClick={() => openFormulario(r.id)}
                             className="text-blue-700 font-semibold text-xs hover:underline"
                           >
                             Ver / Editar
@@ -504,7 +505,7 @@ export default function ClientArea() {
                     <div className="sm:ml-auto pl-3 sm:pl-0">
                       <button
                         type="button"
-                        onClick={() => navigate("/formulario")}
+                        onClick={() => openFormulario(r.id)}
                         className="inline-flex items-center gap-2 rounded-full bg-[#1e3a8a] hover:bg-[#172554] text-white text-sm font-semibold px-5 py-2.5 w-full sm:w-auto justify-center transition-colors"
                       >
                         <Pencil className="w-4 h-4" />

@@ -139,6 +139,12 @@ interface FormState {
   envolveVeiculo: boolean;
 }
 
+function isSubmissionComplete(row: DbSubmission): boolean {
+  const nome = String(row.autor_nome ?? "").trim();
+  const fatos = String(row.descricao_fatos ?? "").trim();
+  return Boolean(nome && fatos);
+}
+
 const FORM0: FormState = {
   autorNome: "",
   autorDocumento: "",
@@ -422,6 +428,8 @@ function LightDropzone({
 
 export default function AreaClienteFormulario() {
   const [, navigate] = useLocation();
+  const caseIdParam =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("id") : null;
   const [authChecking, setAuthChecking] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -452,32 +460,58 @@ export default function AreaClienteFormulario() {
       const email = normalizeEmail(session.user.email);
       setClientEmail(email);
 
-      // ilike = igual ao e-mail ignorando maiúsculas (evita falha se a linha foi gravada com casing diferente)
-      const { data: row, error } = await supabase
+      // Se vier ?id=... na URL, abre aquele caso específico para não sobrescrever outro.
+      if (caseIdParam) {
+        const { data: byId, error: byIdErr } = await supabase
+          .from("pequenas_causas_submissions")
+          .select("*")
+          .eq("id", caseIdParam)
+          .ilike("autor_email", email)
+          .maybeSingle();
+        if (!cancelled && !byIdErr && byId) {
+          setExistingSubmissionId(String(byId.id));
+          const prot = byId.protocolo ?? byId.protocol ?? byId.pedido_ref;
+          setSavedProtocol(prot != null && String(prot).trim() ? String(prot) : null);
+          const mapped = rowToFormState(byId);
+          setForm((prev) => ({ ...prev, ...mapped, autorEmail: email }));
+          const urls = byId.arquivos_urls;
+          setExistingArquivos(Array.isArray(urls) ? (urls as StoredAttachment[]) : []);
+          const { video, doc } = readLinkFields(byId as DbSubmission);
+          setVideoLinks(video);
+          setDocProvasLinks(doc);
+          setAuthChecking(false);
+          return;
+        }
+      }
+
+      // Sem ?id, escolhe primeiro um caso pendente (não completo); evita sobrescrever caso já enviado.
+      const { data: rows, error } = await supabase
         .from("pequenas_causas_submissions")
         .select("*")
         .ilike("autor_email", email)
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(20);
 
       if (cancelled) return;
 
-      if (error || !row) {
+      const allRows = (rows as DbSubmission[] | null) ?? [];
+      const targetRow = allRows.find((r) => !isSubmissionComplete(r)) ?? allRows[0];
+
+      if (error || !targetRow) {
         console.warn("pequenas_causas_submissions load:", error?.message ?? "sem linha");
         setAuthChecking(false);
         navigate("/login");
         return;
       }
 
-      setExistingSubmissionId(String(row.id));
-      const prot = row.protocolo ?? row.protocol ?? row.pedido_ref;
+      setExistingSubmissionId(String(targetRow.id));
+      const prot = targetRow.protocolo ?? targetRow.protocol ?? targetRow.pedido_ref;
       setSavedProtocol(prot != null && String(prot).trim() ? String(prot) : null);
-      const mapped = rowToFormState(row);
+      const mapped = rowToFormState(targetRow);
       setForm((prev) => ({ ...prev, ...mapped, autorEmail: email }));
-      const urls = row.arquivos_urls;
+      const urls = targetRow.arquivos_urls;
       setExistingArquivos(Array.isArray(urls) ? (urls as StoredAttachment[]) : []);
-      const { video, doc } = readLinkFields(row as DbSubmission);
+      const { video, doc } = readLinkFields(targetRow as DbSubmission);
       setVideoLinks(video);
       setDocProvasLinks(doc);
       setAuthChecking(false);
@@ -485,7 +519,7 @@ export default function AreaClienteFormulario() {
     return () => {
       cancelled = true;
     };
-  }, [navigate]);
+  }, [navigate, caseIdParam]);
 
   const addFiles = useCallback((entries: FileEntry[]) => {
     setFiles((prev) => {
