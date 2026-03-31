@@ -17,6 +17,7 @@ import {
 
 const OAB_CONSULTA_URL =
   "https://www.oab.org.br/institucional/servicos/consulta-de-inscricoes";
+const NOVO_CASO_KLIVO_URL = "https://go.klivopay.com.br/t45jsqe1qe";
 
 type CaseRow = {
   id: string;
@@ -115,6 +116,8 @@ export default function ClientArea() {
 
   const historico = rows.filter(isIntakeComplete);
   const pendentes = rows.filter((r) => !isIntakeComplete(r));
+  const hasCompletedCase = historico.length > 0;
+  const hasOpenFormSlot = pendentes.length > 0 || !hasCompletedCase;
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -318,11 +321,17 @@ export default function ClientArea() {
             <h2 className="text-lg font-bold text-slate-900">Histórico de Processos</h2>
             <button
               type="button"
-              onClick={() => navigate("/formulario")}
+              onClick={() => {
+                if (!hasOpenFormSlot) {
+                  window.open(NOVO_CASO_KLIVO_URL, "_blank", "noopener,noreferrer");
+                  return;
+                }
+                navigate("/formulario");
+              }}
               className="inline-flex items-center gap-2 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold px-4 py-2.5 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Enviar novo caso
+              {hasOpenFormSlot ? "Enviar meu formulário" : "Pagar R$ 19,99 para novo caso"}
             </button>
           </div>
 
@@ -471,13 +480,14 @@ export default function ClientArea() {
           <div className="p-4 sm:p-5 space-y-3">
             {!listLoading && rows.length === 0 && (
               <div className="rounded-lg border border-amber-100 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
-                Nenhum registro encontrado para este e-mail. Confirme se o pagamento foi vinculado ao mesmo e-mail da conta.
+                Nenhum registro encontrado para este e-mail. Para abrir um novo caso, conclua o pagamento da taxa de
+                R$ 19,99 com o mesmo e-mail da conta.
                 <button
                   type="button"
                   className="block mt-2 text-blue-800 font-semibold underline"
-                  onClick={() => navigate("/formulario")}
+                  onClick={() => window.open(NOVO_CASO_KLIVO_URL, "_blank", "noopener,noreferrer")}
                 >
-                  Tentar abrir o formulário
+                  Ir para pagamento
                 </button>
               </div>
             )}
