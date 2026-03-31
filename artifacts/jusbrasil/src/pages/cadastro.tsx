@@ -11,14 +11,27 @@ const cadastroSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   confirmPassword: z.string(),
-}).refine((d) => d.password === d.confirmPassword, {
+}).refine((d: { password: string; confirmPassword: string }) => d.password === d.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
 });
 
+function normalizeAuthErrorMessage(message?: string) {
+  if (!message) return "Nao foi possivel criar sua conta. Tente novamente.";
+  const lower = message.toLowerCase();
+  if (lower.includes("already registered") || lower.includes("already been registered")) {
+    return "Este e-mail ja esta cadastrado. Tente entrar na sua conta.";
+  }
+  if (lower.includes("password")) {
+    return "Senha invalida. Use pelo menos 6 caracteres.";
+  }
+  return message;
+}
+
 export default function CadastroPage() {
   const [, navigate] = useLocation();
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authSuccess, setAuthSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof cadastroSchema>>({
@@ -27,17 +40,32 @@ export default function CadastroPage() {
   });
 
   const onSubmit = async (data: z.infer<typeof cadastroSchema>) => {
-    setLoading(true);
     setAuthError(null);
-    const { error } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-    });
-    setLoading(false);
-    if (error) {
-      setAuthError(error.message);
-    } else {
+    setAuthSuccess(null);
+    setLoading(true);
+    try {
+      const email = data.email.trim().toLowerCase();
+      const { data: signUpData, error } = await supabase.auth.signUp({
+        email,
+        password: data.password,
+      });
+
+      if (error) {
+        setAuthError(normalizeAuthErrorMessage(error.message));
+        return;
+      }
+
+      // Se a confirmacao de e-mail estiver ativa, o Supabase nao devolve sessao imediata.
+      if (!signUpData.session) {
+        setAuthSuccess("Conta criada. Verifique seu e-mail para confirmar o cadastro e depois faca login.");
+        return;
+      }
+
       navigate("/area-cliente");
+    } catch {
+      setAuthError("Nao foi possivel criar sua conta agora. Tente novamente em instantes.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,6 +88,7 @@ export default function CadastroPage() {
                 <input
                   {...form.register("email")}
                   type="email"
+                  autoComplete="email"
                   placeholder="seu@email.com"
                   className="w-full h-11 bg-white border-2 border-slate-200 rounded-xl px-3 text-sm focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all"
                 />
@@ -73,6 +102,7 @@ export default function CadastroPage() {
                 <input
                   {...form.register("password")}
                   type="password"
+                  autoComplete="new-password"
                   placeholder="Mínimo 6 caracteres"
                   className="w-full h-11 bg-white border-2 border-slate-200 rounded-xl px-3 text-sm focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all"
                 />
@@ -86,6 +116,7 @@ export default function CadastroPage() {
                 <input
                   {...form.register("confirmPassword")}
                   type="password"
+                  autoComplete="new-password"
                   placeholder="Repita a senha"
                   className="w-full h-11 bg-white border-2 border-slate-200 rounded-xl px-3 text-sm focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all"
                 />
@@ -98,6 +129,12 @@ export default function CadastroPage() {
                 <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-xl text-sm">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {authError}
+                </div>
+              )}
+
+              {authSuccess && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2.5 rounded-xl text-sm">
+                  {authSuccess}
                 </div>
               )}
 
