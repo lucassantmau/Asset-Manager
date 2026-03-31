@@ -29,3 +29,5 @@ timeoutMs = 20000
 [nix]
 packages = ["python37"]
 channel = "stable-25_05"
+[run]
+command = "cd artifacts/jusbrasil && PORT=3000 BASE_PATH=/ pnpm run dev"
