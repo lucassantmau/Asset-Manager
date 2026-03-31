@@ -42,6 +42,20 @@ type SubmissionRow = Record<string, unknown> & {
   disponivel_para_advogados?: boolean | null;
 };
 
+type ProposalRow = {
+  id: string;
+  submission_id: string;
+  lawyer_id: string;
+  fee_percentage: number | null;
+  summary: string | null;
+  terms: string | null;
+  lawyer_name: string | null;
+  lawyer_oab: string | null;
+  lawyer_phone: string | null;
+  status: string;
+  created_at: string;
+};
+
 function statusLabel(s: string) {
   const m: Record<string, string> = {
     pending: "Em análise",
@@ -79,9 +93,13 @@ export default function LawyerArea() {
   const [email, setEmail] = useState<string | null>(null);
   const [cases, setCases] = useState<SubmissionRow[]>([]);
   const [casesLoading, setCasesLoading] = useState(false);
-  const [claimingId, setClaimingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [myProposals, setMyProposals] = useState<Record<string, ProposalRow>>({});
+  const [proposingId, setProposingId] = useState<string | null>(null);
+  const [proposalFee, setProposalFee] = useState<Record<string, string>>({});
+  const [proposalSummary, setProposalSummary] = useState<Record<string, string>>({});
+  const [proposalTerms, setProposalTerms] = useState<Record<string, string>>({});
 
   const loadCases = useCallback(async () => {
     setCasesLoading(true);
@@ -97,6 +115,19 @@ export default function LawyerArea() {
       setCases((data as SubmissionRow[]) ?? []);
     }
     setCasesLoading(false);
+  }, []);
+
+  const loadMyProposals = useCallback(async (lawyerId: string) => {
+    const { data, error } = await supabase
+      .from("pequenas_causas_proposals")
+      .select("id, submission_id, lawyer_id, fee_percentage, summary, terms, lawyer_name, lawyer_oab, lawyer_phone, status, created_at")
+      .eq("lawyer_id", lawyerId);
+    if (error) return;
+    const map: Record<string, ProposalRow> = {};
+    (data as ProposalRow[] | null)?.forEach((p) => {
+      map[p.submission_id] = p;
+    });
+    setMyProposals(map);
   }, []);
 
   useEffect(() => {
@@ -128,6 +159,7 @@ export default function LawyerArea() {
 
       setLoading(false);
       if (row && (row as LawyerProfile).registration_status === "approved") {
+        await loadMyProposals(session.user.id);
         await loadCases();
       }
     })();
@@ -139,38 +171,49 @@ export default function LawyerArea() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, loadCases]);
+  }, [navigate, loadCases, loadMyProposals]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/advogado/signin");
   };
 
-  const claimCase = async (row: SubmissionRow) => {
+  const sendProposal = async (row: SubmissionRow) => {
     if (!profile?.id) return;
-    setClaimingId(row.id);
+    const feeRaw = proposalFee[row.id] ?? "";
+    const fee = Number(feeRaw.replace(",", "."));
+    if (!Number.isFinite(fee) || fee <= 0 || fee > 100) {
+      setErrorMsg("Informe um percentual válido entre 0,01 e 100.");
+      return;
+    }
+    const summary = (proposalSummary[row.id] ?? "").trim();
+    if (!summary) {
+      setErrorMsg("Descreva a proposta para o cliente.");
+      return;
+    }
+    const terms = (proposalTerms[row.id] ?? "").trim();
+    setProposingId(row.id);
     setErrorMsg(null);
-    const { data, error } = await supabase
-      .from("pequenas_causas_submissions")
-      .update({
-        assigned_lawyer_id: profile.id,
-        status: "advogado_designado",
-      })
-      .eq("id", row.id)
-      .is("assigned_lawyer_id", null)
-      .select("id")
-      .maybeSingle();
-
-    setClaimingId(null);
+    const { error } = await supabase.from("pequenas_causas_proposals").upsert(
+      {
+        submission_id: row.id,
+        lawyer_id: profile.id,
+        fee_percentage: fee,
+        summary,
+        terms: terms || null,
+        lawyer_name: profile.full_name,
+        lawyer_oab: profile.oab,
+        lawyer_phone: profile.phone,
+        status: "pending",
+      },
+      { onConflict: "submission_id,lawyer_id" },
+    );
+    setProposingId(null);
     if (error) {
       setErrorMsg(error.message);
       return;
     }
-    if (!data) {
-      setErrorMsg("Este caso já foi atribuído a outro advogado. Atualize a lista.");
-      await loadCases();
-      return;
-    }
+    await loadMyProposals(profile.id);
     await loadCases();
   };
 
@@ -312,24 +355,69 @@ export default function LawyerArea() {
                                 </>
                               )}
                             </button>
-                            <button
-                              type="button"
-                              disabled={claimingId === c.id}
-                              onClick={() => claimCase(c)}
-                              className="inline-flex items-center gap-2 rounded-lg bg-[#001532] text-white px-4 py-2 text-sm font-bold disabled:opacity-50"
-                            >
-                              {claimingId === c.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
+                            {myProposals[c.id] ? (
+                              <span className="inline-flex items-center rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-2 text-xs font-semibold">
+                                Proposta enviada
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setExpandedId((x) => (x === c.id ? null : c.id))}
+                                className="inline-flex items-center gap-2 rounded-lg bg-[#001532] text-white px-4 py-2 text-sm font-bold"
+                              >
                                 <UserCheck className="w-4 h-4" />
-                              )}
-                              Assumir este caso
-                            </button>
+                                Enviar proposta
+                              </button>
+                            )}
                           </div>
                         </div>
                         {expandedId === c.id && (
                           <div className="border-t border-slate-100 bg-slate-50/80 px-4 py-4 text-sm space-y-3">
                             <SummaryBlock c={c} />
+                            {!myProposals[c.id] && (
+                              <div className="rounded-lg border border-slate-200 bg-white p-3 space-y-2">
+                                <p className="text-sm font-semibold text-[#001532]">Sua proposta</p>
+                                <div className="grid sm:grid-cols-2 gap-2">
+                                  <input
+                                    value={proposalFee[c.id] ?? ""}
+                                    onChange={(e) =>
+                                      setProposalFee((prev) => ({ ...prev, [c.id]: e.target.value }))
+                                    }
+                                    placeholder="Percentual (%), ex: 30"
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                                  />
+                                  <input
+                                    value={proposalSummary[c.id] ?? ""}
+                                    onChange={(e) =>
+                                      setProposalSummary((prev) => ({ ...prev, [c.id]: e.target.value }))
+                                    }
+                                    placeholder="Resumo da proposta"
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                                  />
+                                </div>
+                                <textarea
+                                  value={proposalTerms[c.id] ?? ""}
+                                  onChange={(e) =>
+                                    setProposalTerms((prev) => ({ ...prev, [c.id]: e.target.value }))
+                                  }
+                                  placeholder="Condições adicionais (opcional)"
+                                  className="w-full min-h-[88px] rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                                />
+                                <button
+                                  type="button"
+                                  disabled={proposingId === c.id}
+                                  onClick={() => sendProposal(c)}
+                                  className="inline-flex items-center gap-2 rounded-lg bg-[#001532] text-white px-4 py-2 text-sm font-bold disabled:opacity-50"
+                                >
+                                  {proposingId === c.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <UserCheck className="w-4 h-4" />
+                                  )}
+                                  Confirmar proposta
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </li>

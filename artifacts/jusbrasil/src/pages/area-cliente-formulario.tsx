@@ -603,7 +603,7 @@ export default function AreaClienteFormulario() {
     const base: Record<string, unknown> = {
       // Coluna criada na migration do portal; muitas bases não têm "protocolo" (PGRST204).
       pedido_ref: proto,
-      status: "aguardando_analise",
+      status: "aguardando_propostas",
       autor_nome: form.autorNome,
       autor_cpf: autorIsCnpj ? null : maskCPF(form.autorDocumento),
       autor_cnpj: autorIsCnpj ? maskCNPJ(form.autorDocumento) : null,

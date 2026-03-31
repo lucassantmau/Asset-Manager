@@ -11,6 +11,8 @@ import {
   Plus,
   Pencil,
   Loader2,
+  CheckCircle2,
+  MessageCircle,
 } from "lucide-react";
 
 const OAB_CONSULTA_URL =
@@ -31,6 +33,22 @@ type CaseRow = {
   pagamento_confirmado?: boolean | null;
   pedido_ref?: string | null;
   arquivos_urls?: Array<{ category: string; name: string; url: string; uploaded_at?: string }>;
+  assigned_lawyer_id?: string | null;
+  accepted_proposal_id?: string | null;
+};
+
+type ProposalRow = {
+  id: string;
+  submission_id: string;
+  lawyer_id: string;
+  fee_percentage: number | null;
+  summary: string | null;
+  terms: string | null;
+  lawyer_name: string | null;
+  lawyer_oab: string | null;
+  lawyer_phone: string | null;
+  status: string;
+  created_at: string;
 };
 
 function normalizeEmail(e: string) {
@@ -52,6 +70,9 @@ function statusLabel(status: string | null | undefined) {
   const s = (status || "aguardando_analise").toLowerCase();
   const map: Record<string, string> = {
     aguardando_analise: "Aguardando análise",
+    aguardando_propostas: "Aguardando propostas",
+    com_propostas: "Propostas recebidas",
+    proposta_aceita: "Proposta aceita",
     em_analise: "Em análise",
     advogado_designado: "Advogado designado",
     processo_aberto: "Processo aberto",
@@ -83,6 +104,8 @@ export default function ClientArea() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [proposalsByCase, setProposalsByCase] = useState<Record<string, ProposalRow[]>>({});
+  const [acceptingProposalId, setAcceptingProposalId] = useState<string | null>(null);
 
   const primaryRow = rows[0] ?? null;
 
@@ -134,8 +157,59 @@ export default function ClientArea() {
       .eq("autor_email", em)
       .order("created_at", { ascending: false });
 
-    if (!error && data) setRows(data as CaseRow[]);
+    if (!error && data) {
+      const list = data as CaseRow[];
+      setRows(list);
+      await loadProposalsForCases(list);
+    }
     setListLoading(false);
+  };
+
+  const loadProposalsForCases = async (caseRows: CaseRow[]) => {
+    const ids = caseRows.map((r) => r.id);
+    if (ids.length === 0) {
+      setProposalsByCase({});
+      return;
+    }
+    const { data: proposals } = await supabase
+      .from("pequenas_causas_proposals")
+      .select("id, submission_id, lawyer_id, fee_percentage, summary, terms, lawyer_name, lawyer_oab, lawyer_phone, status, created_at")
+      .in("submission_id", ids)
+      .order("created_at", { ascending: true });
+
+    const grouped: Record<string, ProposalRow[]> = {};
+    (proposals as ProposalRow[] | null)?.forEach((p) => {
+      if (!grouped[p.submission_id]) grouped[p.submission_id] = [];
+      grouped[p.submission_id].push(p);
+    });
+    setProposalsByCase(grouped);
+  };
+
+  const acceptProposal = async (row: CaseRow, proposal: ProposalRow) => {
+    if (!userEmail) return;
+    setAcceptingProposalId(proposal.id);
+    const { error: updateCaseErr } = await supabase
+      .from("pequenas_causas_submissions")
+      .update({
+        assigned_lawyer_id: proposal.lawyer_id,
+        accepted_proposal_id: proposal.id,
+        status: "proposta_aceita",
+      })
+      .eq("id", row.id);
+    if (updateCaseErr) {
+      setUploadError(updateCaseErr.message);
+      setAcceptingProposalId(null);
+      return;
+    }
+
+    await supabase
+      .from("pequenas_causas_proposals")
+      .update({ status: "rejected" })
+      .eq("submission_id", row.id)
+      .neq("id", proposal.id);
+    await supabase.from("pequenas_causas_proposals").update({ status: "accepted" }).eq("id", proposal.id);
+    await loadRows(userEmail);
+    setAcceptingProposalId(null);
   };
 
   const handleSignOut = async () => {
@@ -286,13 +360,18 @@ export default function ClientArea() {
                         {r.valor_estimado ? `R$ ${r.valor_estimado}` : "—"}
                       </td>
                       <td className="px-5 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => navigate("/formulario")}
-                          className="text-blue-700 font-semibold text-xs hover:underline"
-                        >
-                          Ver / Editar
-                        </button>
+                        <div className="flex items-center justify-end gap-3">
+                          <span className="text-[11px] text-emerald-700 font-semibold">
+                            {(proposalsByCase[r.id] ?? []).length} proposta(s)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => navigate("/formulario")}
+                            className="text-blue-700 font-semibold text-xs hover:underline"
+                          >
+                            Ver / Editar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -301,6 +380,86 @@ export default function ClientArea() {
             </table>
           </div>
         </section>
+
+        {/* Propostas recebidas */}
+        {primaryRow && isIntakeComplete(primaryRow) && (
+          <section className={cardClass}>
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+              <h2 className="text-lg font-bold text-slate-900">Propostas Recebidas</h2>
+              <span className="text-xs font-semibold text-emerald-700">
+                {(proposalsByCase[primaryRow.id] ?? []).length} proposta(s)
+              </span>
+            </div>
+            <div className="p-5 space-y-3">
+              {(proposalsByCase[primaryRow.id] ?? []).length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  Seu caso está aguardando propostas dos advogados parceiros.
+                </p>
+              ) : (
+                (proposalsByCase[primaryRow.id] ?? []).map((p) => {
+                  const accepted = p.status === "accepted";
+                  return (
+                    <div key={p.id} className="rounded-xl border border-slate-200 p-4 bg-white">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-slate-900">
+                            {p.lawyer_name ?? "Advogado parceiro"}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            OAB {p.lawyer_oab ?? "—"} · enviado em {formatDateBR(p.created_at)}
+                          </p>
+                        </div>
+                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                          {p.fee_percentage != null ? `${p.fee_percentage}% sobre o ganho` : "Proposta personalizada"}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm text-slate-700">{p.summary ?? "—"}</p>
+                      {p.terms && <p className="mt-1 text-xs text-slate-500">{p.terms}</p>}
+
+                      {accepted ? (
+                        <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Proposta aceita. WhatsApp do advogado: <strong>{p.lawyer_phone ?? "—"}</strong>
+                        </div>
+                      ) : primaryRow.status === "proposta_aceita" ? (
+                        <p className="mt-3 text-xs text-slate-500">Outra proposta já foi aceita para este caso.</p>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={acceptingProposalId === p.id}
+                          onClick={() => acceptProposal(primaryRow, p)}
+                          className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#1e3a8a] text-white text-sm font-semibold px-4 py-2 disabled:opacity-60"
+                        >
+                          {acceptingProposalId === p.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="w-4 h-4" />
+                          )}
+                          Aceitar proposta
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+
+              {primaryRow.status === "proposta_aceita" && (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 flex items-center justify-between gap-3">
+                  <span>Contato do advogado liberado. Fale diretamente para iniciar o atendimento.</span>
+                  <a
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 text-white px-3 py-2 text-xs font-semibold"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`https://wa.me/${((proposalsByCase[primaryRow.id] ?? []).find((p) => p.status === "accepted")?.lawyer_phone ?? "").replace(/\D/g, "")}`}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Falar no WhatsApp
+                  </a>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Pendentes */}
         <section className={cardClass}>
