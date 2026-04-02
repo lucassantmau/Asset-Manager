@@ -26,6 +26,7 @@ import * as z from "zod";
 import { useSubmitCase, useCreatePayment } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { supabase } from "@/lib/supabase";
+import { Helmet } from "react-helmet-async";
 
 /** Link de checkout (Klivo). Altere aqui se o gateway mudar. */
 const PAGAMENTO_KLIVO_URL = "https://go.klivopay.com.br/t45jsqe1qe";
@@ -178,6 +179,69 @@ export default function Home() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Pequenas Causas | Advogados Especialistas em Juizado Especial - R$149,99</title>
+        <meta name="description" content="Conectamos seu caso a advogados especialistas em Pequenas Causas e Juizado Especial Civel. Atendimento 100% digital por apenas R$149,99. Advogados que so cobram se voce ganhar." />
+        <meta name="keywords" content="pequenas causas, juizado especial, advogado online, advogado pequenas causas, juizado especial civel, processo pequenas causas, advogado digital" />
+        <link rel="canonical" href="https://pequenascausasprocessos.com.br" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://pequenascausasprocessos.com.br" />
+        <meta property="og:title" content="Pequenas Causas | Advogados Especialistas - Atendimento Digital" />
+        <meta property="og:description" content="Acesse nossa rede de advogados especialistas em Pequenas Causas por apenas R$149,99. 100% digital, advogados que so cobram no exito da causa." />
+        <meta property="og:locale" content="pt_BR" />
+        <meta property="og:site_name" content="Pequenas Causas Processos" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Pequenas Causas | Advogados Especialistas - R$149,99" />
+        <meta name="twitter:description" content="Conectamos seu caso a advogados especialistas em Pequenas Causas. 100% digital, so paga se ganhar." />
+
+        {/* Structured Data - LegalService */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LegalService",
+            "name": "Pequenas Causas Processos",
+            "description": "Plataforma digital que conecta clientes a advogados especialistas em Pequenas Causas e Juizado Especial Civel",
+            "url": "https://pequenascausasprocessos.com.br",
+            "areaServed": { "@type": "Country", "name": "Brazil" },
+            "serviceType": "Assessoria Juridica em Pequenas Causas",
+            "priceRange": "R$149,99",
+            "availableChannel": {
+              "@type": "ServiceChannel",
+              "serviceType": "Online",
+              "availableLanguage": { "@type": "Language", "name": "Portuguese" }
+            }
+          })}
+        </script>
+
+        {/* Structured Data - FAQ */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Quanto custa para acessar a rede de advogados?",
+                "acceptedAnswer": { "@type": "Answer", "text": "O acesso a nossa rede de advogados especialistas em pequenas causas custa apenas R$149,99. Apos o pagamento, voce envia seu caso e recebe propostas de advogados que trabalham no modelo ad exitum (so cobram se ganharem)." }
+              },
+              {
+                "@type": "Question",
+                "name": "O que sao pequenas causas?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Pequenas causas sao processos tramitados no Juizado Especial Civel, para causas de ate 40 salarios minimos. Sao mais rapidos e simples que processos na justica comum." }
+              },
+              {
+                "@type": "Question",
+                "name": "Como funciona o atendimento?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Apos o pagamento de R$149,99, voce faz upload do seu processo e aguarda propostas de advogados da nossa rede. Os advogados trabalham no modelo ad exitum: so cobram honorarios se ganharem a causa." }
+              }
+            ]
+          })}
+        </script>
+      </Helmet>
       {/* HERO SECTION */}
       <section className="relative pt-8 pb-12 hero-gradient" id="avaliar">
         {/* Subtle top-right glow */}
