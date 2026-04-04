@@ -192,12 +192,14 @@ export default function Home() {
         <meta property="og:description" content="Acesse nossa rede de advogados especialistas em Pequenas Causas por apenas R$149,99. 100% digital, advogados que so cobram no exito da causa." />
         <meta property="og:locale" content="pt_BR" />
         <meta property="og:site_name" content="Pequenas Causas Processos" />
+        <meta property="og:image" content="https://cdn.jsdelivr.net/gh/lucassantmau/Asset-Manager@main/artifacts/mockup-sandbox/public/og-image.png" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Pequenas Causas | Advogados Especialistas - R$149,99" />
         <meta name="twitter:description" content="Conectamos seu caso a advogados especialistas em Pequenas Causas. 100% digital, so paga se ganhar." />
 
+        <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/lucassantmau/Asset-Manager@main/artifacts/mockup-sandbox/public/og-image.png" />
         {/* Structured Data - LegalService */}
         <script type="application/ld+json">
           {JSON.stringify({
