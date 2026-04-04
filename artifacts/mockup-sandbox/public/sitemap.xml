@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Pagina Principal -->
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Paginas Institucionais -->
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/termos</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/privacidade</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Area do Cliente -->
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/area-do-cliente</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!--
+    PAGINAS DE CONTEUDO FUTURAS (SEO)
+    Descomente as URLs abaixo a medida que criar cada pagina.
+  -->
+
+  <!-- /cobranca-indevida -->
+  <!--
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/cobranca-indevida</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  -->
+
+  <!-- /negativacao-indevida -->
+  <!--
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/negativacao-indevida</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  -->
+
+  <!-- /problema-com-voo -->
+  <!--
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/problema-com-voo</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  -->
+
+  <!-- /plano-de-saude -->
+  <!--
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/plano-de-saude</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  -->
+
+  <!-- /danos-morais -->
+  <!--
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/danos-morais</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  -->
+
+  <!-- /desconto-indevido-inss -->
+  <!--
+  <url>
+    <loc>https://www.pequenascausasprocessos.com.br/desconto-indevido-inss</loc>
+    <lastmod>2026-04-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  -->
+
+</urlset>
