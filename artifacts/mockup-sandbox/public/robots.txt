@@ -1,0 +1,17 @@
+# robots.txt - Pequenas Causas Processos
+# https://www.pequenascausasprocessos.com.br
+
+User-agent: *
+Allow: /
+
+# Bloquear areas de sistema/login que nao devem ser indexadas
+Disallow: /advogado/signin
+Disallow: /advogado/signup
+Disallow: /advogado/dashboard
+Disallow: /area-do-cliente
+Disallow: /api/
+Disallow: /_next/
+Disallow: /auth/
+
+# Sitemap
+Sitemap: https://www.pequenascausasprocessos.com.br/sitemap.xml
