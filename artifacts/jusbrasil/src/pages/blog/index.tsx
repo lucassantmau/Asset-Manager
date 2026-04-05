@@ -3,7 +3,7 @@ import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 import { useGetBlogPosts } from "@workspace/api-client-react";
 import { formatDate } from "@/lib/utils";
-import { ArrowRight, BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen, Scale } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function BlogList() {
