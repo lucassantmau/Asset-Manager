@@ -1,0 +1,18 @@
+cat > artifacts/api-server/src/seed-blog.ts << 'EOF'
+import { db, blogPostsTable } from "@workspace/db";
+
+export async function seedBlog() {
+  const count = await db.$count(blogPostsTable);
+  if (count > 0) return;
+  console.log("[seed] Blog vazio, inserindo artigos...");
+  await db.insert(blogPostsTable).values([
+    { uuid: 'a1b2c3d4-1111-4000-a000-000000000001', slug: 'voo-cancelado-direitos-indenizacao', title: 'Voo Cancelado ou Atrasado? Seus Direitos e Indenização', summary: 'Saiba seus direitos segundo a ANAC e como conseguir indenização.', content: '<h2>Voo cancelado</h2><p>A Resolução 400 da ANAC protege o passageiro.</p><h2>Direitos</h2><p>1h: comunicação. 2h: alimentação. 4h: hospedagem.</p><h2>Indenização</h2><p>R$ 3.000 a R$ 15.000.</p><h2>Pequenas Causas Processos</h2><p>Advogado de verdade, 100% online, só paga se ganhar.</p>', category: 'Direito do Passageiro', publishedAt: new Date('2026-04-01') },
+    { uuid: 'a1b2c3d4-2222-4000-a000-000000000002', slug: 'negativacao-indevida-nome-sujo-indenizacao', title: 'Negativação Indevida: SPC/Serasa e Indenização', summary: 'Entenda seus direitos e como buscar indenização.', content: '<h2>Negativação indevida</h2><p>Nome no SPC/Serasa injustamente.</p><h2>CDC</h2><p>Notificação prévia obrigatória. 5 dias para retirar.</p><h2>Valores</h2><p>R$ 3.000 a R$ 10.000.</p><h2>Pequenas Causas</h2><p>Advogado de verdade, só paga se ganhar.</p>', category: 'Direito do Consumidor', publishedAt: new Date('2026-04-02') },
+    { uuid: 'a1b2c3d4-3333-4000-a000-000000000003', slug: 'restituicao-inss-dois-empregos', title: 'Restituição INSS: Dois Empregos, Até R$ 60 Mil', summary: 'Pagando INSS acima do teto? Saiba como pedir restituição.', content: '<h2>Dois empregos</h2><p>Cada empregador desconta separado. Soma acima do teto = pagando demais.</p><h2>Direito</h2><p>2+ empregos nos últimos 5 anos.</p><h2>Valores</h2><p>R$ 20.000 a R$ 60.000.</p><h2>Pequenas Causas</h2><p>Advogado de verdade, só paga se receber.</p>', category: 'INSS e Previdência', publishedAt: new Date('2026-04-03') },
+    { uuid: 'a1b2c3d4-4444-4000-a000-000000000004', slug: 'como-entrar-processo-juizado-especial-2026', title: 'Juizado Especial: Guia Completo 2026', summary: 'Quem pode, limite de valor, documentos e prazos.', content: '<h2>Juizado Especial</h2><p>Lei 9.099/95, causas de menor valor.</p><h2>Quem pode</h2><p>Pessoas físicas, MEs, EPPs. Limite: 40 SM.</p><h2>Prazo</h2><p>3 a 6 meses.</p><h2>Pequenas Causas</h2><p>Advogado de verdade, 100% online, menor percentual.</p>', category: 'Juizado Especial', publishedAt: new Date('2026-04-04') },
+    { uuid: 'a1b2c3d4-5555-4000-a000-000000000005', slug: 'cobranca-indevida-conta-luz-agua-telefone', title: 'Cobrança Indevida: Reembolso em Dobro', summary: 'Seus direitos ao reembolso e indenização.', content: '<h2>A lei</h2><p>CDC artigo 42: devolução em dobro.</p><h2>Exemplos</h2><p>Energia, telefone, água, religação indevida.</p><h2>Pequenas Causas</h2><p>Qualquer causa de consumidor. Advogado de verdade, só paga se ganhar.</p>', category: 'Direito do Consumidor', publishedAt: new Date('2026-04-05') },
+  ]);
+  console.log("[seed] 5 artigos inseridos!");
+}
+EOF
+git add artifacts/api-server/src/seed-blog.ts && git commit -m "Add seed-blog.ts file" && git push origin main
