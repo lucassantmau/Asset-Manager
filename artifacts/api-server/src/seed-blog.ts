@@ -7,7 +7,7 @@ export async function seedBlog() {
   const count = Number(result[0]?.count ?? 0);
   if (count > 0) {
     console.log(`[seed] Blog já possui ${count} posts, pulando seed.`);
-    return;
+        await db.delete(blogPostsTable);
   }
 
   console.log("[seed] Inserindo artigos do blog...");
