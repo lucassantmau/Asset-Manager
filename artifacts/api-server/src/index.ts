@@ -1,4 +1,7 @@
+import { seedBlog } from "./seed-blog";
 import app from "./app";
+
+seedBlog().catch(e => console.error("[seed] Erro:", e));
 import { logger } from "./lib/logger";
 
 const rawPort = process.env["PORT"];
