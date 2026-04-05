@@ -39,6 +39,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <a href="/#depoimentos" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Depoimentos</a>
               <Link href="/advogado/signin" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Área do Advogado</Link>
               <a href="/#perguntas-frequentes" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">FAQ</a>
+              
+              <Link href="/blog" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Blog</Link>
               <Link href="/termos" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Termos de Uso</Link>
             </nav>
 
@@ -91,6 +93,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
               >
                 FAQ
               </a>
+              
+                <Link href="/blog" className="text-lg text-foreground/60 py-4 border-b border-muted" onClick={() => setMobileMenuOpen(false)}>
+                  Blog
+                </Link>
               <Link href="/termos" className="text-lg text-foreground/60 py-4 border-b border-muted" onClick={() => setMobileMenuOpen(false)}>
                 Termos de Uso
               </Link>
