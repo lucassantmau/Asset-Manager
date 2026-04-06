@@ -62,9 +62,9 @@ const checkoutSchema = z.object({
 });
 
 const EVIDENCES = [
-  "Conversas (WhatsApp)", "Áudios / Gravações", "Fotos / Vídeos", 
-  "E-mails", "Testemunhas", "Comprovantes", "Contrato / Documentos", 
-  "Protocolos de Atendimento", "Boletim de Ocorrência", "Outros"
+  "Conversas e mensagens", "Áudios", "Fotos e vídeos", 
+  "E-mails", "Testemunhas", "Comprovantes de pagamento", "Contrato ou proposta", 
+  "Protocolos de atendimento", "Boletim de ocorrência", "Outros documentos"
 ];
 
 const CAUSES = [
@@ -122,16 +122,16 @@ export default function Home() {
     try {
       const { error } = await supabase.from("cases").insert({
         case_description: step1Data.description,
-        evidence_conversas: evidences.includes("Conversas (WhatsApp)"),
-        evidence_audios: evidences.includes("Áudios / Gravações"),
-        evidence_fotos: evidences.includes("Fotos / Vídeos"),
+        evidence_conversas: evidences.includes("Conversas e mensagens"),
+        evidence_audios: evidences.includes("Áudios"),
+        evidence_fotos: evidences.includes("Fotos e vídeos"),
         evidence_emails: evidences.includes("E-mails"),
         evidence_testemunhas: evidences.includes("Testemunhas"),
-        evidence_comprovantes: evidences.includes("Comprovantes"),
-        evidence_contrato: evidences.includes("Contrato / Documentos"),
-        evidence_protocolos: evidences.includes("Protocolos de Atendimento"),
-        evidence_boletim: evidences.includes("Boletim de Ocorrência"),
-        evidence_outros: evidences.includes("Outros"),
+        evidence_comprovantes: evidences.includes("Comprovantes de pagamento"),
+        evidence_contrato: evidences.includes("Contrato ou proposta"),
+        evidence_protocolos: evidences.includes("Protocolos de atendimento"),
+        evidence_boletim: evidences.includes("Boletim de ocorrência"),
+        evidence_outros: evidences.includes("Outros documentos"),
         claim_value: parseFloat(String(step1Data.value)) || 0,
         full_name: data.name,
         whatsapp: data.whatsapp,
@@ -313,8 +313,8 @@ export default function Home() {
                     <ListOrdered className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground text-sm leading-tight">Etapas do processo</p>
-                    <p className="text-muted-foreground text-xs leading-tight">Triagem gratuita → Análise da causa → Advogado ingressa com processo, se cabível</p>
+                    <p className="font-bold text-foreground text-sm leading-tight">Jornada de atendimento</p>
+                    <p className="text-muted-foreground text-xs leading-tight">Diagnóstico inicial → Organização do caso → Propostas de advogados parceiros</p>
                   </div>
                 </div>
               </div>
@@ -327,11 +327,11 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="bg-white rounded-xl shadow-[0_8px_48px_0_rgba(0,0,0,0.28)] overflow-hidden"
               role="region"
-              aria-label="Formulário de avaliação de caso"
+              aria-label="Formulário de diagnóstico do caso"
             >
               <div className="p-5">
               <AnimatePresence mode="wait">
-                {/* STEP 1: Description */}
+                {/* STEP 1: Caso e contexto */}
                 {step === 1 && (
                   <motion.div
                     key="step1"
@@ -341,24 +341,24 @@ export default function Home() {
                   >
                     <div className="bg-gradient-to-r from-[#001532] to-[#032956] -mx-5 -mt-5 px-5 py-3.5 mb-5 border-t-[3px] border-[#fee001] rounded-t-xl">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-white">Conte o que aconteceu</h3>
+                        <h3 className="text-sm font-bold text-white">Diagnóstico inicial do caso</h3>
                         <span className="inline-flex items-center gap-1 bg-[#fee001] text-[#716300] text-xs font-bold px-2.5 py-1 rounded-full">
-                          <Clock className="w-3 h-3" /> Consulta gratuita
+                          <Clock className="w-3 h-3" /> Sem custo nesta etapa
                         </span>
                       </div>
-                      <p className="text-white/55 text-xs mt-1">Avaliamos seu caso sem custo. Leva apenas 2 minutos.</p>
+                      <p className="text-white/55 text-xs mt-1">Explique o contexto para montarmos a melhor estratégia com advogados parceiros.</p>
                     </div>
 
                     <form onSubmit={form1.handleSubmit(onStep1Submit)} className="space-y-4">
                       <div>
                         <label htmlFor="description" className="block text-xs font-bold text-foreground mb-1.5">
-                          Descreva o seu problema *
+                          Resumo objetivo do que aconteceu *
                         </label>
                         <textarea 
                           id="description"
                           {...form1.register("description")}
                           className="w-full bg-white border-2 border-slate-200 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all min-h-[100px] resize-y text-sm leading-relaxed"
-                          placeholder="Ex: Comprei uma passagem e meu voo foi cancelado sem aviso prévio..."
+                          placeholder="Ex: Contratei um serviço, paguei, e a empresa não entregou o que foi prometido..."
                         ></textarea>
                         {form1.formState.errors.description ? (
                           <div className="flex items-center gap-1.5 text-red-700 mt-1.5 bg-red-50 px-3 py-2 rounded-lg">
@@ -373,7 +373,7 @@ export default function Home() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-foreground mb-2">Quais provas você tem? <span className="font-normal text-muted-foreground">(opcional)</span></label>
+                        <label className="block text-xs font-bold text-foreground mb-2">Quais elementos você já possui? <span className="font-normal text-muted-foreground">(opcional)</span></label>
                         <div className="flex flex-wrap gap-1.5">
                           {EVIDENCES.map(ev => {
                             const selected = form1.watch("evidences") || [];
@@ -407,7 +407,7 @@ export default function Home() {
                       </div>
 
                       <div>
-                        <label htmlFor="value" className="block text-xs font-bold text-foreground mb-1.5">Valor da indenização buscada <span className="font-normal text-muted-foreground">(R$ - opcional)</span></label>
+                        <label htmlFor="value" className="block text-xs font-bold text-foreground mb-1.5">Faixa de valor discutido no caso <span className="font-normal text-muted-foreground">(R$ - opcional)</span></label>
                         <input 
                           id="value"
                           type="number"
@@ -421,14 +421,14 @@ export default function Home() {
                         type="submit"
                         className="group w-full py-3.5 rounded-xl bg-[#fee001] text-[#716300] font-bold text-sm shadow-[0_5px_0_0_#caa800] hover:shadow-[0_2px_0_0_#caa800] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all flex justify-center items-center gap-2"
                       >
-                        Continuar para Meus Dados
+                        Avançar para identificação
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </button>
                     </form>
                   </motion.div>
                 )}
 
-                {/* STEP 2: Personal Data */}
+                {/* STEP 2: Identificação e contato */}
                 {step === 2 && (
                   <motion.div
                     key="step2"
@@ -444,8 +444,8 @@ export default function Home() {
                         <ArrowRight className="w-4 h-4 rotate-180" /> Voltar
                       </button>
                       <div>
-                        <h3 className="text-2xl font-display font-bold text-foreground leading-tight">Seus Dados</h3>
-                        <p className="text-muted-foreground text-xs">Sigilo absoluto</p>
+                        <h3 className="text-2xl font-display font-bold text-foreground leading-tight">Identificação do solicitante</h3>
+                        <p className="text-muted-foreground text-xs">Dados usados somente para contato e validação</p>
                       </div>
                     </div>
 
@@ -524,7 +524,7 @@ export default function Home() {
                       <div className="bg-blue-50 border-2 border-primary/20 p-4 rounded-xl flex items-start gap-3">
                         <Lock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                         <p className="text-sm text-foreground leading-relaxed">
-                          <strong>Privacidade garantida:</strong> Seus dados são protegidos por lei e usados exclusivamente para análise do seu caso.
+                          <strong>Privacidade e uso responsável:</strong> seus dados são tratados com base na LGPD e utilizados apenas para o fluxo do seu atendimento.
                         </p>
                       </div>
 
@@ -536,7 +536,7 @@ export default function Home() {
                           className="mt-1 w-5 h-5 rounded border-slate-300 bg-white text-primary focus:ring-primary accent-primary cursor-pointer"
                         />
                         <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                          Confirmo que as informações são verdadeiras e aceito os <Link href="/termos" className="text-primary font-medium hover:underline">Termos de Uso</Link> e Política de Privacidade.
+                          Declaro que as informações prestadas são verdadeiras e concordo com os <Link href="/termos" className="text-primary font-medium hover:underline">Termos de Uso</Link> e a Política de Privacidade.
                         </label>
                       </div>
                       {form2.formState.errors.terms && (
@@ -551,13 +551,13 @@ export default function Home() {
                         disabled={submitCaseMutation.isPending}
                         className="group w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-[0_6px_0_0_hsl(214,82%,36%)] hover:shadow-[0_3px_0_0_hsl(214,82%,36%)] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all flex justify-center items-center gap-2 mt-2"
                       >
-                        {submitCaseMutation.isPending ? "Processando..." : <>Enviar para Análise Profissional <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
+                        {submitCaseMutation.isPending ? "Processando..." : <>Finalizar diagnóstico e seguir para pagamento <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
                       </button>
                     </form>
                   </motion.div>
                 )}
 
-                {/* STEP 3: Analyzing Loading state */}
+                {/* STEP 3: Processamento interno */}
                 {step === 3 && (
                   <motion.div
                     key="step3"
@@ -566,9 +566,9 @@ export default function Home() {
                     className="py-16 flex flex-col items-center text-center"
                   >
                     <div className="w-24 h-24 border-[8px] border-[#e5e7eb] border-t-primary rounded-full animate-spin mb-10"></div>
-                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-4">Analisando seu caso...</h3>
+                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-4">Organizando seu atendimento...</h3>
                     <p className="text-lg text-[#333333] max-w-sm">
-                      Por favor, não feche esta página. Estamos verificando os requisitos legais das informações enviadas.
+                      Por favor, aguarde alguns segundos. Estamos validando os dados para liberar a próxima etapa.
                     </p>
                   </motion.div>
                 )}
@@ -713,9 +713,9 @@ export default function Home() {
                     <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-5 border-4 border-[#bbf7d0]">
                       <CheckCircle2 className="w-10 h-10" />
                     </div>
-                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-2">Parabéns! Próximo passo: pagamento</h3>
+                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-2">Diagnóstico concluído. Próximo passo: ativação</h3>
                     <p className="text-sm text-[#555] mb-6 max-w-xs mx-auto leading-relaxed">
-                      Para conectar você a um advogado, conclua o pagamento da taxa de acesso abaixo. Depois você poderá criar seu login na área do cliente.
+                      Para liberar sua área de acompanhamento e receber propostas de advogados, conclua a taxa de ativação abaixo.
                     </p>
 
                     {casePersistError && (
@@ -732,7 +732,7 @@ export default function Home() {
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-base shadow-[0_5px_0_0_#15803d] hover:shadow-[0_2px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all mb-4"
                     >
-                      <Lock className="w-4 h-4" /> Efetuar Pagamento
+                      <Lock className="w-4 h-4" /> Ativar acesso agora
                     </a>
 
                     <Link
