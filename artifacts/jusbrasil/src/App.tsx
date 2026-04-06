@@ -18,6 +18,9 @@ import Terms from "@/pages/terms";
 import NotFound from "@/pages/not-found";
 import CriarConta from "@/pages/criar-conta";
 import NovaSenha from "@/pages/nova-senha";
+import LandingAtrasoVoo from "@/pages/landing/atraso-voo";
+import LandingCobrancaIndevida from "@/pages/landing/cobranca-indevida";
+import LandingJuizadoEspecial from "@/pages/landing/juizado-especial-civel";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +49,9 @@ function Router() {
       <Route path="/advogado/termos" component={TermsAdvogado} />
       <Route path="/blog" component={BlogList} />
       <Route path="/blog/:slug" component={BlogPost} />
+      <Route path="/atraso-voo" component={LandingAtrasoVoo} />
+      <Route path="/cobranca-indevida" component={LandingCobrancaIndevida} />
+      <Route path="/juizado-especial-civel" component={LandingJuizadoEspecial} />
       <Route path="/area-do-cliente" component={ClientArea} />
       <Route path="/termos" component={Terms} />
       <Route component={NotFound} />

@@ -5,6 +5,7 @@ import { useGetBlogPost } from "@workspace/api-client-react";
 import { formatDate } from "@/lib/utils";
 import { ArrowLeft, Scale } from "lucide-react";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 
 export default function BlogPost() {
   const [, params] = useRoute("/blog/:slug");
@@ -42,6 +43,11 @@ export default function BlogPost() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>{post.title} | Blog Jurídico</title>
+        <meta name="description" content={post.summary} />
+        <link rel="canonical" href={`https://pequenascausasprocessos.com.br/blog/${post.slug}`} />
+      </Helmet>
       <article className="pt-24 pb-32">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-10">

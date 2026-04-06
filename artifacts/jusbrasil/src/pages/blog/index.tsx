@@ -5,12 +5,21 @@ import { useGetBlogPosts } from "@workspace/api-client-react";
 import { formatDate } from "@/lib/utils";
 import { ArrowRight, BookOpen, Scale } from "lucide-react";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 
 export default function BlogList() {
   const { data, isLoading, error } = useGetBlogPosts({ page: 1, limit: 10 });
 
   return (
     <Layout>
+      <Helmet>
+        <title>Blog Jurídico | Pequenas Causas Processos</title>
+        <meta
+          name="description"
+          content="Artigos práticos sobre pequenas causas, Juizado Especial Cível e direitos do consumidor para orientar suas decisões."
+        />
+        <link rel="canonical" href="https://pequenascausasprocessos.com.br/blog" />
+      </Helmet>
       <div className="pt-24 pb-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
