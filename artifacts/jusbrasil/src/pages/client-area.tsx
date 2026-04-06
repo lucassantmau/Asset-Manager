@@ -323,7 +323,15 @@ export default function ClientArea() {
               type="button"
               onClick={() => {
                 if (!hasOpenFormSlot) {
-                  window.open(NOVO_CASO_KLIVO_URL, "_blank", "noopener,noreferrer");
+              // Google Ads Conversion Tracking
+              if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+                (window as any).gtag('event', 'conversion', {
+                  'send_to': 'AW-16505818170/R7Z0CNvf_JYcELqYy749',
+                  'value': 1.0,
+                  'currency': 'BRL'
+                });
+              }
+              window.open(NOVO_CASO_KLIVO_URL, "_blank", "noopener,noreferrer");
                   return;
                 }
                 navigate("/formulario");
@@ -485,7 +493,15 @@ export default function ClientArea() {
                 <button
                   type="button"
                   className="block mt-2 text-blue-800 font-semibold underline"
-                  onClick={() => window.open(NOVO_CASO_KLIVO_URL, "_blank", "noopener,noreferrer")}
+              // Google Ads Conversion Tracking
+              if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+                (window as any).gtag('event', 'conversion', {
+                  'send_to': 'AW-16505818170/R7Z0CNvf_JYcELqYy749',
+                  'value': 1.0,
+                  'currency': 'BRL'
+                });
+              }
+              window.open(NOVO_CASO_KLIVO_URL, "_blank", "noopener,noreferrer")}
                 >
                   Ir para pagamento
                 </button>
