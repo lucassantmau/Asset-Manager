@@ -84,6 +84,13 @@ const FAQS = [
   { q: "A Pequenas Causas Processos é um serviço oficial da Justiça?", a: "Não. A Pequenas Causas Processos é uma plataforma digital privada que conecta pessoas a advogados independentes. Não temos vínculo com o Poder Judiciário." }
 ];
 
+const JOURNEY_STEPS = [
+  { id: 1, label: "Diagnóstico" },
+  { id: 2, label: "Identificação" },
+  { id: 3, label: "Validação" },
+  { id: 7, label: "Ativação" },
+];
+
 export default function Home() {
   const [step, setStep] = useState(1);
   const [caseId, setCaseId] = useState<string | null>(null);
@@ -325,11 +332,40 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="bg-white rounded-xl shadow-[0_8px_48px_0_rgba(0,0,0,0.28)] overflow-hidden"
+              className="bg-white rounded-2xl border-2 border-slate-200 shadow-[0_14px_46px_0_rgba(15,23,42,0.16)] overflow-hidden"
               role="region"
               aria-label="Formulário de diagnóstico do caso"
             >
               <div className="p-5">
+              <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-2">
+                  Etapas do atendimento
+                </p>
+                <div className="flex items-center justify-between gap-2">
+                  {JOURNEY_STEPS.map((s) => {
+                    const active = step === s.id || (s.id === 7 && step > 3);
+                    const done = step > s.id || (s.id === 3 && step >= 7);
+                    return (
+                      <div key={s.id} className="flex items-center gap-2 min-w-0">
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
+                            active
+                              ? "bg-[#001532] text-white"
+                              : done
+                                ? "bg-emerald-600 text-white"
+                                : "bg-white border border-slate-300 text-slate-500"
+                          }`}
+                        >
+                          {s.id === 7 ? 4 : s.id}
+                        </div>
+                        <span className={`text-xs font-medium ${active ? "text-[#001532]" : "text-slate-500"}`}>
+                          {s.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
               <AnimatePresence mode="wait">
                 {/* STEP 1: Caso e contexto */}
                 {step === 1 && (
@@ -419,7 +455,7 @@ export default function Home() {
 
                       <button 
                         type="submit"
-                        className="group w-full py-3.5 rounded-xl bg-[#fee001] text-[#716300] font-bold text-sm shadow-[0_5px_0_0_#caa800] hover:shadow-[0_2px_0_0_#caa800] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all flex justify-center items-center gap-2"
+                        className="group w-full py-3.5 rounded-xl bg-[#001532] text-white font-bold text-sm hover:bg-[#032956] transition-all flex justify-center items-center gap-2"
                       >
                         Avançar para identificação
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -549,7 +585,7 @@ export default function Home() {
                       <button 
                         type="submit"
                         disabled={submitCaseMutation.isPending}
-                        className="group w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-[0_6px_0_0_hsl(214,82%,36%)] hover:shadow-[0_3px_0_0_hsl(214,82%,36%)] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all flex justify-center items-center gap-2 mt-2"
+                        className="group w-full py-4 rounded-xl bg-[#0f766e] text-white font-bold text-base hover:bg-[#115e59] disabled:opacity-50 transition-all flex justify-center items-center gap-2 mt-2"
                       >
                         {submitCaseMutation.isPending ? "Processando..." : <>Finalizar diagnóstico e seguir para pagamento <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
                       </button>
