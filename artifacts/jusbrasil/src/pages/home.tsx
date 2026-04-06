@@ -19,7 +19,9 @@ import {
   AlertCircle,
   Circle,
   CheckCircle,
-  ListOrdered
+  ListOrdered,
+  Plane,
+  ReceiptText
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +30,7 @@ import { useSubmitCase, useCreatePayment } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { Helmet } from "react-helmet-async";
+import { SEO_TOPIC_HUBS } from "@/lib/seo-topic-hubs";
 
 /** Link de checkout (Klivo). Altere aqui se o gateway mudar. */
 const PAGAMENTO_KLIVO_URL = "https://go.klivopay.com.br/t45jsqe1qe";
@@ -968,6 +971,57 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+      <section id="guias-por-tema" className="py-20 bg-muted/30 scroll-mt-24 border-y border-border/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">Conteúdo jurídico</span>
+            <h2 className="text-3xl md:text-4xl font-black mt-3 tracking-tight">Guias por tema</h2>
+            <p className="text-sm text-muted-foreground mt-3">
+              Páginas resumidas e artigos completos sobre os temas mais comuns em pequenas causas.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {SEO_TOPIC_HUBS.map((hub) => {
+              const Icon =
+                hub.id === "atraso-voo" ? Plane : hub.id === "cobranca-indevida" ? ReceiptText : Scale;
+              return (
+                <div
+                  key={hub.id}
+                  className="rounded-2xl border border-border bg-card p-6 flex flex-col shadow-sm hover:border-primary/25 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">{hub.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-grow mb-5">{hub.blurb}</p>
+                  <div className="flex flex-col gap-2 mt-auto">
+                    <Link
+                      href={hub.landingHref}
+                      className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
+                    >
+                      Página do tema <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <Link
+                      href={`/blog/${hub.blogSlug}`}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      Ler artigo no blog
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-center mt-10">
+            <Link
+              href="/blog"
+              className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
+            >
+              Ver todos os artigos do blog →
+            </Link>
+          </p>
         </div>
       </section>
       {/* LAWYER CTA */}

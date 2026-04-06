@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 import { Helmet } from "react-helmet-async";
 import { Scale, ArrowRight } from "lucide-react";
+import { LandingTopicCrosslinks } from "./topic-crosslinks";
 
 export default function LandingJuizadoEspecial() {
   return (
@@ -38,6 +39,7 @@ export default function LandingJuizadoEspecial() {
           </div>
         </div>
       </section>
+      <LandingTopicCrosslinks currentId="juizado-especial-civel" />
     </Layout>
   );
 }

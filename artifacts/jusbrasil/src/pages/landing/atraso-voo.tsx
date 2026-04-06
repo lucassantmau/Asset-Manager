@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 import { Helmet } from "react-helmet-async";
 import { Plane, ArrowRight } from "lucide-react";
+import { LandingTopicCrosslinks } from "./topic-crosslinks";
 
 export default function LandingAtrasoVoo() {
   return (
@@ -40,6 +41,7 @@ export default function LandingAtrasoVoo() {
           </div>
         </div>
       </section>
+      <LandingTopicCrosslinks currentId="atraso-voo" />
     </Layout>
   );
 }
