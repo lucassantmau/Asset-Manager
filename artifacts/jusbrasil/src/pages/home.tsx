@@ -96,6 +96,7 @@ export default function Home() {
   const [step, setStep] = useState(1);
   const [caseId, setCaseId] = useState<string | null>(null);
   const [pixCode, setPixCode] = useState<string | null>(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   /** Se o insert em `cases` falhar, ainda mostramos o pagamento; guardamos o motivo para o utilizador. */
   const [casePersistError, setCasePersistError] = useState<string | null>(null);
   
@@ -941,20 +942,51 @@ export default function Home() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">Perguntas Frequentes</span>
-            <h2 className="text-3xl md:text-4xl font-black mt-3 tracking-tight">Fui lesado, e agora?</h2>
+            <h2 className="text-3xl md:text-4xl font-black mt-3 tracking-tight">Entenda seus próximos passos</h2>
+            <p className="text-sm text-muted-foreground mt-3">
+              Respostas objetivas para você decidir com clareza e segurança.
+            </p>
           </div>
           
           <div className="space-y-3">
             {FAQS.map((faq, i) => (
-              <details key={i} className="group bg-card shadow-ambient rounded-xl overflow-hidden [&_summary::-webkit-details-marker]:hidden">
-                <summary className="flex items-center justify-between p-6 cursor-pointer font-semibold text-base hover:text-[#001532] transition-colors">
-                  {faq.q}
-                  <ChevronDown className="w-5 h-5 transition-transform group-open:rotate-180 flex-shrink-0 ml-4" />
-                </summary>
-                <div className="px-6 pb-6 text-muted-foreground leading-[1.6] text-sm">
-                  {faq.a}
-                </div>
-              </details>
+              <div
+                key={i}
+                className={`rounded-xl border transition-all ${
+                  openFaqIndex === i
+                    ? "border-[#001532]/25 bg-[#001532]/[0.02] shadow-[0_10px_30px_rgba(2,8,23,0.08)]"
+                    : "border-slate-200 bg-card hover:border-slate-300"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqIndex((prev) => (prev === i ? null : i))}
+                  aria-expanded={openFaqIndex === i}
+                  className="w-full text-left flex items-center justify-between gap-4 p-5"
+                >
+                  <span className="font-semibold text-[15px] leading-snug">{faq.q}</span>
+                  <span
+                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                      openFaqIndex === i ? "bg-[#001532] text-white" : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${openFaqIndex === i ? "rotate-180" : ""}`}
+                    />
+                  </span>
+                </button>
+                {openFaqIndex === i && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="px-5 pb-5 text-muted-foreground leading-[1.7] text-sm"
+                  >
+                    {faq.a}
+                  </motion.div>
+                )}
+              </div>
             ))}
           </div>
         </div>
