@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/layout";
+import ExitIntentPopup from "@/components/ExitIntentPopup";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ShieldCheck, 
@@ -266,7 +267,8 @@ export default function Home() {
                 <span className="text-[#fee001]">Defendidos</span> Sem<br />
                 Sair de Casa.
               </h1>
-              <p className="text-white/65 mb-3 max-w-lg text-[15px]">Atendimento jurídico 100% digital. Conectamos seu caso a advogados para avaliação e, se cabível, ação no Juizado Especial Cível</p>
+              <p className="text-white/65 mb-2 max-w-lg text-[15px]">Atendimento jurídico 100% digital. Conectamos seu caso a advogados para avaliação e, se cabível, ação no Juizado Especial Cível</p>
+              <p className="text-white/35 mb-3 max-w-lg text-[11px]">Somos uma plataforma de intermediação. Não prestamos serviços jurídicos diretamente.</p>
 
               {/* Trust badges */}
               <div className="grid grid-cols-2 gap-1.5 flex-1 content-between">
@@ -931,6 +933,7 @@ export default function Home() {
           <p className="text-xs text-white/25 mt-8">Habilitação profissional sujeita a verificação</p>
         </div>
       </section>
+      <ExitIntentPopup />
     </Layout>
   );
 }

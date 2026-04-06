@@ -159,7 +159,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div>
               <h4 className="font-bold text-base mb-5 text-white/80">Atendimento</h4>
               <a
-                href="https://api.whatsapp.com/send?phone=5511969284925"
+                href="https://wa.me/5511969284925"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium text-white/70"
@@ -177,6 +177,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <p className="text-xs text-white/30 mt-4">
                 Segunda a Sexta, das 09h às 18h.
               </p>
+              <div className="mt-6 pt-4 border-t border-white/10">
+                <p className="text-xs text-white/40 leading-relaxed">Smartbox Distribuidora LTDA</p>
+                <p className="text-xs text-white/40 leading-relaxed">CNPJ: 42.605.688/0001-83</p>
+                <p className="text-xs text-white/40 leading-relaxed">Rua Artur de Azevedo, 1217 - Pinheiros</p>
+                <p className="text-xs text-white/40 leading-relaxed">São Paulo — SP</p>
+              </div>
             </div>
           </div>
 
