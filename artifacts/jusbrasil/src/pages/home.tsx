@@ -176,6 +176,15 @@ export default function Home() {
         }
       });
       
+      // Google Ads Conversion Tracking
+      if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+        (window as any).gtag('event', 'conversion', {
+          'send_to': 'AW-16505818170/R7Z0CNvf_JYcELqYy749',
+          'value': 1.0,
+          'currency': 'BRL'
+        });
+      }
+
       if (data.method === 'pix') {
         setPixCode(result.pixCode || "00020126360014br.gov.bcb.pix0114+5511999999999");
         setStep(5);
@@ -770,6 +779,8 @@ export default function Home() {
 
                     <a
                       href={PAGAMENTO_KLIVO_URL}
+                onClick={() => { if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') { (window as any).gtag('event', 'conversion', { 'send_to': 'AW-16505818170/R7Z0CNvf_JYcELqYy749', 'value': 1.0, 'currency': 'BRL' }); } }}
+                
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-base shadow-[0_5px_0_0_#15803d] hover:shadow-[0_2px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all mb-4"
