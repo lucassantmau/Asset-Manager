@@ -22,6 +22,8 @@ const C = {
   borderFocus: "#3b82f6",
   error: "#dc2626",
   errorBg: "rgba(220,38,38,0.05)",
+  success: "#16a34a",
+  successBg: "rgba(22,163,74,0.08)",
 };
 
 const T: Record<string, React.CSSProperties> = {
@@ -68,6 +70,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Estado para fluxo de recuperação de senha
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -82,33 +91,117 @@ export default function LoginPage() {
     });
     if (authError) {
       setError("E-mail ou senha incorretos. Verifique e tente novamente.");
-      setLoading(false);
-      return;
+    } else {
+      navigate("/area-do-cliente");
     }
-
-    const { data: paymentData } = await supabase
-      .from("pequenas_causas_submissions")
-      .select("pagamento_confirmado")
-      .eq("autor_email", email.toLowerCase().trim())
-      .eq("pagamento_confirmado", true)
-      .maybeSingle();
-
-    if (paymentData === null) {
-      await supabase.auth.signOut();
-      setError("Acesso não autorizado. Somente clientes que realizaram o pagamento podem acessar o portal.");
-      setLoading(false);
-      return;
-    }
-
-    navigate("/area-do-cliente");
     setLoading(false);
   }
 
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault();
+    setForgotError("");
+    if (!forgotEmail.trim()) {
+      setForgotError("Informe seu e-mail.");
+      return;
+    }
+    setForgotLoading(true);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      forgotEmail.trim(),
+      { redirectTo: `${window.location.origin}/nova-senha` }
+    );
+    if (resetError) {
+      setForgotError("Não foi possível enviar o e-mail. Tente novamente.");
+    } else {
+      setForgotSent(true);
+    }
+    setForgotLoading(false);
+  }
+
+  // ── Tela de recuperação de senha ──────────────────────────
+  if (forgotMode) {
+    return (
+      <div style={T.page}>
+        <div style={T.topBar}>
+          <span style={T.logo}>
+            Pequenas <span style={T.logoSpan}>Causas</span>
+          </span>
+        </div>
+        <div style={T.wrap}>
+          <div style={T.card}>
+            {forgotSent ? (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>📧</div>
+                <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 12, marginTop: 0 }}>
+                  E-mail enviado!
+                </h2>
+                <p style={{ color: C.textMuted, fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
+                  Enviamos um link para <strong style={{ color: C.text }}>{forgotEmail}</strong>.
+                  Clique no link para redefinir sua senha.
+                </p>
+                <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 20 }}>
+                  Não recebeu? Verifique sua caixa de spam.
+                </p>
+                <button
+                  onClick={() => { setForgotMode(false); setForgotSent(false); setForgotEmail(""); }}
+                  style={{ ...T.btn, marginTop: 0 }}
+                >
+                  Voltar para o login
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setForgotMode(false)}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: C.textMuted, fontSize: 13, padding: 0, marginBottom: 16, display: "flex", alignItems: "center", gap: 4 }}
+                >
+                  ← Voltar
+                </button>
+                <h1 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 8, marginTop: 0 }}>
+                  Recuperar senha
+                </h1>
+                <p style={{ color: C.textMuted, fontSize: 14, marginBottom: 28, marginTop: 0 }}>
+                  Informe seu e-mail e enviaremos um link para redefinir sua senha.
+                </p>
+                <form onSubmit={handleForgot} noValidate>
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={T.label} htmlFor="forgot-email">E-mail</label>
+                    <input
+                      id="forgot-email"
+                      type="email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      style={T.input}
+                      autoFocus
+                    />
+                  </div>
+                  {forgotError && (
+                    <div style={{ background: C.errorBg, border: "1px solid rgba(220,38,38,0.2)", borderRadius: 8, padding: "10px 14px", marginBottom: 16 }}>
+                      <p style={{ color: C.error, fontSize: 12, margin: 0 }}>❌ {forgotError}</p>
+                    </div>
+                  )}
+                  <button type="submit" disabled={forgotLoading} style={{ ...T.btn, marginTop: 0, opacity: forgotLoading ? 0.7 : 1 }}>
+                    {forgotLoading ? "Enviando..." : "Enviar link de recuperação →"}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+        <style>{`
+          input:focus { border-color: ${C.borderFocus} !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+          button:hover { opacity: 0.88 !important; }
+        `}</style>
+      </div>
+    );
+  }
+
+  // ── Tela de login principal ───────────────────────────────
   return (
     <div style={T.page}>
       <div style={T.topBar}>
         <span style={T.logo}>
-          Pequenas Causas <span style={T.logoSpan}>Processos</span>
+          Pequenas <span style={T.logoSpan}>Causas</span>
         </span>
       </div>
       <div style={T.wrap}>
@@ -134,8 +227,17 @@ export default function LoginPage() {
               />
             </div>
 
-            <div style={{ marginBottom: 24 }}>
-              <label style={T.label} htmlFor="password">Senha</label>
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <label style={T.label} htmlFor="password">Senha</label>
+                <button
+                  type="button"
+                  onClick={() => { setForgotMode(true); setForgotEmail(email); }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: C.accentLight, fontSize: 12, fontWeight: 600, padding: 0 }}
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
               <input
                 id="password"
                 type="password"
@@ -149,20 +251,20 @@ export default function LoginPage() {
             {error && (
               <div style={{
                 background: C.errorBg, border: "1px solid rgba(220,38,38,0.2)",
-                borderRadius: 8, padding: "10px 14px", marginBottom: 16,
+                borderRadius: 8, padding: "10px 14px", marginBottom: 16, marginTop: 16,
               }}>
                 <p style={{ color: C.error, fontSize: 12, margin: 0 }}>❌ {error}</p>
               </div>
             )}
 
-            <button type="submit" disabled={loading} style={{ ...T.btn, opacity: loading ? 0.7 : 1 }}>
+            <button type="submit" disabled={loading} style={{ ...T.btn, opacity: loading ? 0.7 : 1, marginTop: 20 }}>
               {loading ? "Entrando..." : "Entrar →"}
             </button>
           </form>
 
           <p style={{ textAlign: "center", marginTop: 20, fontSize: 13, color: C.textMuted }}>
             Não tem conta?{" "}
-            <a href="/criar-conta" style={{ color: C.accentLight, fnntWeight: 600, textDecoration: "none" }}>
+            <a href="/criar-conta" style={{ color: C.accentLight, fontWeight: 600, textDecoration: "none" }}>
               Criar conta
             </a>
           </p>

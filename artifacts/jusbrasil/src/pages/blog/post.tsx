@@ -5,14 +5,17 @@ import { useGetBlogPost } from "@workspace/api-client-react";
 import { formatDate } from "@/lib/utils";
 import { ArrowLeft, Scale } from "lucide-react";
 import { motion } from "framer-motion";
+import { STATIC_BLOG_POSTS } from "@/pages/blog/static-posts";
 
 export default function BlogPost() {
   const [, params] = useRoute("/blog/:slug");
   const slug = params?.slug || "";
   
   const { data: post, isLoading, error } = useGetBlogPost(slug);
+  const staticPost = STATIC_BLOG_POSTS.find((p) => p.slug === slug);
+  const finalPost = staticPost ?? post;
 
-  if (isLoading) {
+  if (isLoading && !staticPost) {
     return (
       <Layout>
         <div className="pt-32 pb-32 max-w-3xl mx-auto px-4">
@@ -29,7 +32,7 @@ export default function BlogPost() {
     );
   }
 
-  if (error || !post) {
+  if ((error && !staticPost) || !finalPost) {
     return (
       <Layout>
         <div className="pt-32 pb-32 text-center">
@@ -53,17 +56,17 @@ export default function BlogPost() {
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-center gap-3 text-sm font-medium mb-6">
-              <span className="uppercase tracking-wider px-3 py-1 rounded bg-primary/10 text-primary">{post.category}</span>
-              <span className="text-muted-foreground">{formatDate(post.publishedAt)}</span>
+              <span className="uppercase tracking-wider px-3 py-1 rounded bg-primary/10 text-primary">{finalPost.category}</span>
+              <span className="text-muted-foreground">{formatDate(finalPost.publishedAt)}</span>
             </div>
 
             <h1 className="text-4xl md:text-5xl font-display font-bold leading-tight mb-8">
-              {post.title}
+              {finalPost.title}
             </h1>
 
-            {post.imageUrl ? (
+            {finalPost.imageUrl ? (
               <div className="w-full aspect-[21/9] rounded-2xl overflow-hidden mb-12 border border-white/10">
-                <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+                <img src={finalPost.imageUrl} alt={finalPost.title} className="w-full h-full object-cover" />
               </div>
             ) : (
               <div className="w-full aspect-[21/9] rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-12">
@@ -73,7 +76,7 @@ export default function BlogPost() {
 
             <div 
               className="prose prose-invert prose-lg prose-headings:font-display prose-headings:font-bold prose-a:text-primary hover:prose-a:text-primary/80 prose-img:rounded-xl max-w-none"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ __html: finalPost.content }}
             />
           </motion.div>
           

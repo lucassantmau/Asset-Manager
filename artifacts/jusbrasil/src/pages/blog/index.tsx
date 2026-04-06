@@ -3,11 +3,16 @@ import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 import { useGetBlogPosts } from "@workspace/api-client-react";
 import { formatDate } from "@/lib/utils";
-import { ArrowRight, BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen, Scale } from "lucide-react";
 import { motion } from "framer-motion";
+import { STATIC_BLOG_POSTS } from "@/pages/blog/static-posts";
 
 export default function BlogList() {
   const { data, isLoading, error } = useGetBlogPosts({ page: 1, limit: 10 });
+  const posts = [
+    ...STATIC_BLOG_POSTS,
+    ...((data?.posts ?? []).filter((p) => !STATIC_BLOG_POSTS.some((s) => s.slug === p.slug))),
+  ];
 
   return (
     <Layout>
@@ -27,13 +32,11 @@ export default function BlogList() {
                 <div key={i} className="rounded-2xl border border-white/5 bg-white/5 animate-pulse h-96"></div>
               ))}
             </div>
-          ) : error ? (
-            <div className="text-center py-20 text-red-400">
-              Erro ao carregar artigos. Tente novamente mais tarde.
-            </div>
+          ) : error && posts.length === 0 ? (
+            <div className="text-center py-20 text-red-400">Erro ao carregar artigos. Tente novamente mais tarde.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {data?.posts.map((post, i) => (
+              {posts.map((post, i) => (
                 <motion.article 
                   key={post.id}
                   initial={{ opacity: 0, y: 20 }}

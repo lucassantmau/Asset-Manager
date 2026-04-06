@@ -17,6 +17,7 @@ import ObrigadoPage from "@/pages/Obrigado";
 import Terms from "@/pages/terms";
 import NotFound from "@/pages/not-found";
 import CriarConta from "@/pages/criar-conta";
+import NovaSenha from "@/pages/nova-senha";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/login" component={LoginPage} />
         <Route path="/criar-conta" component={CriarConta} />
+              <Route path="/nova-senha" component={NovaSenha} />
       <Route path="/cadastro" component={CadastroPage} />
       <Route path="/cadastrar" component={CadastrarPage} />
       <Route path="/obrigado" component={ObrigadoPage} />

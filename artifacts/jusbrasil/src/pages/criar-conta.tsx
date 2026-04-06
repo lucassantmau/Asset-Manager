@@ -1,14 +1,19 @@
 /**
  * criar-conta.tsx
- * Página de criaçã{ de conta após pagamento.
+ * Página de criação de conta após pagamento.
  * Usa Supabase Auth para registrar o usuário.
  */
 
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
-// ── Cores e estilos ──────────────────────────────────────────────
+// ── Supabase ──────────────────────────────────────────────────
+const SUPABASE_URL = "https://ollfczufqavxzgvktvkb.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sbGZjenVmcWF2eHpndmt0dmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA2ODUsImV4cCI6MjA4OTkzNjY4NX0.wVEYoQv8epExO-WSCihojxt3Ti3pQkBjmvdCiV_fiKo";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── Cores e estilos ───────────────────────────────────────────
 const C = {
   bg: "#f8fafc",
   card: "#ffffff",
@@ -48,7 +53,7 @@ const T: Record<string, React.CSSProperties> = {
   logoSpan: {
     color: C.accentLight,
   },
-  prap: {
+  wrap: {
     maxWidth: 480,
     margin: "0 auto",
     padding: "48px 24px",
@@ -57,7 +62,7 @@ const T: Record<string, React.CSSProperties> = {
   card: {
     background: C.card,
     borderRadius: 16,
-    padding: "26px 32px",
+    padding: "36px 32px",
     boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
     border: `1px solid ${C.border}`,
   },
@@ -104,6 +109,7 @@ const T: Record<string, React.CSSProperties> = {
 export default function CriarConta() {
   const [, navigate] = useLocation();
 
+  // Pré-preenche o email a partir do query param ?email=
   const searchParams = new URLSearchParams(window.location.search);
   const emailParam = searchParams.get("email") || "";
 
@@ -113,39 +119,14 @@ export default function CriarConta() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [paymentChecked, setPaymentChecked] = useState(false);
-  const [paymentValid, setPaymentValid] = useState(false);
 
+  // Se já tem sessão ativa, redireciona direto
   useEffect(() => {
-    async function checkAccess() {
-      // Se já tem sessão ativa, redireciona direto
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData.session) {
-        navigate("/formulario");
-        return;
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        navigate("/area-do-cliente");
       }
-
-      const targetEmail = new URLSearchParams(window.location.search).get("email") || "";
-
-      if (!targetEmail) {
-        setPaymentValid(false);
-        setPaymentChecked(true);
-        return;
-      }
-
-      const { data: paid, error: rpcError } = await supabase.rpc("check_pequenas_causas_payment", {
-        p_email: targetEmail.trim().toLowerCase(),
-      });
-
-      if (rpcError || paid !== true) {
-        setPaymentValid(false);
-      } else {
-        setPaymentValid(true);
-      }
-      setPaymentChecked(true);
-    }
-
-    checkAccess();
+    });
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -183,7 +164,7 @@ export default function CriarConta() {
           if (loginError) {
             setError("Este e-mail já possui conta. Verifique sua senha ou vá para o login.");
           } else {
-            navigate("/formulario");
+            navigate("/area-do-cliente");
           }
         } else {
           setError(signUpError.message);
@@ -194,7 +175,7 @@ export default function CriarConta() {
 
       if (data.session) {
         // Sessão criada imediatamente (confirmação de email desabilitada)
-        navigate("/formulario");
+        navigate("/area-do-cliente");
       } else {
         // Supabase enviou email de confirmação
         setSuccess(true);
@@ -205,52 +186,16 @@ export default function CriarConta() {
     setLoading(false);
   }
 
-  const topBar = (
-    <div style={T.topBar}>
-      <span style={T.logo}>
-        Pequenas Causas <span style={T.logoSpan}>Processos</span>
-      </span>
-    </div>
-  );
-
-  // Loading enquanto verifica pagamento
-  if (!paymentChecked) {
-    return (
-      <div style={{ ...T.page, alignItems: "center", justifyContent: "center" }}>
-        {topBar}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <p style={{ color: C.textMuted, fontSize: 14 }}>Verificando acesso…</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Tela de acesso negado
-  if (!paymentValid) {
-    return (
-      <div style={T.page}>
-        {topBar}
-        <div style={T.prap}>
-          <div style={{ ...T.card, textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: C.error, marginBottom: 12 }}>
-              Acesso não autorizado
-            </h2>
-            <p style={{ color: C.textMuted, fontSize: 14, lineHeight: 1.7, marginBottom: 0 }}>
-              Somente clientes que realizaram o pagamento podem criar uma conta. Se você já pagou, aguarde a confirmação do pagamento.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Tela de confirmação por e-mail
   if (success) {
     return (
       <div style={T.page}>
-        {topBar}
-        <div style={T.prap}>
+        <div style={T.topBar}>
+          <span style={T.logo}>
+            Pequenas <span style={T.logoSpan}>Causas</span>
+          </span>
+        </div>
+        <div style={T.wrap}>
           <div style={{ ...T.card, textAlign: "center" }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>📧</div>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 12 }}>
@@ -288,8 +233,12 @@ export default function CriarConta() {
 
   return (
     <div style={T.page}>
-      {topBar}
-      <div style={T.prap}>
+      <div style={T.topBar}>
+        <span style={T.logo}>
+          Pequenas <span style={T.logoSpan}>Causas</span>
+        </span>
+      </div>
+      <div style={T.wrap}>
         {/* Badge de progresso */}
         <div style={{
           display: "flex",

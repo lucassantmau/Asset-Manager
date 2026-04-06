@@ -1,7 +1,7 @@
 /**
  * Obrigado.tsx
  * Tela exibida após confirmação de pagamento.
- * Direciona o cliente para criar sua conta no portal.
+ * Lê ?email= da URL (enviado pelo Hotmart/checkout) e passa para /criar-conta.
  */
 
 import { useLocation } from "wouter";
@@ -9,6 +9,19 @@ import { CheckCircle2, ArrowRight, Shield, Clock } from "lucide-react";
 
 export default function ObrigadoPage() {
   const [, navigate] = useLocation();
+
+  // Captura o email que o sistema de checkout pode passar via query string
+  // Ex: /obrigado?email=cliente@email.com
+  const params = new URLSearchParams(window.location.search);
+  const emailFromCheckout = params.get("email") || "";
+
+  function irParaCriarConta() {
+    if (emailFromCheckout) {
+      navigate(`/criar-conta?email=${encodeURIComponent(emailFromCheckout)}`);
+    } else {
+      navigate("/criar-conta");
+    }
+  }
 
   return (
     <div
@@ -67,12 +80,29 @@ export default function ObrigadoPage() {
             color: "#475569",
             fontSize: 15,
             lineHeight: 1.7,
-            marginBottom: 32,
+            marginBottom: emailFromCheckout ? 16 : 32,
           }}
         >
           Seu pagamento foi processado com sucesso. Agora crie sua conta
           para acessar o portal do cliente e acompanhar seu processo.
         </p>
+
+        {/* Mostra o email detectado se houver */}
+        {emailFromCheckout && (
+          <div
+            style={{
+              background: "rgba(30,64,175,0.06)",
+              border: "1px solid rgba(30,64,175,0.15)",
+              borderRadius: 10,
+              padding: "10px 16px",
+              marginBottom: 24,
+              fontSize: 13,
+              color: "#1e40af",
+            }}
+          >
+            📧 Conta será criada para: <strong>{emailFromCheckout}</strong>
+          </div>
+        )}
 
         {/* Próximos passos */}
         <div
@@ -86,11 +116,13 @@ export default function ObrigadoPage() {
         >
           <p
             style={{
-              fontWeight: 800,
-              color: "#fff",
+              fontWeight: 700,
+              color: "#0f172a",
               fontSize: 13,
               textTransform: "uppercase",
               letterSpacing: 0.5,
+              marginBottom: 14,
+              marginTop: 0,
             }}
           >
             Próximos passos
@@ -131,7 +163,7 @@ export default function ObrigadoPage() {
 
         {/* Botão principal */}
         <button
-          onClick={() => navigate("/criar-conta")}
+          onClick={irParaCriarConta}
           style={{
             width: "100%",
             padding: "15px",
@@ -191,7 +223,7 @@ export default function ObrigadoPage() {
         </div>
       </div>
 
-      <style>{`button:hover { opacity: 0.9 !important; transform: translateY(-1px); transition: al, 0.15s; }`}</style>
+      <style>{`button:hover { opacity: 0.9 !important; transform: translateY(-1px); transition: all 0.15s; }`}</style>
     </div>
   );
 }
