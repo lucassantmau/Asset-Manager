@@ -90,6 +90,7 @@ const JOURNEY_STEPS = [
   { id: 3, label: "Validação" },
   { id: 7, label: "Ativação" },
 ];
+const FORM_TITLE_CLASS = "text-2xl md:text-[30px] font-black tracking-[-0.03em] text-foreground leading-tight";
 
 export default function Home() {
   const [step, setStep] = useState(1);
@@ -331,7 +332,7 @@ export default function Home() {
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15 }}
+              transition={{ duration: 0.7, delay: 0.15, type: "spring", stiffness: 90, damping: 16 }}
               className="bg-white rounded-2xl border-2 border-slate-200 shadow-[0_14px_46px_0_rgba(15,23,42,0.16)] overflow-hidden"
               role="region"
               aria-label="Formulário de diagnóstico do caso"
@@ -347,7 +348,10 @@ export default function Home() {
                     const done = step > s.id || (s.id === 3 && step >= 7);
                     return (
                       <div key={s.id} className="flex items-center gap-2 min-w-0">
-                        <div
+                        <motion.div
+                          initial={false}
+                          animate={active ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                          transition={{ duration: 0.35 }}
                           className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
                             active
                               ? "bg-[#001532] text-white"
@@ -357,8 +361,8 @@ export default function Home() {
                           }`}
                         >
                           {s.id === 7 ? 4 : s.id}
-                        </div>
-                        <span className={`text-xs font-medium ${active ? "text-[#001532]" : "text-slate-500"}`}>
+                        </motion.div>
+                        <span className={`text-xs font-semibold transition-colors ${active ? "text-[#001532]" : "text-slate-500"}`}>
                           {s.label}
                         </span>
                       </div>
@@ -366,6 +370,38 @@ export default function Home() {
                   })}
                 </div>
               </div>
+              <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4 items-start">
+              {step <= 2 && (
+                <aside className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <h4 className="text-sm font-bold text-[#001532] mb-2">Como funciona este diagnóstico</h4>
+                  <ul className="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+                    <motion.li initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.03 }} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+                      Você descreve o contexto e anexa os elementos que já possui.
+                    </motion.li>
+                    <motion.li initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+                      Validamos os dados para liberar sua área de acompanhamento.
+                    </motion.li>
+                    <motion.li initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+                      Após ativação, você recebe propostas de advogados parceiros.
+                    </motion.li>
+                  </ul>
+
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-2">
+                      Recomendação
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      Tenha em mãos: comprovantes, prints, protocolos e dados do fornecedor para acelerar seu
+                      atendimento.
+                    </p>
+                  </div>
+                </aside>
+              )}
+
+              <div>
               <AnimatePresence mode="wait">
                 {/* STEP 1: Caso e contexto */}
                 {step === 1 && (
@@ -377,7 +413,7 @@ export default function Home() {
                   >
                     <div className="bg-gradient-to-r from-[#001532] to-[#032956] -mx-5 -mt-5 px-5 py-3.5 mb-5 border-t-[3px] border-[#fee001] rounded-t-xl">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-white">Diagnóstico inicial do caso</h3>
+                        <h3 className="text-sm font-bold text-white tracking-wide">Diagnóstico inicial do caso</h3>
                         <span className="inline-flex items-center gap-1 bg-[#fee001] text-[#716300] text-xs font-bold px-2.5 py-1 rounded-full">
                           <Clock className="w-3 h-3" /> Sem custo nesta etapa
                         </span>
@@ -480,7 +516,7 @@ export default function Home() {
                         <ArrowRight className="w-4 h-4 rotate-180" /> Voltar
                       </button>
                       <div>
-                        <h3 className="text-2xl font-display font-bold text-foreground leading-tight">Identificação do solicitante</h3>
+                        <h3 className={FORM_TITLE_CLASS}>Identificação do solicitante</h3>
                         <p className="text-muted-foreground text-xs">Dados usados somente para contato e validação</p>
                       </div>
                     </div>
@@ -602,7 +638,7 @@ export default function Home() {
                     className="py-16 flex flex-col items-center text-center"
                   >
                     <div className="w-24 h-24 border-[8px] border-[#e5e7eb] border-t-primary rounded-full animate-spin mb-10"></div>
-                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-4">Organizando seu atendimento...</h3>
+                    <h3 className={FORM_TITLE_CLASS}>Organizando seu atendimento...</h3>
                     <p className="text-lg text-[#333333] max-w-sm">
                       Por favor, aguarde alguns segundos. Estamos validando os dados para liberar a próxima etapa.
                     </p>
@@ -749,7 +785,7 @@ export default function Home() {
                     <div className="w-20 h-20 rounded-full bg-[#dcfce7] text-[#166534] flex items-center justify-center mx-auto mb-5 border-4 border-[#bbf7d0]">
                       <CheckCircle2 className="w-10 h-10" />
                     </div>
-                    <h3 className="text-2xl font-display font-bold text-[#111111] mb-2">Diagnóstico concluído. Próximo passo: ativação</h3>
+                    <h3 className={FORM_TITLE_CLASS + " mb-2"}>Diagnóstico concluído. Próximo passo: ativação</h3>
                     <p className="text-sm text-[#555] mb-6 max-w-xs mx-auto leading-relaxed">
                       Para liberar sua área de acompanhamento e receber propostas de advogados, conclua a taxa de ativação abaixo.
                     </p>
@@ -787,6 +823,8 @@ export default function Home() {
                   <div className="flex items-center gap-1"><Star className="w-3.5 h-3.5 text-[#fee001]" /> +3.000 Casos</div>
                 </div>
               )}
+              </div>
+              </div>
               </div>{/* end p-6 sm:p-8 */}
             </motion.div>
           </div>
