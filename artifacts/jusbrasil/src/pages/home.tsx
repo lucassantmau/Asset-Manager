@@ -371,37 +371,6 @@ export default function Home() {
                   })}
                 </div>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4 items-start">
-              {step <= 2 && (
-                <aside className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <h4 className="text-sm font-bold text-[#001532] mb-2">Como funciona este diagnóstico</h4>
-                  <ul className="space-y-2.5 text-xs text-slate-600 leading-relaxed">
-                    <motion.li initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.03 }} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
-                      Você descreve o contexto e anexa os elementos que já possui.
-                    </motion.li>
-                    <motion.li initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
-                      Validamos os dados para liberar sua área de acompanhamento.
-                    </motion.li>
-                    <motion.li initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
-                      Após ativação, você recebe propostas de advogados parceiros.
-                    </motion.li>
-                  </ul>
-
-                  <div className="mt-4 pt-4 border-t border-slate-200">
-                    <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-2">
-                      Recomendação
-                    </p>
-                    <p className="text-xs text-slate-600">
-                      Tenha em mãos: comprovantes, prints, protocolos e dados do fornecedor para acelerar seu
-                      atendimento.
-                    </p>
-                  </div>
-                </aside>
-              )}
-
               <div>
               <AnimatePresence mode="wait">
                 {/* STEP 1: Caso e contexto */}
@@ -824,7 +793,6 @@ export default function Home() {
                   <div className="flex items-center gap-1"><Star className="w-3.5 h-3.5 text-[#fee001]" /> +3.000 Casos</div>
                 </div>
               )}
-              </div>
               </div>
               </div>{/* end p-6 sm:p-8 */}
             </motion.div>
