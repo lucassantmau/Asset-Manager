@@ -761,8 +761,12 @@ export default function Home() {
 
                     <a
                       href={PAGAMENTO_KLIVO_URL}
-                onClick={() => { if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') { (window as any).gtag('event', 'conversion', { 'send_to': 'AW-16505818170/R7Z0CNvf_JYcELqYy749', 'value': 1.0, 'currency': 'BRL' }); } }}
-                
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+                          (window as any).gtag('event', 'conversion', { 'send_to': 'AW-16505818170/R7Z0CNvf_JYcELqYy749', 'value': 1.0, 'currency': 'BRL' });
+                        }
+                        setStep(8);
+                      }}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-base shadow-[0_5px_0_0_#15803d] hover:shadow-[0_2px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all mb-4"
@@ -771,11 +775,45 @@ export default function Home() {
                     </a>
 
                     <Link
-                      href="/obrigado"
+                      href={`/obrigado?email=${encodeURIComponent(form2.getValues("email") || "")}`}
                       className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Já paguei → Criar conta e senha
                     </Link>
+                  </motion.div>
+                )}
+
+                {/* STEP 8 — Confirmação pós-clique no pagamento */}
+                {step === 8 && (
+                  <motion.div
+                    key="step8"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-8"
+                  >
+                    <div className="w-20 h-20 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mx-auto mb-5 border-4 border-blue-200">
+                      <CheckCircle2 className="w-10 h-10" />
+                    </div>
+                    <h3 className={FORM_TITLE_CLASS + " mb-2"}>Finalizou o pagamento?</h3>
+                    <p className="text-sm text-[#555] mb-6 max-w-xs mx-auto leading-relaxed">
+                      Se já concluiu o pagamento, clique abaixo para criar sua conta e acompanhar seu caso.
+                    </p>
+
+                    <Link
+                      href={`/obrigado?email=${encodeURIComponent(form2.getValues("email") || "")}`}
+                      className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-base shadow-[0_5px_0_0_#1d4ed8] hover:shadow-[0_2px_0_0_#1d4ed8] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all mb-4"
+                    >
+                      <CheckCircle2 className="w-4 h-4" /> Já paguei — Criar minha conta
+                    </Link>
+
+                    <a
+                      href={PAGAMENTO_KLIVO_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Ainda não paguei → Abrir página de pagamento
+                    </a>
                   </motion.div>
                 )}
               </AnimatePresence>
