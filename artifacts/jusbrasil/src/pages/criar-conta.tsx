@@ -128,7 +128,8 @@ export default function CriarConta() {
       const targetEmail = new URLSearchParams(window.location.search).get("email") || "";
 
       if (!targetEmail) {
-        setPaymentValid(false);
+        // Sem e-mail na URL, permite abrir a tela e valida no submit com o e-mail digitado.
+        setPaymentValid(true);
         setPaymentChecked(true);
         return;
       }
@@ -167,8 +168,18 @@ export default function CriarConta() {
 
     setLoading(true);
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const { data: paid, error: rpcError } = await supabase.rpc("check_pequenas_causas_payment", {
+        p_email: normalizedEmail,
+      });
+      if (rpcError || paid !== true) {
+        setError("Nao encontramos pagamento confirmado para este e-mail.");
+        setLoading(false);
+        return;
+      }
+
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email: email.trim(),
+        email: normalizedEmail,
         password,
       });
 
@@ -177,7 +188,7 @@ export default function CriarConta() {
         if (signUpError.message.includes("already registered")) {
           // Usuário já existe — tenta fazer login direto
           const { error: loginError } = await supabase.auth.signInWithPassword({
-            email: email.trim(),
+            email: normalizedEmail,
             password,
           });
           if (loginError) {
