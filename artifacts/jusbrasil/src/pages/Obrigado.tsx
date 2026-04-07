@@ -9,6 +9,8 @@ import { CheckCircle2, ArrowRight, Shield, Clock } from "lucide-react";
 
 export default function ObrigadoPage() {
   const [, navigate] = useLocation();
+  const email = new URLSearchParams(window.location.search).get("email") || "";
+  const encodedEmail = encodeURIComponent(email);
 
   return (
     <div
@@ -73,6 +75,27 @@ export default function ObrigadoPage() {
           Seu pagamento foi processado com sucesso. Agora crie sua conta
           para acessar o portal do cliente e acompanhar seu processo.
         </p>
+        <p
+          style={{
+            color: "#334155",
+            fontSize: 13,
+            lineHeight: 1.6,
+            marginTop: -16,
+            marginBottom: 24,
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: 10,
+            padding: "10px 12px",
+          }}
+        >
+          Use o <strong>mesmo e-mail do pagamento</strong> para liberar o acesso ao formulário.
+          {email ? (
+            <>
+              {" "}
+              E-mail detectado: <strong>{email}</strong>.
+            </>
+          ) : null}
+        </p>
 
         {/* Próximos passos */}
         <div
@@ -131,7 +154,7 @@ export default function ObrigadoPage() {
 
         {/* Botão principal */}
         <button
-          onClick={() => navigate("/criar-conta")}
+          onClick={() => navigate(email ? `/criar-conta?email=${encodedEmail}` : "/criar-conta")}
           style={{
             width: "100%",
             padding: "15px",
@@ -152,6 +175,23 @@ export default function ObrigadoPage() {
         >
           Criar minha conta agora
           <ArrowRight size={18} strokeWidth={2.5} />
+        </button>
+        <button
+          onClick={() => navigate(email ? `/login?email=${encodedEmail}` : "/login")}
+          style={{
+            width: "100%",
+            padding: "13px",
+            borderRadius: 12,
+            border: "1px solid #cbd5e1",
+            background: "#ffffff",
+            color: "#0f172a",
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: "pointer",
+            marginBottom: 16,
+          }}
+        >
+          Já tenho conta, quero entrar
         </button>
 
         {/* Badges de segurança */}
@@ -191,7 +231,7 @@ export default function ObrigadoPage() {
         </div>
       </div>
 
-      <style>{`button:hover { opacity: 0.9 !important; transform: translateY(-1px); transition: al, 0.15s; }`}</style>
+      <style>{`button:hover { opacity: 0.9 !important; transform: translateY(-1px); transition: all 0.15s; }`}</style>
     </div>
   );
 }

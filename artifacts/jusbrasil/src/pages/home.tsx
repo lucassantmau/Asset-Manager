@@ -771,10 +771,10 @@ export default function Home() {
                     </a>
 
                     <Link
-                      href="/login"
+                      href="/obrigado"
                       className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      Já paguei → Área do Cliente
+                      Já paguei → Criar conta e senha
                     </Link>
                   </motion.div>
                 )}

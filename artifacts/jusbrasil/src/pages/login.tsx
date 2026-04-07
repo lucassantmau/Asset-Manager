@@ -37,7 +37,8 @@ const T: Record<string, React.CSSProperties> = {
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
-  const [email, setEmail] = useState("");
+  const emailFromQuery = new URLSearchParams(window.location.search).get("email") || "";
+  const [email, setEmail] = useState(emailFromQuery);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
