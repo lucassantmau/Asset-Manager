@@ -35,14 +35,6 @@ import { SEO_TOPIC_HUBS } from "@/lib/seo-topic-hubs";
 /** Link de checkout (Klivo). Altere aqui se o gateway mudar. */
 const PAGAMENTO_KLIVO_URL = "https://go.klivopay.com.br/t45jsqe1qe";
 
-function insertErrorMessage(err: unknown): string {
-  if (err && typeof err === "object" && "message" in err && typeof (err as { message: string }).message === "string") {
-    return (err as { message: string }).message;
-  }
-  if (err instanceof Error) return err.message;
-  return "Erro ao salvar o caso.";
-}
-
 // Form schemas
 const caseStep1Schema = z.object({
   description: z.string().min(20, "Mínimo de 20 caracteres necessários"),
@@ -100,9 +92,6 @@ export default function Home() {
   const [caseId, setCaseId] = useState<string | null>(null);
   const [pixCode, setPixCode] = useState<string | null>(null);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  /** Se o insert em `cases` falhar, ainda mostramos o pagamento; guardamos o motivo para o utilizador. */
-  const [casePersistError, setCasePersistError] = useState<string | null>(null);
-  
   const submitCaseMutation = useSubmitCase();
   const createPaymentMutation = useCreatePayment();
 
@@ -126,7 +115,6 @@ export default function Home() {
   };
 
   const onStep2Submit = async (data: z.infer<typeof caseStep2Schema>) => {
-    setCasePersistError(null);
     setStep(3); // Loading / Analyzing state
     const step1Data = form1.getValues();
     const evidences = step1Data.evidences || [];
@@ -156,7 +144,6 @@ export default function Home() {
       if (error) throw error;
     } catch (error) {
       console.error("Failed to submit case (continua para pagamento mesmo assim)", error);
-      setCasePersistError(insertErrorMessage(error));
     }
 
     // Sempre leva ao passo do pagamento (link Klivo), para o cliente não ficar bloqueado
