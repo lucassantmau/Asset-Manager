@@ -772,14 +772,6 @@ export default function Home() {
                       Para liberar sua área de acompanhamento e receber propostas de advogados, conclua a taxa de ativação abaixo.
                     </p>
 
-                    {casePersistError && (
-                      <div className="max-w-md mx-auto mb-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs px-4 py-3 text-left">
-                        <strong>Aviso:</strong> não foi possível registrar seu relato no servidor automaticamente (
-                        {casePersistError}). Você ainda pode pagar; se o problema persistir, copie seus dados e fale
-                        conosco pelo WhatsApp do site com o mesmo e-mail informado no formulário.
-                      </div>
-                    )}
-
                     <a
                       href={PAGAMENTO_KLIVO_URL}
                 onClick={() => { if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') { (window as any).gtag('event', 'conversion', { 'send_to': 'AW-16505818170/R7Z0CNvf_JYcELqYy749', 'value': 1.0, 'currency': 'BRL' }); } }}
