@@ -30,62 +30,99 @@ async function createPaidSlotOnSupabase(email: string, paymentRef: string, name:
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
   if (!supabaseUrl || !serviceRoleKey || !email) return;
 
+  const now = new Date().toISOString();
+  const headers = {
+    "Content-Type": "application/json",
+    apikey: serviceRoleKey,
+    Authorization: `Bearer ${serviceRoleKey}`,
+  };
+
+  // Step 1: try PATCH to update existing record by email
+  const patchRes = await fetch(
+    `${supabaseUrl}/rest/v1/pequenas_causas_submissions?autor_email=eq.${encodeURIComponent(email)}`,
+    {
+      method: "PATCH",
+      headers: { ...headers, Prefer: "return=representation" },
+      body: JSON.stringify({
+        pagamento_confirmado: true,
+        klivo_transaction_id: paymentRef,
+        pagamento_confirmado_em: now,
+      }),
+    }
+  );
+
+  if (!patchRes.ok) {
+    const text = await patchRes.text();
+    console.error(`Supabase PATCH failed: ${patchRes.status} ${text}`);
+  } else {
+    const updated = await patchRes.json() as unknown[];
+    if (Array.isArray(updated) && updated.length > 0) {
+      console.log(`[webhook] Updated ${updated.length} existing record(s) for ${email}`);
+      return;
+    }
+  }
+
+  // Step 2: no rows matched — INSERT a new record
   const protocol = `PCC-${Date.now().toString(36).toUpperCase()}`;
   const safeName = name.trim().length > 0 ? name.trim() : "Cliente";
 
-  const response = await fetch(`${supabaseUrl}/rest/v1/pequenas_causas_submissions`, {
+  const insertRes = await fetch(`${supabaseUrl}/rest/v1/pequenas_causas_submissions`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
-      Prefer: "return=minimal",
-    },
+    headers: { ...headers, Prefer: "return=minimal" },
     body: JSON.stringify({
       protocol,
       pedido_ref: paymentRef,
+      klivo_transaction_id: paymentRef,
       status: "aguardando_propostas",
       autor_nome: safeName,
       autor_email: email,
       pagamento_confirmado: true,
+      pagamento_confirmado_em: now,
       disponivel_para_advogados: false,
     }),
   });
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Supabase payment slot insert failed: ${response.status} ${text}`);
+  if (!insertRes.ok) {
+    const text = await insertRes.text();
+    throw new Error(`Supabase INSERT failed: ${insertRes.status} ${text}`);
   }
+
+  console.log(`[webhook] Inserted new record for ${email}`);
 }
 
 router.post("/webhook/klivopay", async (req, res) => {
-  try {
-    const body = req.body as Record<string, unknown>;
-    const status = String(body.status || "").toLowerCase();
+  const body = req.body as Record<string, unknown>;
+  const status = String(body.status || "").toLowerCase();
 
-    if (status === "pago" || status === "paid" || status === "approved") {
-      const customer = (body.customer ?? {}) as Record<string, unknown>;
-      const email = normalizeEmail(customer.email || body.email);
-      const name = String(customer.name || body.name || "");
-      const paymentRef = pickPaymentRef(body);
-      const token = randomUUID();
-      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  if (status === "pago" || status === "paid" || status === "approved") {
+    const customer = (body.customer ?? {}) as Record<string, unknown>;
+    const email = normalizeEmail(customer.email || body.email);
+    const name = String(customer.name || body.name || "");
+    const paymentRef = pickPaymentRef(body);
+    const token = randomUUID();
+    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
+    // 1. Supabase first — critical for client access
+    try {
+      await createPaidSlotOnSupabase(email, paymentRef, name);
+    } catch (err) {
+      console.error("[webhook] createPaidSlotOnSupabase error:", err);
+    }
+
+    // 2. Registration token — secondary
+    try {
       await db.insert(registrationTokensTable).values({
         token,
         email,
         name,
         expiresAt,
       });
-
-      await createPaidSlotOnSupabase(email, paymentRef, name);
+    } catch (err) {
+      console.error("[webhook] db.insert registrationTokens error:", err);
     }
-
-    res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("Webhook error:", err);
-    res.status(200).json({ success: true });
   }
+
+  res.status(200).json({ success: true });
 });
 
 export default router;
