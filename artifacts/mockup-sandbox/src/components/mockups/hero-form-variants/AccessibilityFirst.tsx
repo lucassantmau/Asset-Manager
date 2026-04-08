@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ShieldCheck, 
@@ -21,6 +21,7 @@ const EVIDENCES = [
 ];
 
 export function AccessibilityFirst() {
+  const formCardRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(1);
   const [description, setDescription] = useState("");
   const [evidences, setEvidences] = useState<string[]>([]);
@@ -55,11 +56,17 @@ export function AccessibilityFirst() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const scrollToCard = () => {
+    setTimeout(() => {
+      formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
   const onStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateStep1()) {
       setStep(2);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToCard();
     }
   };
 
@@ -71,7 +78,7 @@ export function AccessibilityFirst() {
       setTimeout(() => {
         setIsProcessing(false);
         setStep(4);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollToCard();
       }, 2500);
     }
   };
@@ -159,7 +166,7 @@ export function AccessibilityFirst() {
             </div>
 
             {/* Right Column - Form Card */}
-            <div className="bg-white rounded-xl border-4 border-[#e5e7eb] shadow-xl overflow-hidden" role="region" aria-label="Formulário de avaliação de caso">
+            <div ref={formCardRef} className="bg-white rounded-xl border-4 border-[#e5e7eb] shadow-xl overflow-hidden" role="region" aria-label="Formulário de avaliação de caso">
               {/* ACCESSIBLE STEP BADGE */}
               <div className="bg-[#f3f4f6] border-b-4 border-[#e5e7eb] px-6 py-4 flex items-center justify-between">
                 <span className="text-lg font-bold text-[#111111]">
@@ -261,7 +268,7 @@ export function AccessibilityFirst() {
                     <button 
                       onClick={() => {
                         setStep(1);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        scrollToCard();
                       }}
                       className="text-lg font-bold text-primary hover:text-primary/80 mb-8 flex items-center gap-2 underline decoration-2 underline-offset-4"
                     >
