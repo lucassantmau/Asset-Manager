@@ -169,10 +169,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </a>
               <a
                 href="mailto:contato@pequenascausasprocessos.com.br"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium text-white/70 mt-3"
+                className="inline-flex items-start gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium text-white/70 mt-3 break-all"
               >
-                <Mail className="w-5 h-5 text-[#fee001]" />
-                contato@pequenascausasprocessos.com.br
+                <Mail className="w-5 h-5 text-[#fee001] flex-shrink-0 mt-0.5" />
+                <span className="break-all">contato@pequenascausasprocessos.com.br</span>
               </a>
               <p className="text-xs text-white/30 mt-4">
                 Segunda a Sexta, das 09h às 18h.

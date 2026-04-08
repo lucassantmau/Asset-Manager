@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Layout } from "@/components/layout";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
 import { motion, AnimatePresence } from "framer-motion";
@@ -88,12 +88,19 @@ const JOURNEY_STEPS = [
 const FORM_TITLE_CLASS = "text-2xl md:text-[30px] font-black tracking-[-0.03em] text-foreground leading-tight";
 
 export default function Home() {
+  const formCardRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(1);
   const [caseId, setCaseId] = useState<string | null>(null);
   const [pixCode, setPixCode] = useState<string | null>(null);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const submitCaseMutation = useSubmitCase();
   const createPaymentMutation = useCreatePayment();
+
+  const scrollToCard = () => {
+    setTimeout(() => {
+      formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
 
   // Form states
   const form1 = useForm<z.infer<typeof caseStep1Schema>>({
@@ -112,6 +119,7 @@ export default function Home() {
 
   const onStep1Submit = (data: z.infer<typeof caseStep1Schema>) => {
     setStep(2);
+    scrollToCard();
   };
 
   const onStep2Submit = async (data: z.infer<typeof caseStep2Schema>) => {
@@ -148,7 +156,7 @@ export default function Home() {
 
     // Sempre leva ao passo do pagamento (link Klivo), para o cliente não ficar bloqueado
     // se a tabela `cases` estiver indisponível no Supabase.
-    window.setTimeout(() => setStep(7), 2000);
+    window.setTimeout(() => { setStep(7); scrollToCard(); }, 2000);
   };
 
   const onCheckoutSubmit = async (data: z.infer<typeof checkoutSchema>) => {
@@ -278,8 +286,24 @@ export default function Home() {
               <p className="text-white/65 mb-2 max-w-lg text-[15px]">Atendimento jurídico 100% digital. Conectamos seu caso a advogados para avaliação e, se cabível, ação no Juizado Especial Cível</p>
               <p className="text-white/35 mb-3 max-w-lg text-[11px]">Somos uma plataforma de intermediação. Não prestamos serviços jurídicos diretamente.</p>
 
-              {/* Trust badges */}
-              <div className="grid grid-cols-2 gap-1.5 flex-1 content-between">
+              {/* Mobile-only compact trust pills */}
+              <div className="lg:hidden flex flex-wrap gap-2 mb-3">
+                <div className="flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-3 py-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#fee001] flex-shrink-0" />
+                  <span className="text-white/80 text-xs font-medium">100% Seguro</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-3 py-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#fee001] flex-shrink-0" />
+                  <span className="text-white/80 text-xs font-medium">Advogados OAB</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-3 py-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[#fee001] flex-shrink-0" />
+                  <span className="text-white/80 text-xs font-medium">Triagem Gratuita</span>
+                </div>
+              </div>
+
+              {/* Trust badges — hidden on mobile so form is visible sooner */}
+              <div className="hidden lg:grid grid-cols-2 gap-1.5 flex-1 content-between">
                 <div className="flex items-center gap-3 glass-panel p-3 rounded-xl col-span-2">
                   <div className="w-9 h-9 rounded-lg bg-[#fee001] flex items-center justify-center text-[#716300] flex-shrink-0">
                     <ShieldCheck className="w-4 h-4" />
@@ -330,6 +354,7 @@ export default function Home() {
 
             {/* FORM CARD — Editorial Juris */}
             <motion.div 
+              ref={formCardRef}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.15, type: "spring", stiffness: 90, damping: 16 }}
@@ -430,7 +455,7 @@ export default function Home() {
                                     form1.setValue("evidences", [...selected, ev]);
                                   }
                                 }}
-                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                                className={`flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-full text-xs font-medium border transition-all ${
                                   isSelected 
                                     ? "bg-[#001532] border-[#001532] text-white" 
                                     : "bg-white border-muted text-muted-foreground hover:border-[#001532]/30 hover:bg-muted"
@@ -479,7 +504,7 @@ export default function Home() {
                   >
                     <div className="flex items-center gap-3 mb-6">
                       <button 
-                        onClick={() => setStep(1)}
+                        onClick={() => { setStep(1); scrollToCard(); }}
                         className="px-4 py-2 rounded-lg border-2 border-slate-200 font-bold text-sm text-muted-foreground hover:bg-slate-50 transition-colors flex items-center gap-2"
                       >
                         <ArrowRight className="w-4 h-4 rotate-180" /> Voltar
