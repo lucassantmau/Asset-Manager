@@ -7,7 +7,8 @@ import {
   HelpCircle,
   Circle,
   CheckCircle,
-  ChevronRight
+  ChevronRight,
+  Info
 } from 'lucide-react';
 
 const EVIDENCES = [
@@ -91,6 +92,13 @@ export function AffordanceFirst() {
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold font-display text-slate-900">Conte o que aconteceu</h2>
                 <p className="text-slate-500">Descreva os detalhes para avaliação do seu caso.</p>
+              </div>
+
+              <div className="flex items-start gap-2 bg-blue-950/40 border border-blue-800/30 rounded-lg px-3 py-2.5">
+                <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-200 leading-relaxed">
+                  Triagem gratuita agora · Acesso aos advogados por apenas <strong className="text-yellow-400">R$149,99</strong> após a análise
+                </p>
               </div>
 
               <div className="space-y-6">
@@ -224,7 +232,44 @@ export function AffordanceFirst() {
           )}
 
           {step === 3 && (
-            <div className="space-y-8 animate-in zoom-in-95 duration-500 text-center py-8">
+            <div className="space-y-6 animate-in zoom-in-95 duration-500 py-4">
+              {/* Persuasion block */}
+              <div className="text-left">
+                <div className="bg-red-600 text-white text-xs font-bold px-3 py-2 rounded-t-lg text-center tracking-wide">
+                  ⚠️ SEU CASO FOI ANALISADO COM SUCESSO
+                </div>
+                <div className="bg-slate-900 rounded-b-lg px-4 py-4 border border-slate-700">
+                  <h3 className="text-white font-bold text-lg mb-3">
+                    Falta apenas <span className="text-yellow-400">1 passo</span> para um advogado assumir seu caso.
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="bg-slate-800 rounded-lg p-3 text-center border border-slate-700">
+                      <p className="text-xs text-slate-400 mb-1">Consulta particular</p>
+                      <p className="text-red-400 font-bold text-base line-through">R$300-R$500</p>
+                    </div>
+                    <div className="bg-yellow-500 rounded-lg p-3 text-center">
+                      <p className="text-xs text-slate-900 font-semibold mb-1">Pequenas Causas</p>
+                      <p className="text-slate-900 font-bold text-base">R$149,99</p>
+                      <p className="text-[10px] text-slate-800 mt-1">Acesso instantâneo ao advogado</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-1.5 mb-4">
+                    {["Advogados verificados OAB", "3.000+ casos resolvidos", "Modelo ad exitum", "Resposta em horas"].map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-sm text-slate-300">
+                        <span className="text-green-400 font-bold">✓</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="bg-orange-900/60 rounded-lg px-3 py-2 text-center">
+                    <p className="text-yellow-400 text-xs font-medium">
+                      Quanto mais você espera, mais difícil fica cobrar seus direitos
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {/* Original success content */}
+              <div className="text-center">
               <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 className="w-12 h-12" />
               </div>
@@ -238,6 +283,7 @@ export function AffordanceFirst() {
               >
                 Enviar Novo Caso
               </button>
+              </div>
             </div>
           )}
 
