@@ -1,0 +1,52 @@
+IMPORTANTE: Todas as alterações devem ser feitas EXCLUSIVAMENTE no arquivo home.tsx (o arquivo que o site ao vivo usa). NÃO edite AccessibilityFirst.tsx, HierarchyFirst.tsx nem AffordanceFirst.tsx.
+
+Faça estas 4 alterações no home.tsx:
+
+═══ TAREFA 1 — Menu Hamburger Responsivo Mobile ═══
+
+No navbar/header do home.tsx, adicione um menu hamburger para telas mobile (md:hidden). O que precisa:
+
+1. Adicionar um state useState para controlar o menu: const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+2. Adicionar um botão hamburger (3 barras ☰) que aparece APENAS em telas menores que md (classe: "md:hidden")
+3. Os links de navegação atuais devem ter classe "hidden md:flex" para esconder no mobile
+4. Quando o hamburger é clicado, abrir um menu dropdown/overlay com todos os links de navegação empilhados verticalmente
+5. O menu mobile deve ter fundo escuro (#001532) com links brancos e o botão "Falar com Advogado" em destaque
+6. Adicionar botão X para fechar o menu
+7. O botão "Falar com Advogado" no header deve ter classe "hidden md:flex" também
+
+═══ TAREFA 2 — Botão CTA no Hero Mobile ═══
+
+Na seção hero (lado esquerdo, abaixo dos cards "100% Seguro", "Advogados OAB Verificados", etc.), adicionar um botão CTA que aparece APENAS no mobile (classe: "md:hidden"):
+
+<a href="#avaliar" className="md:hidden mt-6 inline-block w-full text-center bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-4 px-6 rounded-xl text-lg transition-all">
+  Avaliar meu caso grátis →
+</a>
+
+Colocar este botão DEPOIS do último card de benefícios na coluna esquerda do hero, antes do fechamento da div da coluna esquerda.
+
+═══ TAREFA 3 — Barra Sticky CTA no Bottom Mobile ═══
+
+Adicionar uma barra fixa no bottom da tela que aparece APENAS no mobile (md:hidden). Colocar este componente no final do JSX do componente principal, antes do </> ou </div> final:
+
+<div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#001532] border-t border-blue-800/30 px-4 py-3 flex items-center justify-between gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
+  <div className="text-white text-xs leading-tight">
+    <span className="font-bold">Triagem gratuita</span>
+    <br/>
+    <span className="text-blue-300">Advogados por R$149,99</span>
+  </div>
+  <a href="#avaliar" className="bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-2.5 px-5 rounded-lg text-sm whitespace-nowrap transition-all flex-shrink-0">
+    Avaliar caso →
+  </a>
+</div>
+
+Também adicionar padding-bottom no body/container principal para que o conteúdo não fique escondido atrás da barra: adicionar className="pb-20 md:pb-0" no container principal ou no último elemento antes do footer.
+
+═══ TAREFA 4 — Reduzir Espaço em Branco entre Categorias e "Sobre Nós" ═══
+
+Procurar a seção que contém as tags/pills de categorias ("Cobrança Indevida", "Negativação Indevida", "Atraso de Vôo", etc.) e a seção "SOBRE NÓS" logo abaixo com o título "Cansado de burocracia...". 
+
+Reduzir o espaçamento entre essas duas seções. O gap atual é muito grande (provavelmente py-20 ou similar). Reduzir para py-8 ou py-10 no container entre essas seções. Se houver um div vazio entre eles, remover. O objetivo é que o conteúdo "Cansado de burocracia..." apareça logo após as categorias sem um vazio enorme.
+
+═══ FIM ═══
+
+Após concluir todas as 4 tarefas, faça um checkpoint.

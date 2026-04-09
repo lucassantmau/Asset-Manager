@@ -350,6 +350,10 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+
+              <a href="#avaliar" className="md:hidden mt-6 inline-block w-full text-center bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-4 px-6 rounded-xl text-lg transition-all">
+                Avaliar meu caso grátis →
+              </a>
             </motion.div>
 
             {/* FORM CARD — Editorial Juris */}
@@ -921,7 +925,7 @@ export default function Home() {
         </div>
       </section>
       {/* SOBRE NÓS */}
-      <section className="py-32 bg-background" id="como-funciona">
+      <section className="py-10 bg-background" id="como-funciona">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <span className="text-[#fee001] font-bold tracking-widest text-xs uppercase">Sobre nós</span>
@@ -1162,6 +1166,21 @@ export default function Home() {
           <p className="text-xs text-white/25 mt-8">Habilitação profissional sujeita a verificação</p>
         </div>
       </section>
+      {/* Spacer mobile para não ficar atrás da sticky bar */}
+      <div className="h-20 md:hidden" aria-hidden="true" />
+
+      {/* Sticky CTA bottom bar — mobile only */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#001532] border-t border-blue-800/30 px-4 py-3 flex items-center justify-between gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
+        <div className="text-white text-xs leading-tight">
+          <span className="font-bold">Triagem gratuita</span>
+          <br/>
+          <span className="text-blue-300">Advogados por R$149,99</span>
+        </div>
+        <a href="#avaliar" className="bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-2.5 px-5 rounded-lg text-sm whitespace-nowrap transition-all flex-shrink-0">
+          Avaliar caso →
+        </a>
+      </div>
+
       <ExitIntentPopup />
     </Layout>
   );
