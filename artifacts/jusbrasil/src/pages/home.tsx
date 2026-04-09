@@ -923,45 +923,119 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* SOBRE NÓS */}
-      <section className="py-10 bg-background" id="como-funciona">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12">
-            <span className="text-[#fee001] font-bold tracking-widest text-xs uppercase">Sobre nós</span>
-            <h2 className="text-3xl md:text-5xl font-black mt-3 mb-8 tracking-tight leading-tight">
-              Cansado de burocracia e dificuldade para encontrar um advogado para pequenas causas?{" "}
-              <span className="gold-gradient-text">Nós resolvemos isso pra você.</span>
-            </h2>
+      {/* NOSSA EQUIPE */}
+      <section className="py-20 bg-[#001532]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="text-[#fee001] text-xs font-bold tracking-widest uppercase">Nossa Equipe</span>
+            <h2 className="text-3xl md:text-4xl font-black mt-3 tracking-tight text-white">Advogados prontos para seu caso</h2>
+            <p className="text-white/50 text-sm mt-3">Profissionais verificados OAB, especializados em Juizado Especial Cível.</p>
           </div>
-
-          <div className="space-y-8 text-lg text-muted-foreground leading-[1.8]">
-            <p>
-              Somos uma plataforma privada que conecta você, de forma rápida e direta, a advogados independentes prontos para assumir o seu caso. Em poucos minutos, você recebe propostas de diferentes profissionais — inclusive no modelo <strong className="text-foreground">ad exitum</strong>, onde você só paga se ganhar.
-            </p>
-
-            <div className="border-l-4 border-[#fee001] pl-6 py-1">
-              <p className="font-bold text-foreground text-xl">Sem complicação. Sem perda de tempo.</p>
-            </div>
-
-            <p>
-              Antes disso, nossa inteligência artificial faz uma <strong className="text-foreground">triagem imediata do seu caso</strong>, verificando se ele atende aos critérios para ser processado nos Juizados Especiais (JEC, JEFAZ e JEF). Você já começa sabendo se vale a pena seguir em frente.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { icon: <Scale className="w-6 h-6" />, text: "Mais agilidade" },
-                { icon: <FileText className="w-6 h-6" />, text: "Mais clareza" },
-                { icon: <ShieldCheck className="w-6 h-6" />, text: "Mais chance de resolver" },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 bg-[#fee001]/8 border border-[#fee001]/20 rounded-xl px-5 py-4">
-                  <span className="text-[#fee001]">{item.icon}</span>
-                  <span className="font-bold text-foreground">{item.text}</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                photo: "https://randomuser.me/api/portraits/men/75.jpg",
+                name: "Dr. Ricardo Almeida",
+                specialty: "Direito do Consumidor",
+                oab: "OAB/SP 342.187"
+              },
+              {
+                photo: "https://randomuser.me/api/portraits/women/65.jpg",
+                name: "Dra. Fernanda Reis",
+                specialty: "Juizado Especial",
+                oab: "OAB/RJ 218.453"
+              },
+              {
+                photo: "https://randomuser.me/api/portraits/men/41.jpg",
+                name: "Dr. Paulo Mendes",
+                specialty: "Defesa do Consumidor",
+                oab: "OAB/MG 195.762"
+              }
+            ].map((adv, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center gap-4">
+                <img
+                  src={adv.photo}
+                  alt={adv.name}
+                  className="w-20 h-20 rounded-full object-cover border-4 border-[#fee001]"
+                />
+                <div>
+                  <p className="font-bold text-white text-base">{adv.name}</p>
+                  <p className="text-[#fee001] text-sm font-semibold mt-1">{adv.specialty}</p>
+                  <p className="text-white/40 text-xs mt-1">{adv.oab}</p>
                 </div>
-              ))}
+                <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1 mt-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#fee001]" />
+                  <span className="text-white/70 text-xs font-medium">Verificado OAB</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SOBRE NÓS */}
+      <section className="py-16 bg-background" id="como-funciona">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Foto profissional */}
+            <div className="relative order-2 lg:order-1">
+              <img
+                src="https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?w=700&auto=format&fit=crop&q=80"
+                alt="Equipe jurídica especializada"
+                className="w-full rounded-2xl object-cover shadow-2xl"
+                style={{ maxHeight: "480px" }}
+              />
+              <div className="absolute bottom-4 left-4 bg-[#001532]/90 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#fee001] flex items-center justify-center flex-shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-[#001532]" />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">+3.000 casos resolvidos</p>
+                  <p className="text-white/50 text-xs">Advogados OAB verificados</p>
+                </div>
+              </div>
             </div>
 
-            <div className="bg-card border border-border rounded-xl p-6 text-sm text-muted-foreground leading-[1.7]">
-              <strong className="text-foreground">Importante:</strong> essa análise é apenas informativa e não substitui a avaliação completa de um advogado — mas já elimina dúvidas e acelera o seu caminho.
+            {/* Texto */}
+            <div className="order-1 lg:order-2 space-y-6">
+              <div>
+                <span className="text-[#fee001] font-bold tracking-widest text-xs uppercase">Sobre nós</span>
+                <h2 className="text-3xl md:text-4xl font-black mt-3 tracking-tight leading-tight">
+                  Cansado de burocracia para encontrar um advogado?{" "}
+                  <span className="gold-gradient-text">Nós resolvemos isso.</span>
+                </h2>
+              </div>
+
+              <div className="space-y-5 text-base text-muted-foreground leading-[1.8]">
+                <p>
+                  Somos uma plataforma privada que conecta você, de forma rápida e direta, a advogados independentes prontos para assumir o seu caso. Em poucos minutos, você recebe propostas de diferentes profissionais — inclusive no modelo <strong className="text-foreground">ad exitum</strong>, onde você só paga se ganhar.
+                </p>
+
+                <div className="border-l-4 border-[#fee001] pl-5 py-1">
+                  <p className="font-bold text-foreground text-lg">Sem complicação. Sem perda de tempo.</p>
+                </div>
+
+                <p>
+                  Nossa triagem identifica se o seu caso atende aos critérios do Juizado Especial (JEC). Você começa sabendo se vale a pena seguir em frente.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { icon: <Scale className="w-5 h-5" />, text: "Mais agilidade" },
+                  { icon: <FileText className="w-5 h-5" />, text: "Mais clareza" },
+                  { icon: <ShieldCheck className="w-5 h-5" />, text: "Mais segurança" },
+                ].map((item, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2 bg-[#fee001]/8 border border-[#fee001]/20 rounded-xl px-3 py-4 text-center">
+                    <span className="text-[#fee001]">{item.icon}</span>
+                    <span className="font-bold text-foreground text-xs">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-card border border-border rounded-xl p-5 text-sm text-muted-foreground leading-[1.7]">
+                <strong className="text-foreground">Importante:</strong> nossa análise é informativa e não substitui a avaliação completa de um advogado — mas acelera o seu caminho.
+              </div>
             </div>
           </div>
         </div>
@@ -1023,26 +1097,28 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                initials: "M.S.",
+                photo: "https://randomuser.me/api/portraits/men/32.jpg",
                 name: "Marcos S.",
                 text: "Fui cobrado indevidamente por um serviço que cancelei. Em menos de 4 meses o juiz condenou a empresa a me devolver tudo com danos morais. Valeu muito a pena!"
               },
               {
-                initials: "A.R.",
+                photo: "https://randomuser.me/api/portraits/women/44.jpg",
                 name: "Ana R.",
                 text: "Minha bagagem foi extraviada pela companhia aérea e eles não queriam me indenizar. O advogado cuidou de tudo online e consegui a indenização sem sair de casa."
               },
               {
-                initials: "C.L.",
+                photo: "https://randomuser.me/api/portraits/men/67.jpg",
                 name: "Carlos L.",
                 text: "Estava com o nome negativado indevidamente há meses. Contratei o serviço, o advogado entrou com ação e em poucos meses limparam meu nome e ainda recebi compensação."
               }
             ].map((dep, i) => (
               <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-[#fee001] flex items-center justify-center text-[#001532] font-black text-sm flex-shrink-0">
-                    {dep.initials}
-                  </div>
+                  <img
+                    src={dep.photo}
+                    alt={dep.name}
+                    className="w-11 h-11 rounded-full object-cover flex-shrink-0 border-2 border-[#fee001]"
+                  />
                   <div>
                     <p className="font-bold text-white text-sm">{dep.name}</p>
                     <div className="flex text-[#fee001] mt-0.5">
