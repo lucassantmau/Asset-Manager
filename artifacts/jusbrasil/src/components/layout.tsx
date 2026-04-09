@@ -23,7 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col relative bg-background text-foreground">
       <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-xl shadow-ambient" : "bg-white/80 backdrop-blur-md"} py-4`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-6">
+          <div className="flex items-center justify-between md:grid md:grid-cols-[auto_1fr_auto] md:gap-6">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5">
               <ShieldCheck className="w-7 h-7 text-[#001532]" />
@@ -33,19 +33,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden lg:flex items-center justify-center gap-6">
+            <nav className="hidden md:flex items-center justify-center gap-6">
               <Link href="/" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Início</Link>
               <a href="/#como-funciona" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Como Funciona</a>
               <a href="/#depoimentos" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Depoimentos</a>
               <Link href="/advogado/signin" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Área do Advogado</Link>
               <a href="/#perguntas-frequentes" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">FAQ</a>
-              
               <Link href="/blog" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Blog</Link>
               <Link href="/termos" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Termos de Uso</Link>
             </nav>
 
             {/* Desktop Actions */}
-            <div className="hidden lg:flex items-center justify-end gap-3">
+            <div className="hidden md:flex items-center justify-end gap-3">
               <Link href="/area-do-cliente" className="text-sm font-medium text-foreground/60 hover:text-foreground transition-colors px-3 py-2">
                 Área do Cliente
               </Link>
@@ -57,16 +56,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </a>
             </div>
 
-            {/* Mobile right side */}
-            <div className="lg:hidden flex items-center gap-3">
-              <a href="/#avaliar" className="px-4 py-2 rounded-lg bg-[#fee001] text-[#716300] text-xs font-bold">
-                Avaliar Caso
-              </a>
+            {/* Mobile hamburger — visible below md (768px) */}
+            <div className="md:hidden flex items-center gap-3">
               <button
                 className="p-2 text-foreground rounded-lg hover:bg-muted transition-colors"
+                aria-label="Menu"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                </svg>
               </button>
             </div>
           </div>
@@ -79,36 +78,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className="fixed inset-0 z-40 bg-white pt-20 pb-6 px-6 flex flex-col"
+            className="fixed inset-0 top-[60px] z-40 bg-[#001532] p-6 flex flex-col gap-4 overflow-y-auto md:hidden"
           >
-            <nav className="flex flex-col gap-2 mt-6">
-              <Link href="/" className="text-xl font-bold text-foreground py-4 border-b border-muted">Início</Link>
-              <a href="/#como-funciona" className="text-xl font-bold text-foreground py-4 border-b border-muted" onClick={() => setMobileMenuOpen(false)}>Como Funciona</a>
-              <a href="/#depoimentos" className="text-xl font-bold text-foreground py-4 border-b border-muted" onClick={() => setMobileMenuOpen(false)}>Depoimentos</a>
-              <Link href="/advogado/signin" className="text-lg text-foreground/60 py-4 border-b border-muted">Área do Advogado</Link>
-              <a
-                href="/#perguntas-frequentes"
-                className="text-lg text-foreground/60 py-4 border-b border-muted"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                FAQ
-              </a>
-              
-                <Link href="/blog" className="text-lg text-foreground/60 py-4 border-b border-muted" onClick={() => setMobileMenuOpen(false)}>
-                  Blog
-                </Link>
-              <Link href="/termos" className="text-lg text-foreground/60 py-4 border-b border-muted" onClick={() => setMobileMenuOpen(false)}>
-                Termos de Uso
-              </Link>
-              <Link href="/area-do-cliente" className="text-lg text-foreground/60 py-4 border-b border-muted">Área do Cliente</Link>
-              <a
-                href="/#avaliar"
-                onClick={() => setMobileMenuOpen(false)}
-                className="mt-6 w-full py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-center flex items-center justify-center gap-2 shadow-[0_4px_0_0_#caa800]"
-              >
-                Falar com Advogado <ArrowRight className="w-5 h-5" />
-              </a>
-            </nav>
+            <a href="/" onClick={() => setMobileMenuOpen(false)} className="text-white text-lg font-medium py-2 border-b border-blue-800/30">Início</a>
+            <a href="/#como-funciona" onClick={() => setMobileMenuOpen(false)} className="text-white text-lg font-medium py-2 border-b border-blue-800/30">Como Funciona</a>
+            <a href="/#depoimentos" onClick={() => setMobileMenuOpen(false)} className="text-white text-lg font-medium py-2 border-b border-blue-800/30">Depoimentos</a>
+            <a href="/#perguntas-frequentes" onClick={() => setMobileMenuOpen(false)} className="text-white text-lg font-medium py-2 border-b border-blue-800/30">FAQ</a>
+            <a href="/blog" onClick={() => setMobileMenuOpen(false)} className="text-white text-lg font-medium py-2 border-b border-blue-800/30">Blog</a>
+            <a href="/termos" onClick={() => setMobileMenuOpen(false)} className="text-white/70 text-base font-medium py-2 border-b border-blue-800/30">Termos de Uso</a>
+            <a href="/area-do-cliente" onClick={() => setMobileMenuOpen(false)} className="text-white/70 text-base font-medium py-2 border-b border-blue-800/30">Área do Cliente</a>
+            <a
+              href="/#avaliar"
+              onClick={() => setMobileMenuOpen(false)}
+              className="mt-4 block w-full text-center bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-4 px-6 rounded-xl text-lg transition-all"
+            >
+              Falar com Advogado →
+            </a>
           </motion.div>
         )}
       </AnimatePresence>
