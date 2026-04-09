@@ -789,6 +789,49 @@ export default function Home() {
                       Para liberar sua área de acompanhamento e receber propostas de advogados, conclua a taxa de ativação abaixo.
                     </p>
 
+                    <div className="space-y-4 text-left mb-6">
+                      <div className="bg-red-600 text-white text-center py-2.5 px-4 rounded-xl text-sm font-bold">⚠️ SEU CASO FOI ANALISADO COM SUCESSO</div>
+                      <p className="text-2xl font-bold text-foreground leading-tight">Falta apenas <span className="text-yellow-400">1 passo</span> para um advogado assumir seu caso.</p>
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">Compare e decida:</p>
+                        <div className="flex gap-3">
+                          <div className="flex-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-center">
+                            <p className="text-xs text-muted-foreground">Consulta particular</p>
+                            <p className="text-xl font-bold text-red-500 line-through mt-1">R$300 – R$500</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">Sem garantia de resultado</p>
+                          </div>
+                          <div className="flex-1 bg-yellow-500 rounded-xl p-3 text-center">
+                            <p className="text-xs font-bold text-[#001532]">Pequenas Causas</p>
+                            <p className="text-2xl font-bold text-[#001532] mt-1">R$149,99</p>
+                            <p className="text-[10px] font-bold text-[#001532]/70 mt-1">Acesso instantâneo ao advogado</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-2.5">
+                        {[
+                          {title:"Advogados verificados OAB", desc:"Profissionais reais, não robôs"},
+                          {title:"3.000+ casos resolvidos", desc:"Experiência comprovada"},
+                          {title:"Modelo ad exitum", desc:"Você só paga honorários se ganhar"},
+                          {title:"Resposta em horas", desc:"Nada de semanas de espera"}
+                        ].map((item, i) => (
+                          <div key={i} className="flex items-start gap-2.5">
+                            <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-foreground">{item.title}</p>
+                              <p className="text-xs text-muted-foreground">{item.desc}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bg-orange-100 dark:bg-orange-900/60 border border-orange-200 dark:border-orange-800/50 rounded-lg py-2.5 px-3 text-center">
+                        <p className="text-xs font-bold text-orange-600 dark:text-yellow-400">⏰ Quanto mais você espera, mais difícil fica cobrar seus direitos</p>
+                      </div>
+                    </div>
+
                     <a
                       href={PAGAMENTO_KLIVO_URL}
                       onClick={() => {
