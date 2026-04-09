@@ -415,6 +415,11 @@ export default function Home() {
                       <p className="text-white/55 text-xs mt-1">Explique o contexto para montarmos a melhor estratégia com advogados parceiros.</p>
                     </div>
 
+                    <div className="flex items-center gap-2 bg-blue-950/40 border border-blue-800/30 rounded-lg px-3 py-2 text-xs text-blue-200 mb-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <span>Triagem gratuita agora · Acesso aos advogados por apenas <strong className="text-yellow-400">R$149,99</strong> após a análise</span>
+                    </div>
+
                     <form onSubmit={form1.handleSubmit(onStep1Submit)} className="space-y-4">
                       <div>
                         <label htmlFor="description" className="block text-xs font-bold text-foreground mb-1.5">
