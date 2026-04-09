@@ -347,9 +347,9 @@ export default function Home() {
                 </div>
               </div>
 
-              <a href="#avaliar" className="md:hidden mt-6 inline-block w-full text-center bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-4 px-6 rounded-xl text-lg transition-all">
+              <button onClick={scrollToCard} className="md:hidden mt-6 w-full text-center bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-4 px-6 rounded-xl text-lg transition-all">
                 Avaliar meu caso grátis →
-              </a>
+              </button>
             </motion.div>
 
             {/* FORM CARD — Editorial Juris */}
@@ -1263,9 +1263,9 @@ export default function Home() {
           <br/>
           <span className="text-blue-300">Advogados por R$149,99</span>
         </div>
-        <a href="#avaliar" className="bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-2.5 px-5 rounded-lg text-sm whitespace-nowrap transition-all flex-shrink-0">
+        <button onClick={scrollToCard} className="bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-2.5 px-5 rounded-lg text-sm whitespace-nowrap transition-all flex-shrink-0">
           Avaliar caso →
-        </a>
+        </button>
       </div>
 
       <ExitIntentPopup />
