@@ -1,0 +1,34 @@
+Preciso de 3 alterações no site. Todas as mudanças são no arquivo home.tsx (exceto se indicado):
+
+TAREFA 1 - REESCREVER FAQ (home.tsx):
+As perguntas atuais do FAQ promovem o PROCON como alternativa gratuita, o que prejudica a conversão. Reescreva as perguntas e respostas do FAQ para:
+
+Pergunta 1: "Quanto tempo demora uma ação no Juizado Especial?"
+Resposta: "Em média, o processo no Juizado Especial Cível leva de 3 a 6 meses para ser concluído. Com nosso acompanhamento especializado, cuidamos de toda a burocracia para que você não precise se preocupar com prazos ou documentos."
+
+Pergunta 2: "Preciso ir ao fórum ou fazer algo presencialmente?"
+Resposta: "Na maioria dos casos, não. O processo é feito de forma 100% digital. Nossos advogados cuidam de todas as etapas online, e você acompanha tudo pelo celular ou computador sem sair de casa."
+
+Pergunta 3: "E se eu perder a ação, preciso pagar algo?"
+Resposta: "No Juizado Especial Cível, não há custas processuais na primeira instância. E o valor de R$149,99 que você paga é apenas pelos honorários advocatícios para dar entrada no processo — independente do resultado."
+
+Pergunta 4: "Por que contratar vocês em vez de ir ao PROCON?"
+Resposta: "O PROCON é um órgão de mediação, sem poder para obrigar empresas a pagar indenização. Já no Juizado Especial, o juiz pode condenar a empresa a te pagar. Com a Pequenas Causas, você tem advogados especializados que sabem como maximizar sua indenização por apenas R$149,99."
+
+Pergunta 5: "Quais tipos de problemas vocês resolvem?"
+Resposta: "Atuamos em casos de cobranças indevidas, nome negativado indevidamente, problemas com companhias aéreas, falhas em produtos ou serviços, e qualquer situação onde uma empresa causou prejuízo ao consumidor. Faça a avaliação gratuita para saber se seu caso se qualifica."
+
+TAREFA 2 - CORRIGIR NUMERAÇÃO DOS STEPS DO FORMULÁRIO (home.tsx):
+O formulário mostra 4 steps na barra de progresso (Diagnóstico → Identificação → Validação → Ativação) mas pula o Step 3 (Validação), indo direto do Step 2 para o Step 4. Corrija isso:
+- Renomeie os steps para ter apenas 3: "Diagnóstico", "Identificação", "Ativação"  
+- Ajuste a barra de progresso para mostrar 3 steps em vez de 4
+- Ajuste toda a lógica de navegação entre steps para funcionar com 3 steps (o que era step 4/Ativação agora é step 3)
+- Certifique-se que o formulário continua funcionando normalmente com o fluxo de 3 steps
+
+TAREFA 3 - ADICIONAR FOTOS REAIS PARA AUMENTAR CONFIANÇA (home.tsx):
+O site atualmente não tem nenhuma foto real — só ícones SVG e texto. Adicione elementos visuais usando imagens de placeholder profissionais:
+- Na seção "Sobre Nós" ou "Como Funciona", adicione uma imagem decorativa usando um gradiente CSS ou um SVG de um escritório/advogado (não use URLs externas de imagens, crie elementos visuais com CSS/SVG inline)
+- Adicione um avatar/ícone visual nos depoimentos/reviews se existirem
+- Se não houver seção de depoimentos, crie uma seção simples com 3 depoimentos fictícios de clientes satisfeitos, com iniciais em avatar circular (ex: "M.S.", "A.R.", "C.L.") e textos curtos sobre experiências positivas com o serviço
+
+Faça todas as 3 tarefas de uma vez.

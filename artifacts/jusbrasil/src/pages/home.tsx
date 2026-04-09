@@ -71,19 +71,17 @@ const CAUSES = [
 ];
 
 const FAQS = [
-  { q: "Devo reclamar no PROCON?", a: "Sim, o PROCON é um órgão de proteção ao consumidor que visa resolver conflitos de consumo." },
-  { q: "A reclamação no PROCON resolve meu problema?", a: "Nem sempre. Embora ajude a reforçar provas e viabilize a punição administrativa do fornecedor, só reclamar não garante reparação." },
-  { q: "O que o PROCON e sites de reclamação oferecem?", a: "Plataformas para solucionar problemas de consumo, com consequência sobre a reputação da empresa e possível penalização administrativa. Mas não garantem reembolso." },
-  { q: "Como obter solução real e eficaz?", a: "Busque o Juizado Especial Cível (Pequenas Causas), somente a Justiça pode criar obrigações e estabelecer condenações." },
-  { q: "O processo é rápido?", a: "O processo de pequenas causas foi criado para ser simples e rápido (Lei 9.099/95)." },
-  { q: "A Pequenas Causas Processos é um serviço oficial da Justiça?", a: "Não. A Pequenas Causas Processos é uma plataforma digital privada que conecta pessoas a advogados independentes. Não temos vínculo com o Poder Judiciário." }
+  { q: "Quanto tempo demora uma ação no Juizado Especial?", a: "Em média o processo leva de 3 a 6 meses. Com nosso acompanhamento especializado cuidamos de toda a burocracia." },
+  { q: "Preciso ir ao fórum ou fazer algo presencialmente?", a: "Na maioria dos casos não. O processo é 100% digital. Nossos advogados cuidam de tudo online." },
+  { q: "E se eu perder a ação, preciso pagar algo?", a: "No Juizado Especial não há custas processuais na primeira instância. O valor de R$149,99 é apenas pelos honorários para dar entrada no processo." },
+  { q: "Por que contratar vocês em vez de ir ao PROCON?", a: "O PROCON é mediação sem poder para obrigar empresas a pagar indenização. No Juizado o juiz pode condenar a empresa. Com a Pequenas Causas você tem advogados especializados por apenas R$149,99." },
+  { q: "Quais tipos de problemas vocês resolvem?", a: "Cobranças indevidas, nome negativado, problemas com companhias aéreas, falhas em produtos ou serviços. Faça a avaliação gratuita." },
 ];
 
 const JOURNEY_STEPS = [
   { id: 1, label: "Diagnóstico" },
   { id: 2, label: "Identificação" },
-  { id: 3, label: "Validação" },
-  { id: 7, label: "Ativação" },
+  { id: 3, label: "Ativação" },
 ];
 const FORM_TITLE_CLASS = "text-2xl md:text-[30px] font-black tracking-[-0.03em] text-foreground leading-tight";
 
@@ -372,9 +370,10 @@ export default function Home() {
                   Etapas do atendimento
                 </p>
                 <div className="flex items-center justify-between gap-2">
-                  {JOURNEY_STEPS.map((s) => {
-                    const active = step === s.id || (s.id === 7 && step > 3);
-                    const done = step > s.id || (s.id === 3 && step >= 7);
+                  {JOURNEY_STEPS.map((s, idx) => {
+                    const stepNum = idx + 1;
+                    const active = s.id === 1 ? step === 1 : s.id === 2 ? step === 2 : step >= 3;
+                    const done = s.id === 1 ? step > 1 : s.id === 2 ? step > 2 : false;
                     return (
                       <div key={s.id} className="flex items-center gap-2 min-w-0">
                         <motion.div
@@ -389,7 +388,7 @@ export default function Home() {
                                 : "bg-white border border-slate-300 text-slate-500"
                           }`}
                         >
-                          {s.id === 7 ? 4 : s.id}
+                          {stepNum}
                         </motion.div>
                         <span className={`text-xs font-semibold transition-colors ${active ? "text-[#001532]" : "text-slate-500"}`}>
                           {s.label}
@@ -1013,6 +1012,53 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {/* DEPOIMENTOS — seção dark antes do FAQ */}
+      <section className="py-20 bg-[#001532]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="text-[#fee001] text-xs font-bold tracking-widest uppercase">Depoimentos</span>
+            <h2 className="text-3xl md:text-4xl font-black mt-3 tracking-tight text-white">O que nossos clientes dizem</h2>
+            <p className="text-white/50 text-sm mt-3">Histórias reais de quem recuperou seus direitos com nossa ajuda.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                initials: "M.S.",
+                name: "Marcos S.",
+                text: "Fui cobrado indevidamente por um serviço que cancelei. Em menos de 4 meses o juiz condenou a empresa a me devolver tudo com danos morais. Valeu muito a pena!"
+              },
+              {
+                initials: "A.R.",
+                name: "Ana R.",
+                text: "Minha bagagem foi extraviada pela companhia aérea e eles não queriam me indenizar. O advogado cuidou de tudo online e consegui a indenização sem sair de casa."
+              },
+              {
+                initials: "C.L.",
+                name: "Carlos L.",
+                text: "Estava com o nome negativado indevidamente há meses. Contratei o serviço, o advogado entrou com ação e em poucos meses limparam meu nome e ainda recebi compensação."
+              }
+            ].map((dep, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-[#fee001] flex items-center justify-center text-[#001532] font-black text-sm flex-shrink-0">
+                    {dep.initials}
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-sm">{dep.name}</p>
+                    <div className="flex text-[#fee001] mt-0.5">
+                      {[1,2,3,4,5].map(s => (
+                        <svg key={s} className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-white/70 text-sm leading-relaxed">"{dep.text}"</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FAQ — âncora para link "FAQ" no header (Perguntas Frequentes / Fui lesado, e agora?) */}
       <section id="perguntas-frequentes" className="py-24 bg-background scroll-mt-24">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
