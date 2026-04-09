@@ -14,8 +14,6 @@ import {
   Lock,
   Star,
   ChevronDown,
-  Building2,
-  Users,
   AlertCircle,
   Circle,
   CheckCircle,
@@ -277,9 +275,9 @@ export default function Home() {
                 <span className="text-white/80 text-xs font-medium">Advogados verificados OAB</span>
               </div>
               <h1 className="text-[40px] md:text-[48px] font-black leading-[1.05] tracking-tight mb-4 text-white">
-                Seus Direitos<br />
-                <span className="text-[#fee001]">Defendidos</span> Sem<br />
-                Sair de Casa.
+                Seus Direitos{" "}
+                <span className="text-[#fee001]">Defendidos</span>{" "}
+                Sem Sair de Casa.
               </h1>
               <p className="text-white/65 mb-2 max-w-lg text-[15px]">Atendimento jurídico 100% digital. Conectamos seu caso a advogados para avaliação e, se cabível, ação no Juizado Especial Cível</p>
               <p className="text-white/35 mb-3 max-w-lg text-[11px]">Somos uma plataforma de intermediação. Não prestamos serviços jurídicos diretamente.</p>
@@ -1240,52 +1238,19 @@ export default function Home() {
           </p>
         </div>
       </section>
-      {/* LAWYER CTA */}
-      <section className="py-32 relative overflow-hidden hero-gradient">
+      {/* CTA FINAL — clientes */}
+      <section className="py-20 relative overflow-hidden hero-gradient">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,#032956_0%,transparent_60%)] pointer-events-none" />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <span className="text-[#fee001] text-xs font-bold tracking-widest uppercase">Para Advogados</span>
-          <h2 className="text-4xl md:text-5xl font-black mb-6 mt-3 text-white tracking-tight">Pare de perder dinheiro <br className="hidden md:block" />para grandes empresas.</h2>
-          <p className="text-lg text-white/60 mb-12 max-w-2xl mx-auto leading-[1.6]">
-            Receba pedidos de propostas diariamente e amplie sua carteira de clientes. Cadastro 100% gratuito.
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <span className="text-[#fee001] text-xs font-bold tracking-widest uppercase">Pronto para resolver seu problema?</span>
+          <h2 className="text-3xl md:text-4xl font-black mb-4 mt-3 text-white tracking-tight">Avalie seu caso agora — é gratuito</h2>
+          <p className="text-base text-white/60 mb-8 max-w-xl mx-auto leading-[1.6]">
+            Em 2 minutos você descobre se tem direito à indenização e conecta seu caso a advogados especializados por apenas R$149,99.
           </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
-            <div className="bg-white/5 rounded-xl p-6 text-center">
-              <div className="w-12 h-12 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] mx-auto mb-4">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h4 className="font-bold mb-2 text-white text-sm">Verificação Rigorosa</h4>
-              <p className="text-xs text-white/40">Validação direta na OAB</p>
-            </div>
-            <div className="bg-white/5 rounded-xl p-6 text-center">
-              <div className="w-12 h-12 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] mx-auto mb-4">
-                <FileText className="w-6 h-6" />
-              </div>
-              <h4 className="font-bold mb-2 text-white text-sm">Casos Qualificados</h4>
-              <p className="text-xs text-white/40">Clientes pré-filtrados</p>
-            </div>
-            <div className="bg-white/5 rounded-xl p-6 text-center">
-              <div className="w-12 h-12 rounded-xl bg-[#fee001] flex items-center justify-center text-[#716300] mx-auto mb-4">
-                <Users className="w-6 h-6" />
-              </div>
-              <h4 className="font-bold mb-2 text-white text-sm">Crescimento</h4>
-              <p className="text-xs text-white/40">Expansão da clientela</p>
-            </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#avaliar" className="px-8 py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
-              Recuperar Meus Direitos Agora
-            </a>
-            <Link 
-              href="/advogado/signup"
-              className="px-8 py-4 rounded-xl border border-white/20 text-white/80 font-medium text-base hover:bg-white/10 transition-all"
-            >
-              Ligar para um Especialista
-            </Link>
-          </div>
-          <p className="text-xs text-white/25 mt-8">Habilitação profissional sujeita a verificação</p>
+          <a href="#avaliar" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
+            Avaliar meu caso grátis <ArrowRight className="w-5 h-5" />
+          </a>
+          <p className="text-xs text-white/30 mt-5">Triagem gratuita · Sem compromisso · 100% digital</p>
         </div>
       </section>
       {/* Spacer mobile para não ficar atrás da sticky bar */}
