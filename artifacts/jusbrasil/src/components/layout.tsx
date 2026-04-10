@@ -100,6 +100,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <main className="flex-1 w-full pt-[68px]">
         {children}
       </main>
+      {/* Floating "Avaliar Caso" CTA — aparece após scroll, bottom-left */}
+      <AnimatePresence>
+        {scrolled && (
+          <motion.a
+            href="/#avaliar"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.25 }}
+            className="fixed bottom-6 left-6 z-40 flex flex-col items-start bg-[#001532] border border-[#fee001]/40 rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.35)] hover:-translate-y-0.5 hover:border-[#fee001]/80 transition-all group"
+            aria-label="Triagem gratuita - Avaliar Caso"
+          >
+            <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#fee001] uppercase tracking-widest mb-0.5">
+              <ShieldCheck className="w-3 h-3" /> Triagem Gratuita
+            </span>
+            <span className="flex items-center gap-1.5 text-sm font-bold text-white group-hover:text-[#fee001] transition-colors">
+              Avaliar meu caso <ArrowRight className="w-3.5 h-3.5" />
+            </span>
+          </motion.a>
+        )}
+      </AnimatePresence>
+
       {/* Floating WhatsApp */}
       <a
         href="https://api.whatsapp.com/send?phone=5511969284925"
