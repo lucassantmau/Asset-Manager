@@ -910,13 +910,13 @@ export default function Home() {
           <h3 className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-6 text-center">Principais Causas que Atendemos</h3>
           <div className="flex overflow-x-auto gap-3 pb-4 no-scrollbar">
             {CAUSES.map((cause, i) => (
-              <a 
+              <button 
                 key={i} 
-                href="#avaliar"
+                onClick={scrollToCard}
                 className="whitespace-nowrap px-4 py-2 rounded-full bg-white ghost-border shadow-ambient hover:bg-[#001532] hover:text-white transition-all text-sm font-medium text-foreground"
               >
                 {cause}
-              </a>
+              </button>
             ))}
           </div>
         </div>
@@ -1078,9 +1078,9 @@ export default function Home() {
           </div>
           
           <div className="mt-16 text-center">
-            <a href="#avaliar" className="inline-flex py-4 px-10 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
+            <button onClick={scrollToCard} className="inline-flex py-4 px-10 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
               Avaliar meu caso grátis
-            </a>
+            </button>
           </div>
         </div>
       </section>
@@ -1247,9 +1247,9 @@ export default function Home() {
           <p className="text-base text-white/60 mb-8 max-w-xl mx-auto leading-[1.6]">
             Em 2 minutos você descobre se tem direito à indenização e conecta seu caso a advogados especializados por apenas R$149,99.
           </p>
-          <a href="#avaliar" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
+          <button onClick={scrollToCard} className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
             Avaliar meu caso grátis <ArrowRight className="w-5 h-5" />
-          </a>
+          </button>
           <p className="text-xs text-white/30 mt-5">Triagem gratuita · Sem compromisso · 100% digital</p>
         </div>
       </section>
