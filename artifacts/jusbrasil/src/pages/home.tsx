@@ -1079,7 +1079,7 @@ export default function Home() {
           
           <div className="mt-16 text-center">
             <a href="#avaliar" className="inline-flex py-4 px-10 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
-              ENVIAR MEU CASO AGORA
+              Avaliar meu caso grátis
             </a>
           </div>
         </div>
