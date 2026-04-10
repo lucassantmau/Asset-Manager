@@ -1254,16 +1254,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Barra fixa lateral esquerda — mobile only */}
-      <div className="md:hidden fixed left-0 top-1/2 -translate-y-1/2 z-40">
+      {/* Barra fixa horizontal inferior — mobile only */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40">
         <button
           onClick={scrollToCard}
-          className="bg-[#001532] border border-l-0 border-white/10 rounded-r-xl shadow-[4px_0_20px_rgba(0,0,0,0.4)] py-5 px-3 flex flex-col items-center gap-2"
-          style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+          className="w-full bg-[#001532] border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.4)] py-4 px-6 flex flex-col items-center gap-0.5"
           aria-label="Avaliar meu caso grátis"
         >
-          <span className="font-black text-[#fee001] text-sm tracking-tight">Avaliar meu caso Grátis</span>
-          <span className="text-white/60 text-[11px]">Preencha o formulário agora</span>
+          <span className="font-black text-[#fee001] text-base tracking-tight">Avaliar meu caso Grátis</span>
+          <span className="text-white/60 text-xs">Preencha o formulário agora</span>
         </button>
       </div>
 
