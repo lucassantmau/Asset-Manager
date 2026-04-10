@@ -347,9 +347,13 @@ export default function Home() {
                 </div>
               </div>
 
-              <button onClick={scrollToCard} className="md:hidden mt-6 w-full text-center bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-4 px-6 rounded-xl text-lg transition-all">
+              <button onClick={scrollToCard} className="md:hidden mt-6 w-full text-center bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-4 px-6 rounded-xl text-lg transition-all shadow-[0_5px_0_0_#caa800] active:shadow-[0_2px_0_0_#caa800] active:translate-y-[3px]">
                 Avaliar meu caso grátis →
               </button>
+              <div className="md:hidden flex items-center justify-center gap-3 mt-3">
+                <span className="text-white/40 text-xs">⭐⭐⭐⭐⭐</span>
+                <span className="text-white/40 text-xs">4.9 · 2.400+ casos avaliados</span>
+              </div>
             </motion.div>
 
             {/* FORM CARD — Editorial Juris */}
@@ -362,6 +366,11 @@ export default function Home() {
               role="region"
               aria-label="Formulário de diagnóstico do caso"
             >
+              {/* Mobile urgency strip */}
+              <div className="md:hidden flex items-center justify-center gap-2 bg-emerald-600 text-white text-[11px] font-bold py-2 px-4">
+                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse inline-block" />
+                Triagem gratuita · Sem compromisso · Leva 2 minutos
+              </div>
               <div className="p-5">
               <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-2">
@@ -833,6 +842,11 @@ export default function Home() {
                       </div>
                     </div>
 
+                    <div className="md:hidden bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-4 text-center">
+                      <p className="text-xs font-bold text-yellow-800">🔐 Pagamento 100% seguro</p>
+                      <p className="text-[11px] text-yellow-700 mt-0.5">PIX, Cartão de Crédito ou Débito · Acesso liberado em minutos</p>
+                    </div>
+
                     <a
                       href={PAGAMENTO_KLIVO_URL}
                       onClick={() => {
@@ -843,9 +857,12 @@ export default function Home() {
                       }}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-base shadow-[0_5px_0_0_#15803d] hover:shadow-[0_2px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all mb-4"
+                      className="flex flex-col items-center justify-center gap-1 w-full py-5 rounded-xl bg-emerald-600 text-white font-bold shadow-[0_6px_0_0_#15803d] hover:shadow-[0_3px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] transition-all mb-3"
                     >
-                      <Lock className="w-4 h-4" /> Ativar acesso agora
+                      <span className="flex items-center gap-2 text-lg">
+                        <Lock className="w-5 h-5" /> Ativar meu acesso agora — R$149,99
+                      </span>
+                      <span className="text-emerald-200 text-xs font-normal">Toque aqui e seja direcionado ao pagamento</span>
                     </a>
 
                     <Link
