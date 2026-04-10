@@ -97,68 +97,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </motion.div>
         )}
       </AnimatePresence>
-      <main className="flex-1 w-full pt-[68px] pb-[72px] md:pb-0">
+      <main className="flex-1 w-full pt-[68px]">
         {children}
       </main>
-      {/* Floating "Avaliar Caso" CTA — desktop only, aparece após scroll, bottom-left */}
-      <AnimatePresence>
-        {scrolled && (
-          <motion.a
-            href="/#avaliar"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.25 }}
-            className="hidden md:flex fixed bottom-6 left-6 z-40 flex-col items-start bg-[#001532] border border-[#fee001]/40 rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.35)] hover:-translate-y-0.5 hover:border-[#fee001]/80 transition-all group"
-            aria-label="Triagem gratuita - Avaliar Caso"
-          >
-            <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#fee001] uppercase tracking-widest mb-0.5">
-              <ShieldCheck className="w-3 h-3" /> Triagem Gratuita
-            </span>
-            <span className="flex items-center gap-1.5 text-sm font-bold text-white group-hover:text-[#fee001] transition-colors">
-              Avaliar meu caso <ArrowRight className="w-3.5 h-3.5" />
-            </span>
-          </motion.a>
-        )}
-      </AnimatePresence>
-
-      {/* Floating WhatsApp — desktop only */}
+      {/* Floating WhatsApp */}
       <a
         href="https://api.whatsapp.com/send?phone=5511969284925"
         target="_blank"
         rel="noopener noreferrer"
-        className="hidden md:flex fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#25D366] rounded-full shadow-ambient hover:-translate-y-1 transition-all items-center justify-center text-white"
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#25D366] rounded-full shadow-ambient hover:-translate-y-1 transition-all flex items-center justify-center text-white"
         aria-label="Contato via WhatsApp"
       >
         <MessageCircle className="w-7 h-7" />
       </a>
-
-      {/* Mobile sticky bottom bar — CTA + WhatsApp sempre visível */}
-      <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#001532] border-t border-[#fee001]/20 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
-        <div className="flex items-center gap-2.5 px-4 py-3">
-          <a
-            href="https://api.whatsapp.com/send?phone=5511969284925"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-13 h-13 min-w-[52px] min-h-[52px] bg-[#25D366] rounded-xl flex items-center justify-center shadow-[0_3px_0_0_#1a9c4a] active:shadow-none active:translate-y-[3px] transition-all"
-            aria-label="WhatsApp"
-          >
-            <MessageCircle className="w-6 h-6 text-white" />
-          </a>
-          <a
-            href="/#avaliar"
-            className="flex-1 flex flex-col items-center justify-center bg-[#fee001] text-[#716300] rounded-xl py-3 shadow-[0_4px_0_0_#caa800] active:shadow-[0_1px_0_0_#caa800] active:translate-y-[3px] transition-all"
-          >
-            <span className="text-[10px] font-bold uppercase tracking-widest opacity-70 leading-none mb-0.5">Triagem Gratuita</span>
-            <span className="text-[15px] font-black leading-tight flex items-center gap-1">
-              Avaliar meu caso <ArrowRight className="w-3.5 h-3.5" />
-            </span>
-          </a>
-        </div>
-      </div>
-
       {/* Footer */}
-      <footer className="bg-[#001532] text-white pt-16 pb-24 md:pb-8 mt-24">
+      <footer className="bg-[#001532] text-white pt-16 pb-8 mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-2">

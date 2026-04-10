@@ -347,13 +347,9 @@ export default function Home() {
                 </div>
               </div>
 
-              <button onClick={scrollToCard} className="md:hidden mt-6 w-full text-center bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-4 px-6 rounded-xl text-lg transition-all shadow-[0_5px_0_0_#caa800] active:shadow-[0_2px_0_0_#caa800] active:translate-y-[3px]">
+              <button onClick={scrollToCard} className="md:hidden mt-6 w-full text-center bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-4 px-6 rounded-xl text-lg transition-all">
                 Avaliar meu caso grátis →
               </button>
-              <div className="md:hidden flex items-center justify-center gap-3 mt-3">
-                <span className="text-white/40 text-xs">⭐⭐⭐⭐⭐</span>
-                <span className="text-white/40 text-xs">4.9 · 2.400+ casos avaliados</span>
-              </div>
             </motion.div>
 
             {/* FORM CARD — Editorial Juris */}
@@ -366,11 +362,6 @@ export default function Home() {
               role="region"
               aria-label="Formulário de diagnóstico do caso"
             >
-              {/* Mobile urgency strip */}
-              <div className="md:hidden flex items-center justify-center gap-2 bg-emerald-600 text-white text-[11px] font-bold py-2 px-4">
-                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse inline-block" />
-                Triagem gratuita · Sem compromisso · Leva 2 minutos
-              </div>
               <div className="p-5">
               <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-2">
@@ -842,11 +833,6 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className="md:hidden bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-4 text-center">
-                      <p className="text-xs font-bold text-yellow-800">🔐 Pagamento 100% seguro</p>
-                      <p className="text-[11px] text-yellow-700 mt-0.5">PIX, Cartão de Crédito ou Débito · Acesso liberado em minutos</p>
-                    </div>
-
                     <a
                       href={PAGAMENTO_KLIVO_URL}
                       onClick={() => {
@@ -857,12 +843,9 @@ export default function Home() {
                       }}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-col items-center justify-center gap-1 w-full py-5 rounded-xl bg-emerald-600 text-white font-bold shadow-[0_6px_0_0_#15803d] hover:shadow-[0_3px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[6px] transition-all mb-3"
+                      className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-base shadow-[0_5px_0_0_#15803d] hover:shadow-[0_2px_0_0_#15803d] hover:translate-y-[3px] active:shadow-none active:translate-y-[5px] transition-all mb-4"
                     >
-                      <span className="flex items-center gap-2 text-lg">
-                        <Lock className="w-5 h-5" /> Ativar meu acesso agora — R$149,99
-                      </span>
-                      <span className="text-emerald-200 text-xs font-normal">Toque aqui e seja direcionado ao pagamento</span>
+                      <Lock className="w-4 h-4" /> Ativar acesso agora
                     </a>
 
                     <Link
@@ -927,13 +910,13 @@ export default function Home() {
           <h3 className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-6 text-center">Principais Causas que Atendemos</h3>
           <div className="flex overflow-x-auto gap-3 pb-4 no-scrollbar">
             {CAUSES.map((cause, i) => (
-              <button
-                key={i}
-                onClick={scrollToCard}
+              <a 
+                key={i} 
+                href="#avaliar"
                 className="whitespace-nowrap px-4 py-2 rounded-full bg-white ghost-border shadow-ambient hover:bg-[#001532] hover:text-white transition-all text-sm font-medium text-foreground"
               >
                 {cause}
-              </button>
+              </a>
             ))}
           </div>
         </div>
@@ -1095,9 +1078,9 @@ export default function Home() {
           </div>
           
           <div className="mt-16 text-center">
-            <button onClick={scrollToCard} className="inline-flex py-4 px-10 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
+            <a href="#avaliar" className="inline-flex py-4 px-10 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
               ENVIAR MEU CASO AGORA
-            </button>
+            </a>
           </div>
         </div>
       </section>
@@ -1264,9 +1247,9 @@ export default function Home() {
           <p className="text-base text-white/60 mb-8 max-w-xl mx-auto leading-[1.6]">
             Em 2 minutos você descobre se tem direito à indenização e conecta seu caso a advogados especializados por apenas R$149,99.
           </p>
-          <button onClick={scrollToCard} className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
+          <a href="#avaliar" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
             Avaliar meu caso grátis <ArrowRight className="w-5 h-5" />
-          </button>
+          </a>
           <p className="text-xs text-white/30 mt-5">Triagem gratuita · Sem compromisso · 100% digital</p>
         </div>
       </section>
