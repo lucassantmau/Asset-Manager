@@ -13,24 +13,11 @@ import {
   Loader2,
   CheckCircle2,
   MessageCircle,
+  Trash2,
 } from "lucide-react";
 
 const OAB_CONSULTA_URL =
   "https://www.oab.org.br/institucional/servicos/consulta-de-inscricoes";
-const NOVO_CASO_KLIVO_URL = "https://go.klivopay.com.br/t45jsqe1qe";
-
-/** Abre o checkout Klivo e dispara conversão Google Ads quando `gtag` existir. */
-function openNovoCasoPaymentWithAdsConversion() {
-  if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
-    (window as any).gtag("event", "conversion", {
-      send_to: "AW-16505818170/R7Z0CNvf_JYcELqYy749",
-      value: 1.0,
-      currency: "BRL",
-    });
-  }
-  window.open(NOVO_CASO_KLIVO_URL, "_blank", "noopener,noreferrer");
-}
-
 type CaseRow = {
   id: string;
   autor_nome: string | null;
@@ -128,8 +115,6 @@ export default function ClientArea() {
 
   const historico = rows.filter(isIntakeComplete);
   const pendentes = rows.filter((r) => !isIntakeComplete(r));
-  const hasCompletedCase = historico.length > 0;
-  const hasOpenFormSlot = pendentes.length > 0 || !hasCompletedCase;
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -263,6 +248,23 @@ export default function ClientArea() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const removeExtraAttachment = async (index: number) => {
+    if (!primaryRow || !userEmail) return;
+    const prev = Array.isArray(primaryRow.arquivos_urls) ? primaryRow.arquivos_urls : [];
+    if (index < 0 || index >= prev.length) return;
+    setUploadError(null);
+    const updated = prev.filter((_, i) => i !== index);
+    const { error } = await supabase
+      .from("pequenas_causas_submissions")
+      .update({ arquivos_urls: updated })
+      .eq("id", primaryRow.id);
+    if (error) {
+      setUploadError("Nao foi possivel remover o arquivo. Tente novamente.");
+      return;
+    }
+    await loadRows(userEmail);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -334,16 +336,13 @@ export default function ClientArea() {
             <button
               type="button"
               onClick={() => {
-                if (!hasOpenFormSlot) {
-                  openNovoCasoPaymentWithAdsConversion();
-                  return;
-                }
-                navigate("/formulario");
+                const target = pendentes[0] ?? rows[0];
+                if (target) openFormulario(target.id);
               }}
               className="inline-flex items-center gap-2 rounded-full bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold px-4 py-2.5 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              {hasOpenFormSlot ? "Enviar meu formulário" : "Pagar R$ 19,99 para novo caso"}
+              Abrir meu formulario
             </button>
           </div>
 
@@ -492,15 +491,8 @@ export default function ClientArea() {
           <div className="p-4 sm:p-5 space-y-3">
             {!listLoading && rows.length === 0 && (
               <div className="rounded-lg border border-amber-100 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
-                Nenhum registro encontrado para este e-mail. Para abrir um novo caso, conclua o pagamento da taxa de
-                R$ 19,99 com o mesmo e-mail da conta.
-                <button
-                  type="button"
-                  className="block mt-2 text-blue-800 font-semibold underline"
-                  onClick={() => openNovoCasoPaymentWithAdsConversion()}
-                >
-                  Ir para pagamento
-                </button>
+                Nenhum formulario encontrado para este e-mail. Se voce ja concluiu o pagamento, aguarde alguns
+                instantes e atualize a pagina.
               </div>
             )}
             {pendentes.length === 0 && rows.length > 0 ? (
@@ -550,6 +542,9 @@ export default function ClientArea() {
             </div>
             <div className="p-5 space-y-4">
               <p className="text-sm text-slate-600">Inclua arquivos adicionais em PDF ou imagem.</p>
+              <p className="text-xs text-slate-500">
+                Se enviou algo errado, remova o arquivo e envie novamente a versao correta.
+              </p>
               {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
               <div className="flex flex-wrap gap-3 items-end">
                 <div>
@@ -599,7 +594,15 @@ export default function ClientArea() {
                       <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-blue-700 truncate hover:underline">
                         {f.name}
                       </a>
-                      <span className="text-xs text-slate-400 ml-auto shrink-0">{f.category}</span>
+                      <span className="text-xs text-slate-400 shrink-0">{f.category}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeExtraAttachment(i)}
+                        className="ml-auto inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Remover
+                      </button>
                     </li>
                   ))}
                 </ul>
