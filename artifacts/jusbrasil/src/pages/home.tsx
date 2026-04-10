@@ -89,7 +89,6 @@ export default function Home() {
   const [caseId, setCaseId] = useState<string | null>(null);
   const [pixCode, setPixCode] = useState<string | null>(null);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [formFocused, setFormFocused] = useState(false);
   const submitCaseMutation = useSubmitCase();
   const createPaymentMutation = useCreatePayment();
 
@@ -430,8 +429,6 @@ export default function Home() {
                         <textarea 
                           id="description"
                           {...form1.register("description")}
-                          onFocus={() => setFormFocused(true)}
-                          onBlur={() => setFormFocused(false)}
                           className="w-full bg-white border-2 border-slate-200 rounded-xl p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#425f8e] focus:ring-[3px] focus:ring-[#425f8e]/10 transition-all min-h-[100px] resize-y text-sm leading-relaxed"
                           placeholder="Ex: Contratei um serviço, paguei, e a empresa não entregou o que foi prometido..."
                         ></textarea>
@@ -1256,20 +1253,6 @@ export default function Home() {
           <p className="text-xs text-white/30 mt-5">Triagem gratuita · Sem compromisso · 100% digital</p>
         </div>
       </section>
-      {/* Spacer mobile para não ficar atrás da sticky bar */}
-      <div className="h-20 md:hidden" aria-hidden="true" />
-
-      {/* Sticky CTA bottom bar — mobile only, some when form is focused */}
-      <div className={`fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#001532] border-t border-blue-800/30 px-4 py-3 flex items-center justify-between gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] transition-transform duration-300 ${formFocused ? "translate-y-full" : "translate-y-0"}`}>
-        <div className="text-white text-xs leading-tight">
-          <span className="font-bold">Triagem gratuita</span>
-          <br/>
-          <span className="text-blue-300">Advogados por R$149,99</span>
-        </div>
-        <button onClick={scrollToCard} className="bg-yellow-400 hover:bg-yellow-500 text-[#001532] font-bold py-2.5 px-5 rounded-lg text-sm whitespace-nowrap transition-all flex-shrink-0">
-          Avaliar caso →
-        </button>
-      </div>
 
       <ExitIntentPopup />
     </Layout>
