@@ -71,8 +71,8 @@ const CAUSES = [
 const FAQS = [
   { q: "Quanto tempo demora uma ação no Juizado Especial?", a: "Em média o processo leva de 3 a 6 meses. Com nosso acompanhamento especializado cuidamos de toda a burocracia." },
   { q: "Preciso ir ao fórum ou fazer algo presencialmente?", a: "Na maioria dos casos não. O processo é 100% digital. Nossos advogados cuidam de tudo online." },
-  { q: "E se eu perder a ação, preciso pagar algo?", a: "No Juizado Especial não há custas processuais na primeira instância. O valor de R$149,99 é apenas pelos honorários para dar entrada no processo." },
-  { q: "Por que contratar vocês em vez de ir ao PROCON?", a: "O PROCON é mediação sem poder para obrigar empresas a pagar indenização. No Juizado o juiz pode condenar a empresa. Com a Pequenas Causas você tem advogados especializados por apenas R$149,99." },
+  { q: "E se eu perder a ação, preciso pagar algo?", a: "No Juizado Especial não há custas processuais na primeira instância. O valor de R$87,90 é apenas pelos honorários para dar entrada no processo." },
+  { q: "Por que contratar vocês em vez de ir ao PROCON?", a: "O PROCON é mediação sem poder para obrigar empresas a pagar indenização. No Juizado o juiz pode condenar a empresa. Com a Pequenas Causas você tem advogados especializados por apenas R$87,90." },
   { q: "Quais tipos de problemas vocês resolvem?", a: "Cobranças indevidas, nome negativado, problemas com companhias aéreas, falhas em produtos ou serviços. Faça a avaliação gratuita." },
 ];
 
@@ -193,8 +193,8 @@ export default function Home() {
   return (
     <Layout>
       <Helmet>
-        <title>Pequenas Causas | Advogados Especialistas em Juizado Especial - R$149,99</title>
-        <meta name="description" content="Conectamos seu caso a advogados especialistas em Pequenas Causas e Juizado Especial Civel. Atendimento 100% digital por apenas R$149,99. Advogados que so cobram se voce ganhar." />
+        <title>Pequenas Causas | Advogados Especialistas em Juizado Especial - R$87,90</title>
+        <meta name="description" content="Conectamos seu caso a advogados especialistas em Pequenas Causas e Juizado Especial Civel. Atendimento 100% digital por apenas R$87,90. Advogados que so cobram se voce ganhar." />
         <meta name="keywords" content="pequenas causas, juizado especial, advogado online, advogado pequenas causas, juizado especial civel, processo pequenas causas, advogado digital" />
         <link rel="canonical" href="https://pequenascausasprocessos.com.br" />
 
@@ -202,14 +202,14 @@ export default function Home() {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://pequenascausasprocessos.com.br" />
         <meta property="og:title" content="Pequenas Causas | Advogados Especialistas - Atendimento Digital" />
-        <meta property="og:description" content="Acesse nossa rede de advogados especialistas em Pequenas Causas por apenas R$149,99. 100% digital, advogados que so cobram no exito da causa." />
+        <meta property="og:description" content="Acesse nossa rede de advogados especialistas em Pequenas Causas por apenas R$87,90. 100% digital, advogados que so cobram no exito da causa." />
         <meta property="og:locale" content="pt_BR" />
         <meta property="og:site_name" content="Pequenas Causas Processos" />
         <meta property="og:image" content="https://cdn.jsdelivr.net/gh/lucassantmau/Asset-Manager@main/artifacts/mockup-sandbox/public/og-image.png" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Pequenas Causas | Advogados Especialistas - R$149,99" />
+        <meta name="twitter:title" content="Pequenas Causas | Advogados Especialistas - R$87,90" />
         <meta name="twitter:description" content="Conectamos seu caso a advogados especialistas em Pequenas Causas. 100% digital, so paga se ganhar." />
 
         <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/lucassantmau/Asset-Manager@main/artifacts/mockup-sandbox/public/og-image.png" />
@@ -223,7 +223,7 @@ export default function Home() {
             "url": "https://pequenascausasprocessos.com.br",
             "areaServed": { "@type": "Country", "name": "Brazil" },
             "serviceType": "Assessoria Juridica em Pequenas Causas",
-            "priceRange": "R$149,99",
+            "priceRange": "R$87,90",
             "availableChannel": {
               "@type": "ServiceChannel",
               "serviceType": "Online",
@@ -241,7 +241,7 @@ export default function Home() {
               {
                 "@type": "Question",
                 "name": "Quanto custa para acessar a rede de advogados?",
-                "acceptedAnswer": { "@type": "Answer", "text": "O acesso a nossa rede de advogados especialistas em pequenas causas custa apenas R$149,99. Apos o pagamento, voce envia seu caso e recebe propostas de advogados que trabalham no modelo ad exitum (so cobram se ganharem)." }
+                "acceptedAnswer": { "@type": "Answer", "text": "O acesso a nossa rede de advogados especialistas em pequenas causas custa apenas R$87,90. Apos o pagamento, voce envia seu caso e recebe propostas de advogados que trabalham no modelo ad exitum (so cobram se ganharem)." }
               },
               {
                 "@type": "Question",
@@ -251,7 +251,7 @@ export default function Home() {
               {
                 "@type": "Question",
                 "name": "Como funciona o atendimento?",
-                "acceptedAnswer": { "@type": "Answer", "text": "Apos o pagamento de R$149,99, voce faz upload do seu processo e aguarda propostas de advogados da nossa rede. Os advogados trabalham no modelo ad exitum: so cobram honorarios se ganharem a causa." }
+                "acceptedAnswer": { "@type": "Answer", "text": "Apos o pagamento de R$87,90, voce faz upload do seu processo e aguarda propostas de advogados da nossa rede. Os advogados trabalham no modelo ad exitum: so cobram honorarios se ganharem a causa." }
               }
             ]
           })}
@@ -418,7 +418,7 @@ export default function Home() {
 
                     <div className="flex items-center gap-2 bg-blue-950/40 border border-blue-800/30 rounded-lg px-3 py-2 text-xs text-blue-200 mb-4">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      <span>Triagem gratuita agora · Acesso aos advogados por apenas <strong className="text-yellow-400">R$149,99</strong> após a análise</span>
+                      <span>Triagem gratuita agora · Acesso aos advogados por apenas <strong className="text-yellow-400">R$87,90</strong> após a análise</span>
                     </div>
 
                     <form onSubmit={form1.handleSubmit(onStep1Submit)} className="space-y-4">
@@ -803,7 +803,7 @@ export default function Home() {
                           </div>
                           <div className="flex-1 bg-yellow-500 rounded-xl p-3 text-center">
                             <p className="text-xs font-bold text-[#001532]">Pequenas Causas</p>
-                            <p className="text-2xl font-bold text-[#001532] mt-1">R$149,99</p>
+                            <p className="text-2xl font-bold text-[#001532] mt-1">R$87,90</p>
                             <p className="text-[10px] font-bold text-[#001532]/70 mt-1">Acesso instantâneo ao advogado</p>
                           </div>
                         </div>
@@ -1245,7 +1245,7 @@ export default function Home() {
           <span className="text-[#fee001] text-xs font-bold tracking-widest uppercase">Pronto para resolver seu problema?</span>
           <h2 className="text-3xl md:text-4xl font-black mb-4 mt-3 text-white tracking-tight">Avalie seu caso agora — é gratuito</h2>
           <p className="text-base text-white/60 mb-8 max-w-xl mx-auto leading-[1.6]">
-            Em 2 minutos você descobre se tem direito à indenização e conecta seu caso a advogados especializados por apenas R$149,99.
+            Em 2 minutos você descobre se tem direito à indenização e conecta seu caso a advogados especializados por apenas R$87,90.
           </p>
           <button onClick={scrollToCard} className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#fee001] text-[#716300] font-bold text-base shadow-[0_6px_0_0_#caa800] hover:shadow-[0_3px_0_0_#caa800] hover:translate-y-[3px] transition-all">
             Avaliar meu caso grátis <ArrowRight className="w-5 h-5" />
